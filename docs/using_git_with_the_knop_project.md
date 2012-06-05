@@ -6,14 +6,19 @@ The Knop Project uses the "fork and pull" model for collaboration.  This article
 
 1. While logged into your GitHub account, navigate to the Knop Project on GitHub.
 
-<https://github.com/knop-project/knop>
+	<https://github.com/knop-project/knop>
 
-2. We strongly recommend that you click the Watch button so that you can follow progress of the project.
+2. We strongly recommend that you __click the Watch button__ so that you can follow progress of the project.
 
-3. Fork the Knop Project repository to your GitHub account by clicking the "Fork" button.  At the time of this writing, this button appeared in the upper-right corner beneath your account name.
+3. __Fork the Knop Project repository__ to your GitHub account by clicking the "Fork" button.  At the time of this writing, this button appeared in the upper-right corner beneath your account name.
 
-4. 
+4. __Clone your fork__ of Knop from your GitHub account to your local computer.  The URL to use in the command will be the SSH option, and appears like this:
 
+		git@github.com:USERNAME/knop.git
+	
+	In your Terminal application, enter the following command, substituting your account username as noted.
+
+		git clone git@github.com:USERNAME/knop.git
 
 Summary
 =======
