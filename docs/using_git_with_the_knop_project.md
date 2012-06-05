@@ -37,53 +37,68 @@ Fork and clone the Knop repo
 
 Now you're ready to start doing some work.
 
-###Updating your local repo
+Modifying and contributing to the Knop Project
+----------------------------------------------
+1. Update your local repo
 
-Before you start working on your local files, you should pull down all updates from the upstream repo to your local repo, and merge any changes into your working files.
+	Before you start working on your local files, you should pull down all updates from the upstream repo to your local repo, and merge any changes into your working files.
 
-	git fetch upstream
-	# Fetches any new changes from the original repo
+		git fetch upstream
+		# Fetches any new changes from the original repo
 
-	git merge upstream/master
-	# Merges any changes fetched into your working files
+		git merge upstream/master
+		# Merges any changes fetched into your working files
 
-###Create a branch
+2. Create a branch
 
-Branching allows you to test an idea or add new features to the project.  To create a branch and begin working in it, run these commands:
+	Branching allows you to test an idea or add new features to the project.  To create a branch and begin working in it, run these commands:
 
-	git branch mybranch
-	# Creates a new branch called "mybranch"
+		git branch MYBRANCH
+		# Creates a new branch called "MYBRANCH"
 
-	git checkout mybranch
-	# Makes "mybranch" the active branch
+		git checkout MYBRANCH
+		# Makes "MYBRANCH" the active branch
 
-You can switch between branches at any time using git checkout.
+	Or you can use this shortcut to combine the above two commands.
 
-	git checkout master
-	# Makes "master" the active branch
+		git checkout -b MYBRANCH
+		# create a new branch for my work and switch to it
 
-	git switch mybranch
-	# Makes "mybranch" the active branch
+3. You can __switch between branches__ at any time using `git checkout`.
 
-Determine which branch you are currently on, and the status of files in your local repository.
+		git checkout master
+		# Makes "master" the active branch
 
-	git status
+		git switch MYBRANCH
+		# Makes "MYBRANCH" the active branch
 
-When you edit files, changes are tracked according to whichever branch is current at that time.  Thus you should always switch to the branch where you want to do your code editing before editing code.
+4. Determine which branch you are currently on, and the status of files in your local repository.
 
-Once you are done editing files, you need to stage them (add them to the index) and commit them with a message.  This shortcut does it all in one swoop:
+		git status
 
-	git commit -a -m "commit_message"
+	When you edit files, changes are tracked according to whichever branch is current at that time.  Thus you should always switch to the branch where you want to do your code editing before editing code.
 
+5. Once you are done editing files, you need to stage them (add them to the index) and commit them with a message.  This shortcut does it all in one swoop:
 
+		git commit -a -m "commit_message"
 
-###Updating your fork on GitHub
+6. Next, push your branch up to your fork on GitHub.
+
+		# on the first push only (-u allows the tracking of "MYBRANCH"):
+		git push -u origin MYBRANCH
+
+		# on subsequent pushes:
+		git push
+
+7. Finally, to contribute your changes to the Knop Project, submit a __pull request__ through the GitHub website.  The project administrators will review your request.
+
+Updating your fork on GitHub
+----------------------------
+At any time you can update your fork on GitHub.
 
 	git fetch upstream
 	git merge upstream/master
 	git push
-
-
 
 For more information
 ====================
