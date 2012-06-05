@@ -23,9 +23,14 @@ If you are new to git or GitHub, start with the [Git and GitHub Installation and
 
 If you already have git installed and a GitHub account, and want to use git for version control of your own repository of Knop, then start with [Using git with the Knop Project](docs/using_git_with_the_knop_project.md).
 
+The [Knop Manual](docs/knop_manual.pdf) provides a walk-through of Knop and some code examples.
 
+The [Knop API Reference](docs/help.lasso) describes all the Knop types and their methods.
 
-More documentation will be provided as it gets committed to the repository.
+For installation and configuration of Knop for each version of Lasso, please see its appropriate directory.
+
+* [Knop for Lasso 8.x](knop8/)
+* [Knop for Lasso 9.x](knop9/)
 
 Support
 =======
