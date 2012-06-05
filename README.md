@@ -15,6 +15,13 @@ Demo
 ====
 A live demo site of Knop will be published in the near future.
 
+Installation and configuration of Knop
+======================================
+For installation and configuration of Knop for each version of Lasso, please see its appropriate directory.
+
+* [Knop for Lasso 8.x](knop8/)
+* [Knop for Lasso 9.x](knop9/)
+
 Documentation
 =============
 Documentation is available in the "[docs](docs/)" folder of the Knop Project.
@@ -26,11 +33,6 @@ If you already have git installed and a GitHub account, and want to use git for 
 The [Knop Manual](docs/knop_manual.pdf) provides a walk-through of Knop and some code examples.
 
 The [Knop API Reference](docs/help.lasso) describes all the Knop types and their methods.
-
-For installation and configuration of Knop for each version of Lasso, please see its appropriate directory.
-
-* [Knop for Lasso 8.x](knop8/)
-* [Knop for Lasso 9.x](knop9/)
 
 Support
 =======
