@@ -15,28 +15,37 @@ Demo
 ====
 A live demo site of Knop will be published in the near future.
 
+Documentation
+=============
+Documentation is available in the "[docs](docs/)" folder of the Knop Project.
+
+If you are new to git or GitHub, start with the [Git and GitHub Installation and Configuration Guide](docs/git_install_guide.md).
+
+If you already have git installed and a GitHub account, and want to use git for version control of your own repository of Knop, then start with [Using git with the Knop Project](docs/using_git_with_the_knop_project.md).
+
+
+
+More documentation will be provided as it gets committed to the repository.
+
 Support
 =======
+Technical support is provided by the community of Knop developers and users.
+
 An email discussion list is provided by Montania SE.  To subscribe, send email to <knop-feed@lists.montania.se>
 
 The Knop mailing list archive is available on [Nabble](http://lasso.2283332.n4.nabble.com/Knop-Framework-Discussion-f3157831.html).
 
-[Knop Project Issue Tracker](https://github.com/knop-project/knop/issues)
+To file a bug report, please use the [Knop Project Issue Tracker](https://github.com/knop-project/knop/issues).
 
 License
 =======
 The majority of the code in Knop is supplied under this license:
 
 Apache License, Version 2.0
+
 <http://www.apache.org/licenses/LICENSE-2.0.html>
 
-
-
-The documentation portion of Knop (the rendered contents of the
-"docs" directory of a software distribution or checkout) is supplied
-under the Creative Commons Attribution-Noncommercial-Share Alike 3.0
-United States License as described by
-<http://creativecommons.org/licenses/by-nc-sa/3.0/us/>
+The documentation portion of Knop (the rendered contents of the "docs" directory of a software distribution or checkout) is supplied under the Creative Commons Attribution-Noncommercial-Share Alike 3.0 United States License as described by <http://creativecommons.org/licenses/by-nc-sa/3.0/us/>
 
 Copyright notice
 ================
