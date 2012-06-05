@@ -1,0 +1,113 @@
+﻿table.grid {
+	border-collapse: collapse;
+	border-bottom: 1px solid #ccc;
+}
+
+.grid th, .grid td {
+	text-align: left;
+	text-decoration: none;
+	font-weight: normal;
+	border-style: solid;
+	margin: 0;
+}
+
+.grid th {
+	background: #eee;
+	border-color: #ccc #ddd #ccc #ddd;
+	border-width: 1px;
+	font-family: verdana, arial;
+	font-size: 12px;
+	padding: 0;
+}
+
+.grid th.sort {
+	background: #acf;
+}
+
+.grid thead th div {
+	padding: 2px 4px 2px 4px;
+}
+
+.grid thead th a {
+	text-decoration: none;
+	color: #000;
+	display: block;
+	padding: 2px 4px 2px 4px;
+}
+
+.grid thead th a:hover {
+	background: #ddd;
+}
+
+.grid thead th.sort a:hover {
+	background: #9be;
+}
+
+.grid th.quicksearch {
+	border: 0;
+	padding: 2px;
+	background-color: #fff;
+	text-align: right;
+}
+
+.grid th.quicksearch form {
+	display: inline;
+}
+
+.grid th.quicksearch input {
+	margin-left: 2px;
+}
+
+.grid th.footer {
+	text-align: center;
+	padding: 2px 4px 2px 4px;
+}
+
+.grid th.footer a {
+	text-decoration: none;
+}
+
+.grid td {
+	border-color: #FFF #E7E7E7 #FFF #E7E7E7;
+	border-width: 0 1px 0 1px;
+	border-style: solid;
+	padding: 2px;
+}
+
+.grid td.even {
+	background: #f0f7ff;
+}
+
+.grid a.ext {
+	text-decoration: none;
+	color: black;
+	border-bottom: 1px dotted #66f;
+}
+
+.grid .highlight {
+	background-color: #ff9 !important;
+}
+
+.grid .sortmarker {
+	color: #666;
+	font-family: arial;
+	font-size: 10px;
+	padding-left: 5px;
+}
+
+.grid .center {
+	text-align: center;
+}
+
+.grid .prevnext {
+	color: #36F;
+	font-size: 12px;
+	font-family: arial;
+	display: inline;
+	padding-left: 5px;
+	padding-right: 5px;
+}
+
+.grid .dim {
+	color: #999;
+}

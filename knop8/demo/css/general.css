@@ -1,0 +1,45 @@
+﻿body {
+	margin: 10px;
+	font-family: verdana, arial;
+	font-size: 12px;
+	background-color: #5bb;
+}
+form {display: inline;}
+#content {
+	background: #fff;
+	border: 1px solid #aaa;
+	clear: both;
+	margin: 0;
+	padding: 1.5em;
+	margin-top: 2px;
+/*	padding-top: 7em;*/
+	padding-bottom: 2em;
+}
+
+.message {
+	padding: 5px;
+	border: 1px solid #999;
+	background-color: #ff9;
+	width: 500px;
+	text-align: left !important;
+}
+.pagefooter {
+	font-family: verdana;
+	font-size: 12px;
+	color: #666;
+}
+
+input.button {
+	width: 90px;
+}
+
+
+.debug {
+background: #eee;
+border: 0;
+page-break-before: always;
+margin-top: 2em;
+padding: 2em;
+font-size: 80%;
+color: #333;
+}

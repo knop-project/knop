@@ -1,6 +1,6 @@
 Knop
 ====
-Knop is a web application framework using Lasso 8.x or 9.x.  Lasso is a programming language from [LassoSoft](http://www.lassosoft.com/).
+Knop is an open source web application framework using Lasso 8.x or 9.x.  Lasso is a programming language from [LassoSoft](http://www.lassosoft.com/).
 
 Knop provides many features to facilitate the creation of web applications, including:
 
