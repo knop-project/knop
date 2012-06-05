@@ -1,6 +1,8 @@
-Introduction
-============
+Git and GitHub Installation and Configuration Guide
+===================================================
 
+Introduction
+------------
 The Knop Project relies upon git and GitHub for version control of source files and collaboration amongst its contributors.  Although one could merely download the files as a zip archive, one would lose any advantages of version control, specifically to be able to roll back or forward to any point in their repository.  This is especially useful when, for example, a new version of Knop is released and the developer wants to test it out, only to find that there is a bug in Knop or it breaks other components of their system.
 
 The Knop Project uses the "fork and pull" model for collaboration.  Developers should fork the Knop Project into their own repository under their GitHub account, then clone their GitHub repository to their local development machine.  From there, the developer can make changes to the files, test, and, when satisfactory, push the changes to their GitHub repository.  At this point, the developer can submit a [pull request](https://help.github.com/articles/using-pull-requests) to the Knop Project to review.
