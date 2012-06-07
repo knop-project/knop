@@ -1,0 +1,61 @@
+﻿fieldset {
+	background-color: #f7f7f7;
+	padding: 10px;
+	/*width: 600px;*/
+}
+fieldset legend {
+	font-weight: bold;
+	padding: 0;
+	margin-top: 1em;
+	line-height: 0;
+}
+fieldset label, fieldset input, fieldset textarea {
+	margin-bottom: 5px;
+	display: block;
+	float: left;
+}
+fieldset label {
+	text-align: left;
+	width: 120px;
+	padding-right: 5px;
+}
+fieldset .indent  {
+	margin-left: 120px;
+}
+fieldset input.button  {
+	margin-top: 30px;
+	margin-right: 20px;
+	width: 90px;
+}
+fieldset input.first  {
+	margin-left: 120px;
+}
+
+fieldset br {
+	clear: left;
+}
+fieldset fieldset {
+	border: solid silver;
+	border-width: 0 0 0 1px;
+	margin-top: 1em;
+}
+fieldset .narrowlabel label {
+	width: auto;
+}
+
+fieldset .inputgroup { /* the inputgroup class is for checkboxes and radios */
+	margin-left: 120px;
+}
+fieldset .inputgroup label, fieldset .inputgroup input { /* the inputgroup class is for checkboxes and radios */
+	float: none !important;
+	display: inline !important;
+	width: auto !important;
+}
+
+#dirtymarker {
+	padding: 2px;
+}
+#dirtymarker.unsaved {
+	background-color: #ffb;
+}
+
