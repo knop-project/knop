@@ -61,3 +61,6 @@ To upgrade Knop, overwrite the knop.lasso in the appropriate scope, then execute
 
 	namespace_unload('knop_');
 
+Building Knop from .inc source files
+------------------------------------
+TODO
