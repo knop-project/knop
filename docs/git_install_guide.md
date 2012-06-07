@@ -33,6 +33,10 @@ GitHub provides some nifty tutorials to become familiar with their system and gi
 
 [Using pull requests](https://help.github.com/articles/using-pull-requests)
 
+Git Immersion is an excellent tutorial with more detail.
+
+[Git Immersion](http://gitimmersion.com/)
+
 How to install and set up git in general
 ----------------------------------------
 For extremely detailed information of installing git for various environments, the book Pro Git is an excellent resource and contains the following chapter.

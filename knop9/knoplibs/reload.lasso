@@ -1,4 +1,4 @@
-<?LassoScript
+﻿<?LassoScript
 /*
 	Help file to reload selected knop types. Useful while editing type code
 
@@ -9,7 +9,7 @@
 	2012-05-18	JC	Initial release as help for Steve.
 */
 
-?>﻿<!DOCTYPE html>
+?><!DOCTYPE html>
 <html>
 <head>
 	<meta charset="utf-8" />
