@@ -20,9 +20,10 @@ Install Knop demo files
 	__Method #2__ relies on a LassoApp technique introduced in Lasso 9.  Building LassoApps in Lasso 8 was a daunting task, but now in 9 it is stupid easy.  For complete details of LassoApps in Lasso 9, visit the following articles.
 	
 	[Building and Deploying Lasso Apps](http://www.lassosoft.com/LDC-2012-Building-and-Deploying-Lasso-Apps)
+
 	[Language Guide - Lasso Apps](http://www.lassosoft.com/Language-Guide-Lasso-Apps)
 
-	Copy the directory `/knoplibs/` and its files to the LassoApps folder in either the Lasso Server home directory (`/private/var/lasso/home/LassoApps`) or into any instance directory (`/private/var/lasso/instances/INSTANCE_NAME/LassoApps`).
+	Copy the directory `/knoplibs/` and its files to the LassoApps folder in either the Lasso Server home directory `/private/var/lasso/home/LassoApps` or into any instance directory `/private/var/lasso/instances/INSTANCE_NAME/LassoApps`.
 
 	If you decide to experiment with modifications of Knop, then we recommend creating one Lasso instance for each version of Knop, one for your original and one each for each experimental version.
 
