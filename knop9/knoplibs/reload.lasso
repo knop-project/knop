@@ -1,36 +1,53 @@
-﻿<!DOCTYPE html>
+<?LassoScript
+/*
+	Help file to reload selected knop types. Useful while editing type code
+
+	CHANGE NOTES
+
+	2012-06-07	JC	Enhanced the knop_base preload check and moved it to load inside the protect block.
+	2012-06-07	SP	HTML wrapping and check to see if knop_base was preloaded. If not load it.
+	2012-05-18	JC	Initial release as help for Steve.
+*/
+
+?>﻿<!DOCTYPE html>
 <html>
 <head>
 	<meta charset="utf-8" />
-	<title>Untitled</title>
-	<meta name="generator" content="BBEdit 9.6" />
+	<title>Reload Knop type files</title>
 </head>
 <body>
+<p>
+This page allows you to reload selected knop types. It's useful while editing the types to get Lasso see and use the changed code.<br>
+It's assumed that the knop files are in the same directory as this file. If not, edit the variable "basepath" to reflect the files location.
+</p>
 <?LassoScript
 // reload of types
 
-var(basepath = response_path->trim&)
+local(basepath = response_path->trim&)
 
-var(message = array)
+local(message = array)
 // load knop_base if it is not selected
 local(reloadarray = action_param('reloadfile') -> split('\r'))
 
 #reloadarray->size > 0
 	&& #reloadarray !>> 'knop_base.lasso'
-	&& !lasso_tagexists('knop_base')
-? include($basepath + 'knop_base.lasso')
+	&& !(::knop_base -> istype)
+? #reloadarray -> insertfirst('knop_base.lasso')
 
 iterate(#reloadarray) => {
 	protect => {
 		handle_error => {
-			$message -> insert('failed reloading ' + loop_value + '. Error: ' + error_msg)
+			#message -> insert('failed reloading ' + loop_value + '. Error: ' + error_msg)
 		}
-		include($basepath + loop_value->trim&)
-		error_code == 0 ? $message -> insert('Reloaded ' + loop_value)
+		include(#basepath + loop_value->trim&)
+		error_code == 0 ? #message -> insert('Reloaded ' + loop_value)
 	}
 }
-
-$message -> join('<br>')
+if(#message -> size > 0)
+	'<p style="background-color:LightPink">'
+	#message -> join('<br>')
+	'</p>'
+/if
 ?>
 <hr>
 <form method="post" action="">
@@ -58,4 +75,3 @@ $message -> join('<br>')
 </form>
 </body>
 </html>
-
