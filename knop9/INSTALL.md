@@ -7,26 +7,26 @@ Install Knop demo files
 
 2. There are essentially __SOME_NUMBER__ ways to install the Knop libraries.  We'll discuss these methods so you can decide which is most appropriate for your situation.
 
-	* The first method is most appropriate for when you want to be able to load your Knop library files manually.  You can also reload a type after you have edited it.  This method requires that you place them in the webroot, which provides convenient access to them.
+	__Method #1__ is most appropriate for when you want to be able to load your Knop library files manually.  You can also reload a type after you have edited it.  This method requires that you place them in the webroot, which provides convenient access to them.
 
-		Copy the directory `/knoplibs/` and its files into the web root of the same virtual host as in Step 1.
+	Copy the directory `/knoplibs/` and its files into the web root of the same virtual host as in Step 1.
 
-		To manually load the files, visit the appropriate URL for your virtual host, e.g:
+	To manually load the files, visit the appropriate URL for your virtual host, e.g:
 
-		<http://localhost/knoplibs/reload.lasso>
+	<http://localhost/knoplibs/reload.lasso>
 
-		Check the types that you want to load or reload, and submit the form.  A list of types that load will display.
+	Check the types that you want to load or reload, and submit the form.  A list of types that load will display.
 	
-	* The second method relies on a LassoApp technique introduced in Lasso 9.  Building LassoApps in Lasso 8 was a daunting task, but now in 9 it is stupid easy.  For complete details of LassoApps in Lasso 9, visit the following articles.
+	__Method #2__ relies on a LassoApp technique introduced in Lasso 9.  Building LassoApps in Lasso 8 was a daunting task, but now in 9 it is stupid easy.  For complete details of LassoApps in Lasso 9, visit the following articles.
 	
-		[Building and Deploying Lasso Apps](http://www.lassosoft.com/LDC-2012-Building-and-Deploying-Lasso-Apps)
-		[Language Guide - Lasso Apps](http://www.lassosoft.com/Language-Guide-Lasso-Apps)
+	[Building and Deploying Lasso Apps](http://www.lassosoft.com/LDC-2012-Building-and-Deploying-Lasso-Apps)
+	[Language Guide - Lasso Apps](http://www.lassosoft.com/Language-Guide-Lasso-Apps)
 
-		Copy the directory `/knoplibs/` and its files to the LassoApps folder in either the Lasso Server home directory (`/private/var/lasso/home/LassoApps`) or into any instance directory (`/private/var/lasso/instances/INSTANCE_NAME/LassoApps`).
+	Copy the directory `/knoplibs/` and its files to the LassoApps folder in either the Lasso Server home directory (`/private/var/lasso/home/LassoApps`) or into any instance directory (`/private/var/lasso/instances/INSTANCE_NAME/LassoApps`).
 
-		If you decide to experiment with modifications of Knop, then we recommend creating one Lasso instance for each version of Knop, one for your original and one each for each experimental version.
+	If you decide to experiment with modifications of Knop, then we recommend creating one Lasso instance for each version of Knop, one for your original and one each for each experimental version.
 
-		You do not need to restart Lasso server.
+	You do not need to restart Lasso server.
 
 3. Put `LassoStartup/urlhandler_atbegin.lasso` in LassoStartup at the same scope as in the previous step.
 
