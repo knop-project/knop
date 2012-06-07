@@ -1,0 +1,78 @@
+Installation of Knop demo for Lasso 9.x
+=======================================
+
+Install Knop demo files
+-----------------------
+1. Copy the files in the `demo` folder into the web root of a virtual host. If you prefer you can put the files in a subfolder, but in that case you need to configure the site root according to instructions below.  Regardless `demo/_urlhandler.lasso` must always be at the web root.
+
+2. There are essentially __SOME_NUMBER__ ways to install the Knop libraries.  We'll discuss these methods so you can decide which is most appropriate for your situation.
+
+	* The first method is most appropriate for when you want to be able to load your Knop library files manually.  You can also reload a type after you have edited it.  This method requires that you place them in the webroot, which provides convenient access to them.
+
+		Copy the directory `/knoplibs/` and its files into the web root of the same virtual host as in Step 1.
+
+		To manually load the files, visit the appropriate URL for your virtual host, e.g:
+
+		<http://localhost/knoplibs/reload.lasso>
+
+		Check the types that you want to load or reload, and submit the form.  A list of types that load will display.
+	
+	* The second method relies on a LassoApp technique introduced in Lasso 9.  Building LassoApps in Lasso 8 was a daunting task, but now in 9 it is stupid easy.  For complete details of LassoApps in Lasso 9, visit the following articles.
+	
+		[Building and Deploying Lasso Apps](http://www.lassosoft.com/LDC-2012-Building-and-Deploying-Lasso-Apps)
+		[Language Guide - Lasso Apps](http://www.lassosoft.com/Language-Guide-Lasso-Apps)
+
+		Copy the directory `/knoplibs/` and its files to the LassoApps folder in either the Lasso Server home directory (`/private/var/lasso/home/LassoApps`) or into any instance directory (`/private/var/lasso/instances/INSTANCE_NAME/LassoApps`).
+
+		If you decide to experiment with modifications of Knop, then we recommend creating one Lasso instance for each version of Knop, one for your original and one each for each experimental version.
+
+		You do not need to restart Lasso server.
+
+3. Put `LassoStartup/urlhandler_atbegin.lasso` in LassoStartup at the same scope as in the previous step.
+
+Web server configuration
+------------------------
+To use virtual URLs, the web server needs to be configured so that extensionless URLs are sent to Lasso.  Then in turn Lasso will execute the file `LassoStartup/urlhandler_atbegin.lasso`, which in turn will load `demo/_urlhandler.lasso`.  We assume that you know how to configure virtual hosts and your hosts file, as well as any DNS records if needed.  We also assume that you have mod_rewrite installed.
+
+Open the file `apache/apache.conf`, and copy the directives from that file into your VirtualHost directive.  Restart Apache.
+
+If you can't set up the web server to support extensionless URLs, you can configure the demo solution to use parameter based navigation instead.  See "Navigation method" below.
+
+Set up the MySQL demo database
+------------------------------
+1. Create a MySQL database named "knopdemo".
+
+2. Load the file `databases/knopdemo.sql` into MySQL and execute the query.  This will create a customer table and populate it with sample data.
+
+3. In Lasso ServerAdmin, configure access for the database.
+
+4. Edit the file `demo/_config/cfg__global.inc` with the database username and password used in the previous step.
+
+(Optional) The `databases/` folder also contains a FileMaker 5/6 version of the database to demonstrate that Knop works transparently with FileMaker databases as well. Point the Knop example to the FileMaker database by changing the database name to `knopdemo_fm` in `demo/_config/cfg__global.inc`.
+
+Configure Knop site root
+------------------------
+In `demo/index.lasso` the variable `$siteroot` is set to "/". Configure it to whatever path you have put the demo solution in, or "/" if you copied the demo files in the web root.  It should have a leading and trailing slash (or just a single slash).
+
+The `$siteroot` variable is set in the file `demo/_urlhandler.lasso` so make the same change there.
+
+Default file
+------------
+`demo/index.lasso` is the central hub file for the entire demo solution. Make sure Apache is configured such that `index.lasso` is a default file name.
+
+	<IfModule dir_module>
+		DirectoryIndex index.lasso index.las index.html index.htm
+	</IfModule>
+
+Lasso SiteAdmin configuration
+-----------------------------
+The extension `.inc` may need to be added to the File Tags Extensions list in SiteAdmin > Setup > Site > File Extensions.
+
+Navigation method
+-----------------
+The navigation method for the demo is initially set to 'path', which uses virtual URLs. If you can't use virtual URLs, you can change the default navigation method by configuring the variable `navmethod` and setting it to the value of 'param' in `demo/_config/cfg__global.inc`.
+
+Upgrading Knop
+--------------
+To upgrade Knop, overwrite the Knop libraries in the appropriate scope, then __DO_SOME_STUFF__ without restarting Lasso.
+
