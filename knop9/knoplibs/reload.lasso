@@ -1,27 +1,16 @@
 ﻿<?LassoScript
 /*
-	Help file to reload selected knop types. Useful while editing type code
+	This file allows the developer to select and reload Knop types through a web browser.
 
 	CHANGE NOTES
 
+	2012-06-07	SP	Split Knop type loader into LassoApp and web root versions.
 	2012-06-07	JC	Enhanced the knop_base preload check and moved it to load inside the protect block.
 	2012-06-07	SP	HTML wrapping and check to see if knop_base was preloaded. If not load it.
 	2012-05-18	JC	Initial release as help for Steve.
 */
 
-?><!DOCTYPE html>
-<html>
-<head>
-	<meta charset="utf-8" />
-	<title>Reload Knop type files</title>
-</head>
-<body>
-<p>
-This page allows you to reload selected knop types. It's useful while editing the types to get Lasso see and use the changed code.<br>
-It's assumed that the knop files are in the same directory as this file. If not, edit the variable "basepath" to reflect the files location.
-</p>
-<?LassoScript
-// reload of types
+// reload types
 
 local(basepath = response_path->trim&)
 
@@ -44,11 +33,20 @@ iterate(#reloadarray) => {
 	}
 }
 if(#message -> size > 0)
-	'<p style="background-color:LightPink">'
+	'<p style="background-color:LawnGreen">'
 	#message -> join('<br>')
 	'</p>'
 /if
-?>
+?><!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8" />
+	<title>Knop Type Loader - web root version</title>
+</head>
+<body>
+<p>
+This file allows the developer to select and reload Knop types through a web browser. It's assumed that the Knop files are in the same directory as this file. If not, edit the variable "basepath" to reflect the files location.
+</p>
 <hr>
 <form method="post" action="">
 	<label id="knop_base_label" for="knop_base"><input type="checkbox" id="knop_base" value="knop_base.lasso" name="reloadfile"> Knop Base (must be loaded before all other Knop types)</label>
