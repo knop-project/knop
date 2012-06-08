@@ -44,6 +44,28 @@ The Knop mailing list archive is available on [Nabble](http://lasso.2283332.n4.n
 
 To file a bug report, please use the [Knop Project Issue Tracker](https://github.com/knop-project/knop/issues).
 
+Why "Knop"?
+===========
+"Knop" is Swedish for knot, and a knot is what keeps a lasso together. A good knot makes a good lasso experience.
+
+The meaning is the same as English knot, which is both used for the speed of boats or airplanes (one nautical mile, or 1852 meters, per hour), or a knot on a rope. The speed measurement comes from the rope knot meaning, where they measured how many knots on a rope passed in a given time when they measured the speed of ships in the old days.
+
+The word stems from the Dutch word _knoop_ with the same meaning, which is also related to _knopp_ (knob in English).
+
+Knop is pronounced "kuh-NOOP" with a sounding "k" and a long "o" just as in groove.
+
+Credits
+=======
+Greg Willits' PageBlocks manual has been a valuable inspiration when specifying some of the components of Knop.
+
+Johan Sölve of Montania System AB created and developed Knop into a mature and stable web application framework.
+
+Jolle Carlestam and Tim Taplin wrote major portions of Knop to run on Lasso 9.
+
+Steve Piercy wrote documentation and migrated the Knop Project to GitHub.
+
+From the folks at LassoSoft: Jono Guthrie and Kyle Jessup for collaborating with the Knop Project to improve Lasso, and thus Knop; Sean Stephens for listening and responding to our concerns; and Rachel Guthrie for steadfast encouragement and support.
+
 License
 =======
 The majority of the code in Knop is supplied under this license:
