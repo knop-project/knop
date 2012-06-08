@@ -90,7 +90,7 @@ Modifying and contributing to the Knop Project
 		# on subsequent pushes:
 		git push
 
-7. Finally, to contribute your changes to the Knop Project, submit a __pull request__ through the GitHub website.  The project administrators will review your request.
+7. Finally, to contribute your changes to the Knop Project, submit a __pull request__ through the GitHub website.  The project administrators will review your request.  Read details of [how to use pull requests](https://help.github.com/articles/using-pull-requests).
 
 Updating your fork on GitHub
 ----------------------------
@@ -100,9 +100,9 @@ At any time you can update your fork on GitHub.
 	git merge upstream/master
 	git push
 
-For more information
-====================
-The following article provides a tutorial and overview for a non-existent project called "Spoon-Knife", but you can merely substitute the following commands for your account.
+More information
+================
+The following article provides a tutorial and overview that walks you through the above process for a non-existent project called "Spoon-Knife".
 
 [Fork a repo](https://help.github.com/articles/fork-a-repo)
 
