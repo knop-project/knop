@@ -65,6 +65,28 @@ To upgrade Knop, overwrite the knop.lasso in the appropriate scope, then execute
 
 	namespace_unload('knop_');
 
+Alternative methods to install Knop
+===================================
+Knop can be installed by several methods.  The easiest is to copy the file `knop.lasso` into your LassoSite's LassoLibraries directory.
+
 Building Knop from .inc source files
 ------------------------------------
-TODO
+The source code for each custom type is stored in separate files in the `source/_ctype/` directory, and the utility tags used by Knop are stored in one file in the `source/_ctag/` directory.  The file `knop.lasso` is essentially a concatenation of the source files and change notes.
+
+To help manage the single namespace file, `source/buildnamespace.lasso` can be used. When run it will check the syntax of each of the source files, and if all of them are OK, they are placed into a single namespace file in the current LassoSite's LassoLibraries folder.  Finally the namespace is unloaded and then loaded again.  This is a really neat way to take advantage of the namespaces without suffering from the nightmare of maintaining the custom types in one single huge namespace file.
+
+Lasso needs permission to write to the LassoLibraries directory in the current site, and to do this Lasso needs write permission outside of root, i.e. the path '///' must be added in server admin.
+
+To build `knop.lasso` from source:
+1. Put the directory `source` somewhere in the web root.
+2. Run `source/buildnamespace.lasso` in the web browser. This will create `knop.lasso` in the LassoLibraries folder of the current LassoSite.
+
+Other methods
+-------------
+1. Include each file separately in your solution.
+2. Put each file in LassoStartup and restart Lasso.
+3. Put all files in a single namespace file with the name knop.lasso and put that in LassoLibraries in either the LassoSite or globally for the server.
+4. In Lasso 8.5 and later (actually 8.1.1 and later) you can put each source file separately in a folder named "knop" in LassoLibraries. The files must be directly in the namespace folder, there can be no sub folders. This method does not work with Lasso 8.0 or 8.1.
+
+Putting the knop files in LassoLibraries as an ondemand library according to method 3 or 4 above has the advantage that the tags and types are loaded into memory for best performance, but can still be updated without restarting Lasso. To do so unload the namespace using `[namespace_unload('knop_')]`, and then the next call to any knop tag or type will load the namespace into memory again from the source files.
+
