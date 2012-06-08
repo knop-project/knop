@@ -13,6 +13,10 @@ Install Knop demo files
 
 3. Copy the files in the `demo` folder into the web root of a virtual host. If you prefer you can put the files in a subfolder, but in that case you need to configure the site root according to instructions below.  Regardless `demo/_urlhandler.lasso` must always be at the web root.
 
+4. Copy the file `../docs/help.lasso` into the web root.  To view the Knop API, visit the URL for your virtual host, e.g.
+
+	<http://myhostname/help.lasso>
+
 Web server configuration
 ------------------------
 To use virtual URLs, the web server needs to be configured so that extensionless URLs are sent to Lasso.  Then in turn Lasso will execute the file `LassoStartup/urlhandler_atbegin.lasso`, which in turn will load `demo/_urlhandler.lasso`.  We assume that you know how to configure virtual hosts and your hosts file, as well as any DNS records if needed.  We also assume that you have mod_rewrite installed.
