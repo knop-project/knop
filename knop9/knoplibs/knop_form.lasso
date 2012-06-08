@@ -3,6 +3,7 @@ log_critical('loading knop_form')
 
 define knop_form => type {
 /*
+	2012-06-07	JC	Tweaks to make knop_form -> process work
 	2012-05-18	JC	Changed all old style containers to Lasso 9 {} style
 	2012-05-18	JC	Fixed bug in process that called database with wrong type of params
 	2012-05-18	JC	Fixed bug in process that looked for type database instead of knop_database. Also changed all type checks to use -> isa()
@@ -30,7 +31,7 @@ define knop_form => type {
 */
 	parent knop_base
 
-	data public version = '2011-11-22'
+	data public version = '2012-06-07'
 
 	// instance variables
 	data public fields::array = array
@@ -154,7 +155,7 @@ define knop_form => type {
 
 		.'entersubmitblock' = #entersubmitblock
 		.'noautoparams' = #noautoparams
-		.'clientparams' = knop_client_params
+		.'clientparams' = tie(web_request -> queryparams, web_request -> postparams) -> asstaticarray
 
 		// escape quotes for javascript
 		.'unsavedwarning' -> replace('\'', '\\\'')
@@ -1008,33 +1009,34 @@ Returns what button was clicked on the form on the previous page. Assumes that s
 			return .'formbutton'
 
 		}
-		local(clientparams = .'clientparams')
+		local(clientparams = .'clientparams' -> asstring)
 
 		// look for submit buttons, the least destructive first
-		iterate(array('cancel', 'search', 'save', 'add', 'delete')) => {
-			if(#clientparams >> 'button_' + loop_value
-				|| #clientparams >> 'button_' + loop_value + '.x'
-				|| #clientparams >> 'button_' + loop_value + '.y') => {
-//				.'_debug_trace' ->insert(tag_name + ': built-in button name ' + loop_value)
-				.'formbutton' = loop_value
+		with i in array('cancel', 'save', 'add', 'search', 'delete') do => {
+			if(#clientparams >> 'button_' + #i
+				|| #clientparams >> 'button_' + #i + '.x'
+				|| #clientparams >> 'button_' + #i + '.y') => {
+				.'formbutton' = #i
 
-				return loop_value
+				return #i
 
 			}
 		}
+
 		// no button found yet - look for custom button names
-		iterate(#clientparams) => {
-			loop_value -> isa(::pair) ? loop_value =  loop_value -> name
-			if(loop_value -> beginswith('button_')) => {
+		local(paramname = string)
+		with i in .'clientparams' do => {
+			 #paramname = (#i -> isa(::pair) ? #i -> name | #i)
+			if(#paramname -> beginswith('button_')) => {
 				//not sure which is the best way to do this...
 				//continuing commands as in L8
-				loop_value -> removeleading('button_') & removetrailing('.x') & removetrailing('.y')
+				#paramname -> removeleading('button_') & removetrailing('.x') & removetrailing('.y')
 				//or chaining commands (not sure if these return themselves for chaining or not)
 				//loop_value -> removeleading('button_') -> removetrailing('.x') -> removetrailing('.y')
 //				.'_debug_trace' -> insert(tag_name + ': custom button name ' + loop_value)
-				.'formbutton'= loop_value
+				.'formbutton'= #paramname
 
-				return loop_value
+				return #paramname
 
 			}
 		}
@@ -1055,69 +1057,60 @@ Automatically handles a form submission and handles add, update, or delete.
 		.'error_code'= 0
 		.'error_msg'= string
 
-		if(.getbutton == 'cancel') => {
+		match(.getbutton) => {
+			case('cancel')
 			// do nothing at all
 //			.'_debug_trace' -> insert(tag_name + ': cancelling ')
+			case('save')
+				.loadfields
 
-		else(.getbutton == 'save')
-			.loadfields
-
-			if(.isvalid) => {
-				if(#user -> size > 0 && .lockvalue != '') => {
-					.database -> saverecord(-fields = .updatefields, -lockvalue = .lockvalue, -keyvalue = .keyvalue, -user = #user)
+				if(.isvalid) => {
+					if(#user -> size > 0 && .lockvalue != '') => {
+						.database -> saverecord(-fields = .updatefields, -lockvalue = .lockvalue, -keyvalue = .keyvalue, -user = #user)
+					else
+						.database ->saverecord(-fields = .updatefields, -keyvalue = .keyvalue)
+					}
+					if(.database -> error_code != 0) => {
+						.'error_code' = .database -> error_code
+						.'error_msg' = ('Process: update record error ' + .database -> error_msg)
+					}
+	//				.'_debug_trace' -> insert(tag_name + ': updating record ' + .database -> error_msg + ' ' + .database -> error_code)
 				else
-					.database ->saverecord(-fields = .updatefields, -keyvalue = .keyvalue)
+					.'error_code' = 7101; // Process: update record did not pass form validation
+	//				.'_debug_trace' -> insert(tag_name + ': update record did not pass form validation')
 				}
-				if(.database -> error_code != 0) => {
-					.'error_code' = .database -> error_code
-					.'error_msg' = ('Process: update record error ' + .database -> error_msg)
-				}
-//				.'_debug_trace' -> insert(tag_name + ': updating record ' + .database -> error_msg + ' ' + .database -> error_code)
-			else
-				.'error_code' = 7101; // Process: update record did not pass form validation
-//				.'_debug_trace' -> insert(tag_name + ': update record did not pass form validation')
-			}
 
-		else(.getbutton == 'add')
-			.loadfields
-			if(.isvalid) => {
-				.database -> addrecord(.updatefields, -keyvalue = .keyvalue)
-				if(.database -> error_code != 0) => {
-					.'error_code' = .database -> error_code
-					.'error_msg' = ('Process: add record error ' + .database -> error_msg)
+			case('add')
+				.loadfields
+				if(.isvalid) => {
+					.database -> addrecord(-fields = .updatefields, -keyvalue = .keyvalue)
+					if(.database -> error_code != 0) => {
+						.'error_code' = .database -> error_code
+						.'error_msg' = ('Process: add record error ' + .database -> error_msg)
+					}
+	//				.'_debug_trace'-> insert(tag_name + ': adding record ' + .database -> error_msg + ' ' + .database -> error_code)
+				else
+					.'error_code' = 7101; // Process: add record did not pass form validation
+	//				.'_debug_trace' -> insert(tag_name + ': add record did not pass form validation')
+	//				.'_debug_trace' -> insert(tag_name + ': reverting form mode to add')
 				}
-//				.'_debug_trace'-> insert(tag_name + ': adding record ' + .database -> error_msg + ' ' + .database -> error_code)
-			else
-				.'error_code' = 7101; // Process: add record did not pass form validation
-//				.'_debug_trace' -> insert(tag_name + ': add record did not pass form validation')
-//				.'_debug_trace' -> insert(tag_name + ': reverting form mode to add')
-			}
+			case('delete')
 
-		else(.getbutton == 'delete')
-			.loadfields
-//			.'_debug_trace'-> insert(tag_name + ': will delete record with keyvalue ' + .keyvalue + ' lockvalue ' + .lockvalue)
-			if(local_defined('user') && .lockvalue != '') => {
-				.database -> deleterecord(-lockvalue = .lockvalue, -keyvalue = .keyvalue, -user = #user)
-			else
-				.database -> deleterecord(-keyvalue = .keyvalue)
-			}
-			if(.database -> error_code == 0) => {
-				.resetfields
-			else
-				.'error_code' = .database -> error_code
-				.'error_msg' = ('Process: delete record error ' + .database -> error_msg)
-			}
-//			.'_debug_trace' ->insert(tag_name + ': deleting record ' + .database -> error_msg + ' ' + .database -> error_code)
-		else(false)
-			// do not go here, database record should be loaded with a separate call
-			if(#lock!='') => {
-				.database ->getrecord(#keyvalue, -lock, -user = #user)
-//				.'_debug_trace' -> insert(tag_name + ': loading record using lock' + .database -> error_msg + ' ' + .database -> error_code)
-			else
-				.database ->getrecord(#keyvalue, -user = #user)
-//				.'_debug_trace' -> insert(tag_name + ': loading record' + .database -> error_msg + ' ' + .database -> error_code)
-			}
-			.loadfields(inlinename = .database -> inlinename)
+				.loadfields
+	//			.'_debug_trace'-> insert(tag_name + ': will delete record with keyvalue ' + .keyvalue + ' lockvalue ' + .lockvalue)
+
+				if(#user -> size > 0 && .lockvalue != '') => {
+					.database -> deleterecord(-lockvalue = .lockvalue, -keyvalue = .keyvalue, -user = #user)
+				else
+					.database -> deleterecord(-keyvalue = .keyvalue)
+				}
+				if(.database -> error_code == 0) => {
+					.resetfields
+				else
+					.'error_code' = .database -> error_code
+					.'error_msg' = ('Process: delete record error ' + .database -> error_msg)
+				}
+	//			.'_debug_trace' ->insert(tag_name + ': deleting record ' + .database -> error_msg + ' ' + .database -> error_code)
 		}
 
 // 	} // end debug
@@ -1264,7 +1257,7 @@ Automatically handles a form submission and handles add, update, or delete.
 		}
 
 		if(.'database' -> isa(::knop_database)) => {
-			if(.'database'-> lockfield -> size > 0 && string(.'db_lockvalue') -> size > 0) => {
+			if(string(.'database' -> lockfield) -> size > 0 && string(.'db_lockvalue') -> size > 0) => {
 				#output += ('<input type="hidden" name="-lockvalue" value="' + encode_html(.'db_lockvalue') + '"' + #endslash + '>\n')
 			else(.'database' -> keyfield != '' && .'db_keyvalue' != '' && .'db_keyvalue' != null)
 				#output += ('<input type="hidden" name="' + .'keyparamname' + '" value="' + encode_html(.'db_keyvalue') + '"' + #endslash + '>\n')
