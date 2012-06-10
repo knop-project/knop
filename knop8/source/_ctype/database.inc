@@ -1129,7 +1129,7 @@ datetime_create and datetime_mod, and also user_create and user_mod.
 			(self -> 'found_count') = knop_foundrows;
 			// adjust shown_first and shown_last
 			(self -> 'shown_first') = ((self -> 'found_count') ? (self -> 'skiprecords_value') + 1 | 0);
-			(self -> 'shown_last') = (math_min: ((self -> 'skiprecords_value') + (self -> 'maxrecords_value')), (self -> 'found_count'));
+			(self -> 'shown_last') = integer(math_min(((self -> 'skiprecords_value') + (self -> 'maxrecords_value')), (self -> 'found_count')));
 			(self -> 'debug_trace') -> (insert: tag_name + ': new found_count, shown_first and shown_last ' + (self -> 'found_count') + ' '+ (self -> 'shown_first') + ' '+ (self -> 'shown_last'));
 		/if;
 
