@@ -1,7 +1,7 @@
 ﻿[/* 
 
 	On-Demand library for namespace knop
-	Namespace file built date 2012-01-16 23:18:06 by http://knop/buildnamespace.lasso
+	Namespace file built date 2012-06-10 02:05:30 by http://knop8/buildnamespace.lasso
 	Montania System AB
 
 */]
@@ -680,6 +680,7 @@ define_type: 'database',
 /*
 
 CHANGE NOTES
+2012-06-10	SP	Fix for decimal precision bug in 8.6.0.1 in renderfooter.
 2012-01-15	SP	Add support for inline host method.  Thanks to Ric Lewis.
 2010-11-23	JS	->settable: removed reference for -table
 2009-09-18	JS	Syntax adjustments for Lasso 9
@@ -7343,7 +7344,7 @@ define_type: 'user',
 /*
 
 CHANGE NOTES
-2012-01-16	SP	Added ->removedata to remove field from the data map	
+2012-01-16	SP	Added ->removedata to remove field from the data map.  Thanks to Ric Lewis.
 2009-09-18	JS	Syntax adjustments for Lasso 9
 2009-06-23	JS	->encrypt now uses default encrypt_cipher from the custom type instead of a hard coded default
 2009-02-26	JS	->login: further correction on the search for login with FileMaker, to reduce the risk for false duplicates
@@ -8033,7 +8034,8 @@ tbody is used in renderfooter, which is not semantically correct. can\'t use tfo
 Move templates to a member tag to be make it easier to subclass
 Change ->addfield to ->insert and make ->addfield deprecated
 
-','knop_database'='2012-01-15	SP	Add support for inline host method.  Thanks to Ric Lewis.
+','knop_database'='2012-06-10	SP	Fix for decimal precision bug in 8.6.0.1 in renderfooter.
+2012-01-15	SP	Add support for inline host method.  Thanks to Ric Lewis.
 2010-11-23	JS	->settable: removed reference for -table
 2009-09-18	JS	Syntax adjustments for Lasso 9
 2009-06-26	JS	->nextrecord: Added deprecation warning
@@ -8112,7 +8114,7 @@ datetime_create and datetime_mod, and also user_create and user_mod.
 
 ','knop custom tags in util.inc'='	2007-06-17	JS	Created the type
 	
-	','knop_user'='2012-01-16	SP	Added ->removedata to remove field from the data map	
+	','knop_user'='2012-01-16	SP	Added ->removedata to remove field from the data map.  Thanks to Ric Lewis.
 2009-09-18	JS	Syntax adjustments for Lasso 9
 2009-06-23	JS	->encrypt now uses default encrypt_cipher from the custom type instead of a hard coded default
 2009-02-26	JS	->login: further correction on the search for login with FileMaker, to reduce the risk for false duplicates
