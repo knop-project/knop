@@ -1,11 +1,6 @@
 ﻿<?LassoScript
-//debug->activate
-
-if(decimal(lasso_version->split(' ')->last)>=8.6
-	&& decimal(lasso_version->split(' ')->last) < 9.0);
-	// fix for 8.6 decimal bug fix
-	Decimal_SetGlobalDefaultPrecision( 0 );
-/if;
+// uncomment the next line to activate l-debug, assuming you have installed it
+//knop_debug->activate;
 // general configuration
 var: 'maxrecords'=20, 
 	'skiprecords'=0,
