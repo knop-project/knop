@@ -351,7 +351,7 @@ Knop looks for framework include files in no less than ten locations for each fi
 
 	_library/customer_edit_lib.inc
 
-####C) -filenaming='extension'
+####C) `-filenaming='extension'`
 	_library/customer_edit.lib
 
 ###Knop And MVC
