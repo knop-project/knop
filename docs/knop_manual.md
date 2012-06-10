@@ -1,9 +1,8 @@
 Knop Manual
 ===========
-![Knop Logo](img/knop_logo.png)
+![Knop Logo](https://github.com/knop-project/knop/raw/master/docs/img/knop_logo.png)
 
 Knop is an open source web application framework using Lasso 8 or 9.  Lasso is a programming language from [LassoSoft](http://www.lassosoft.com/).
-
 
 Installation and configuration of Knop
 --------------------------------------
@@ -229,7 +228,7 @@ Knop application flow
 ---------------------
 To explain the application flow of Knop, let's assume we have a web application where the user submits a form and we will walk through the processing of the form submission.  Please refer to the diagram.
 
-![Knop application flow diagram](img/knop_application_flow_diagram.png)
+![Knop application flow diagram](https://github.com/knop-project/knop/raw/master/docs/img/knop_application_flow_diagram.png)
 
 Every page request has one or two vital parameters:
 
@@ -352,7 +351,7 @@ Knop looks for framework include files in no less than ten locations for each fi
 
 	_library/customer_edit_lib.inc
 
-####C) -filenaming='extension'
+####C) `-filenaming='extension'`
 	_library/customer_edit.lib
 
 ###Knop And MVC
