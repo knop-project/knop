@@ -229,7 +229,7 @@ Knop application flow
 ---------------------
 To explain the application flow of Knop, let's assume we have a web application where the user submits a form and we will walk through the processing of the form submission.  Please refer to the diagram.
 
-![Knop application flow diagram](img/knop_application_flow_diagram.png)
+![Knop application flow diagram](./img/knop_application_flow_diagram.png)
 
 Every page request has one or two vital parameters:
 
