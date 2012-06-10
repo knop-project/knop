@@ -90,3 +90,29 @@ Other methods
 
 Putting the knop files in LassoLibraries as an ondemand library according to method 3 or 4 above has the advantage that the tags and types are loaded into memory for best performance, but can still be updated without restarting Lasso. To do so unload the namespace using `[namespace_unload('knop_')]`, and then the next call to any knop tag or type will load the namespace into memory again from the source files.
 
+Install L-Debug
+===============
+1. Download L-Debug by using SVN:
+
+	`svn export svn://svn.zeroloop.com/L-Debug/tags/public/stable/debug.ctyp`
+
+2. Open the file and at the very top, add one line of code as indicated below.
+
+		define_type:'Debug','Array',-prototype,-priority='replace',
+			-namespace='knop_', // insert this line
+			-description = '
+
+3. Save and close the file.
+
+4. Move the file into the LassoStartup folder for your Knop LassoSite.
+
+5. Restart the LassoSite.
+
+6. To activate L-Debug, use the following command:
+
+		[knop_debug->activate]
+	
+	The above line of code is in `demo/_config/cfg__global.inc`, and can be uncommented.
+	
+	Note that the typically Knop output for the trace method will be replaced by the L-Debug output.
+
