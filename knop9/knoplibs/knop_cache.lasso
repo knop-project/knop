@@ -30,6 +30,8 @@ define knop_cache => thread {
 	/*
 
 	CHANGE NOTES
+	2012-06-11	SP	Reinstate L-Debug calls
+	2012-06-11	JC	Replaced all iterate with query expr. Other minor code changes. Fixed misplaced curly brackets around named signature calls
 	2010-08-04	JC	Minor code cleaning
 	2009-11-25	JC	First experimental version with all functions in place. Still lacks debug and timer functions. Introduces the new thread object knop_cache instead of global vars
 
@@ -40,24 +42,24 @@ define knop_cache => thread {
 	data private caches = map
 	data public purged
 
-	public add(name::string, content::any, expires::integer = 600) => .caches -> insert(#name = map('content' = #content, 'timestamp' = date, 'expires' = (date + duration( -second = #expires))))
+	public add(name::string, content::any, expires::integer = 600) => .'caches' -> insert(#name = map('content' = #content, 'timestamp' = date, 'expires' = (date + duration( -second = #expires))))
 
-	public get(name::string) => .caches -> find(#name)
+	public get(name::string) => .'caches' -> find(#name)
 
-	public getall => .caches
+	public getall => .'caches'
 
-	public remove(name::string) => {.caches -> remove(#name)}
+	public remove(name::string) => {.'caches' -> remove(#name)}
 
-	public clear => {.caches = map}
+	public clear => {.'caches' = map}
 
 	public active_tick() => {
-		iterate(.caches, local(i));
-			if(#i -> value -> find('expires') < date);
-				.caches -> remove(#i -> name);
-			/if;
-		/iterate;
-		.purged = date;
-		return 600;
+		with i in .'caches' -> eachPair do => {
+			if(#i -> value -> find('expires') < date) => {
+				.'caches' -> remove(#i -> name)
+			}
+		}
+		.purged = date
+		return 600
 	}
 
 
@@ -78,37 +80,37 @@ define knop_cachestore(
 	expires::integer = -1,
 	session::string = '',
 	name::string = ''
-) => {
+) => debug => {
 //log_critical('knop_cachestore  called')
 
-	local('data' = map);
-	#expires < 0 ? #expires = 600; // default seconds
+	local(data = map)
+	#expires < 0 ? #expires = 600 // default seconds
 	// store all page vars of the specified type
-	local(loopvalue = string);
+	local(loopvalue = string)
 	// store all page vars of the specified type
-	iterate(var_keys);
-		#loopvalue = loop_value -> asstring;
-		if(var(#loopvalue) -> isa(#type));
-			#data -> insert(#loopvalue = var( #loopvalue));
-		/if;
-	/iterate;
-	if(#session -> size > 0);
-		local('cache_name' = '_knop_cache_' + #name);
-		session_addvar(-name = #session, #cache_name);
-		!(var(#cache_name) -> isa('map')) ? var(#cache_name = map);
+	with keytmp in var_keys do => {
+		#loopvalue = string(#keytmp)
+		if(var(#loopvalue) -> isa(#type)) => {
+			#data -> insert(#loopvalue = var( #loopvalue))
+		}
+	}
+	if(#session -> size > 0) => {
+		local(cache_name = '_knop_cache_' + #name)
+		session_addvar(-name = #session, #cache_name)
+		!(var(#cache_name) -> isa(::map)) ? var(#cache_name = map)
 		var( #cache_name) -> insert(#type = map(
 			'content' = #data,
 			'timestamp' = date,
-			'expires' = (date + duration( -second = #expires))));
+			'expires' = (date + duration( -second = #expires))))
 	else;
 
-		local('cache_name' = 'knop_' + #name + '_' + server_name + response_localpath);
-		#cache_name -> removetrailing(response_filepath);
-		#cache_name -> replace('/','');
-		#cache_name += '_' + #type;
-		knop_cache -> add(#cache_name, #data, #expires);
+		local('cache_name' = 'knop_' + #name + '_' + server_name + response_localpath)
+		#cache_name -> removetrailing(response_filepath)
+		#cache_name -> replace('/','')
+		#cache_name += '_' + #type
+		knop_cache -> add(#cache_name, #data, #expires)
 
-	/if;
+	}
 
 }
 
@@ -117,7 +119,7 @@ define knop_cachestore(
 	-expires::integer = -1,
 	-session::string = '',
 	-name::string = ''
-) => {knop_cachestore(#type, #expires,#session,#name)}
+) => knop_cachestore(#type, #expires,#session,#name)
 
 /**
 knop_cachefetch
@@ -134,40 +136,41 @@ define knop_cachefetch(
 	session::string = '',
 	name::string = '',
 	maxage::date = date('1970-01-01')
-) => {
+) => debug => {
 
-	local('data' = null);
-	if(#session -> size > 0);
-		//fail_if(session_id( -name=#session) -> size == 0, -1, 'Cachefetch with -session requires that the specified session is started');
-		local('cache_name' = '_knop_cache_' + #name);
-		if(var(#cache_name) -> isa('map')
+	local(data = null)
+	if(#session -> size > 0) => {
+		//fail_if(session_id( -name=#session) -> size == 0, -1, 'Cachefetch with -session requires that the specified session is started')
+		local(cache_name = '_knop_cache_' + #name)
+		if(var(#cache_name) -> isa(::map)
 			&& var(#cache_name) >> #type
 			&& var(#cache_name) -> find(#type) -> find('expires') > date
-			&& var(#cache_name) -> find(#type) -> find('timestamp') > #maxage);
+			&& var(#cache_name) -> find(#type) -> find('timestamp') > #maxage) => {
 			// cached data not too old
-			#data = var(#cache_name) -> find(#type) -> find('content');
-		/if;
-	else;
-		local('cache_name' = 'knop_' + #name + '_' + server_name + response_localpath);
-		#cache_name -> removetrailing(response_filepath);
-		#cache_name -> replace('/','');
-		#cache_name += '_' + #type;
-		local(content = knop_cache -> get(#cache_name));
-		if(#content -> isa('map')
+			#data = var(#cache_name) -> find(#type) -> find('content')
+		}
+	else
+		local('cache_name' = 'knop_' + #name + '_' + server_name + response_localpath)
+		#cache_name -> removetrailing(response_filepath)
+		#cache_name -> replace('/','')
+		#cache_name += '_' + #type
+		local(content = knop_cache -> get(#cache_name))
+		if(#content -> isa(::map)
 			&& #content -> find('expires') > date
-			&& #content -> find('timestamp') > #maxage);
+			&& #content -> find('timestamp') > #maxage) => {
 			// cached data not too old
 			#data = #content -> find('content');
-		/if;
-	/if;
-	if(#data -> isa('map'));
-		iterate(#data, local('i'));
-			var((#i -> name) = #i -> value);
-		/iterate;
-		return true;
-	else;
-		return false;
-	/if;
+		}
+	}
+	if(#data -> isa(::map)) => {
+
+		with i in #data -> eachpair do => {
+			var((#i -> name) = #i -> value)
+		}
+		return true
+	else
+		return false
+	}
 
 }
 
@@ -176,7 +179,7 @@ define knop_cachefetch(
 	-session::string = '',
 	-name::string = '',
 	-maxage::date = date('1970-01-01')
-) => {return knop_cachefetch(#type, #session, #name, #maxage)}
+) => knop_cachefetch(#type, #session, #name, #maxage)
 
 /**
 knop_cachedelete
@@ -190,22 +193,22 @@ define knop_cachedelete(
 	type::string,
 	session::string = '',
 	name::string = ''
-) => {
-	if(#session -> size > 0);
+) => debug => {
+	if(#session -> size > 0) => {
 		//fail_if(session_id( -name=#session) -> size == 0, -1, 'Cachestore with -session requires that the specified session is started');
-		local('cache_name' = '_knop_cache_' + #name);
-		session_addvar(-name = #session, #cache_name);
-		!(var(#cache_name) -> isa('map')) ? var(#cache_name = map);
-		var(#cache_name) -> remove(#type);
-	else;
-		local('cache_name' = 'knop_' + #name + '_' + server_name + response_localpath);
-		#cache_name -> removetrailing(response_filepath);
-		#cache_name -> replace('/','');
-		#cache_name += '_' + #type;
+		local(cache_name = '_knop_cache_' + #name)
+		session_addvar(-name = #session, #cache_name)
+		!(var(#cache_name) -> isa(::map)) ? var(#cache_name = map)
+		var(#cache_name) -> remove(#type)
+	else
+		local(cache_name = 'knop_' + #name + '_' + server_name + response_localpath)
+		#cache_name -> removetrailing(response_filepath)
+		#cache_name -> replace('/','')
+		#cache_name += '_' + #type
 
-		knop_cache -> remove(#cache_name);
+		knop_cache -> remove(#cache_name)
 
-	/if;
+	}
 
 }
 
@@ -213,7 +216,8 @@ define knop_cachedelete(
 	-type::string,
 	-session::string = '',
 	-name::string = ''
-) => {knop_cachedelete(#type, #session, #name)}
+) => knop_cachedelete(#type, #session, #name)
 
+log_critical('loading knop_cache done')
 
 ?>
