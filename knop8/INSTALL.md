@@ -114,5 +114,5 @@ Install L-Debug
 	
 	The above line of code is in `demo/_config/cfg__global.inc`, and can be uncommented.
 	
-	Note that the typically Knop output for the trace method will be replaced by the L-Debug output.
+	Note that the typical Knop output for the trace method will be replaced by the L-Debug output.
 
