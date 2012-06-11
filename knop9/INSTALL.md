@@ -76,3 +76,50 @@ The navigation method for the demo is initially set to 'path', which uses virtua
 Upgrading Knop
 --------------
 To upgrade Knop, overwrite the Knop libraries in the appropriate location, then either restart the instance or use the Knop type reloader (see "Reload Knop types" above).
+
+Install L-Debug
+===============
+1. Download L-Debug by using SVN:
+
+	`svn export svn://svn.zeroloop.com/l-debug/tags/9/stable/debug.type.lasso`
+
+2. Move the file into the LassoStartup folder for your Knop instance, e.g.:
+
+	`/private/var/lasso/instances/default/LassoStartup/debug.type.lasso`
+
+3. Restart the instance.
+
+4. To activate L-Debug, use the following command:
+
+		[debug->activate]
+	
+	The above line of code is in `demo/_config/cfg__global.inc`, and can be uncommented.
+
+You may wish to add more debug points within the Knop types.  You can insert debug points for all methods except oncreate by merely inserting "=> debug" after the method's signature.
+
+	public mymethod(
+		...
+	) => debug => {
+		...
+	}
+
+For oncreate methods, you can add a debug point by wrapping its code block with curly brackets "{...}".
+
+	public oncreate(
+		...
+	) => {
+		debug => {
+			...
+		}
+	}
+
+Or you can use the shortcut and return self.
+
+	public oncreate(
+		...
+	) => debug => {
+			...
+		return self
+	}
+
+Either way, oncreate is a special case.  Lasso uses oncreate methods to determine what is returned or is cast as the item created.
