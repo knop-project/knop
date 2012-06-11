@@ -2,17 +2,15 @@
 log_critical('loading knop_nav')
 
 /**!
+knop_nav
 Experimental new leaner version of custom type to handle site navigation menu
 **/
 define knop_nav => type {
 
-	parent knop_base
-
-	data public version = '2012-05-18'
-
 /*
 
 CHANGE NOTES
+	2012-06-10	JC	Changed += to append. Changed iterate to query expr. or loop.
 	2012-05-19	JC	Changed web_request->scriptURL to web_request->fcgiReq->requestParams->find(::REQUEST_URI)->asString -> split('?') -> first to make it consistent between different Apache platforms
 	2012-05-18	JC	Fixed bug in getnav that would change the supplied path param instead of copying it
 	2012-05-17	JC	Changed all old style containers to Lasso 9 {} style
@@ -23,6 +21,10 @@ CHANGE NOTES
 
 
 */
+
+	parent knop_base
+
+	data public version = '2012-06-10'
 
 	// instance variables
 	data public navitems::array = array
@@ -185,8 +187,8 @@ Inserts a nav item into the nav array
 		if(#children -> isa('knop_nav')) => {
 			#navitem -> insert('children' = #children -> 'navitems')
 			#navitem -> insert('children_nav' = #children)
-			iterate(#children -> 'pathmap') => {
- 				.'pathmap' -> insert(#key + '/' + loop_key)
+			with loopkey in #children -> 'pathmap' -> keys do => {
+ 				.'pathmap' -> insert(#key + '/' + #loopkey)
 			}
 		}
 		.'navitems' -> insert(#key = #navitem)
@@ -228,8 +230,6 @@ Render hierarchial nav structure.\n\
 			-expand (optional flag) Render the entire expanded nav tree and not just the currently active branch\n\
 			-xhtml (optional) XHTML valid output
 
-Error Msg: Definition Not Found: knop_nav->renderhtml(array, boolean, array, boolean, boolean) Candidates were: knop_nav->renderhtml(items::array =?, keyval::array =?, flat::boolean =?, toplevel::boolean =?, xhtml::boolean =?, patharray =?), knop_nav->renderhtml(-items::array =?, -flat::boolean =?, -keyval::array =?, -toplevel::boolean =?, -xhtml::boolean =?)
-
 **/
 	public renderhtml(
 		items::array = array,
@@ -250,22 +250,18 @@ Error Msg: Definition Not Found: knop_nav->renderhtml(array, boolean, array, boo
 		local(navitem = null)
 		local(levelcounted = false)
 		.'renderhtml_levels' = #levelcount -> ascopy
-		#output += '<ul'
-		#output += (#toplevel && .'class' -> size > 0 ? ' class="' + .'class' + '"')
-		#output += '>\r'
-		iterate(#items) => {
-			#navitem = loop_value -> value
+		#output -> append('<ul' + (#toplevel && .'class' -> size > 0 ? ' class="' + .'class' + '"') + '>\r')
+
+		with itemtmp in #items do => {
+			#navitem = #itemtmp -> value
 			#localkeyval -> insert(#navitem -> find('key'))
+
 			if(!(#navitem -> find('hide'))) => {
-				#output += '<li'
-				#output += (#navitem -> find('class') -> size > 0 ? ' class="' + #navitem -> find('class') + '"')
-				#output += '>\r'
+				#output -> append('<li' + (#navitem -> find('class') -> size > 0 ? ' class="' + #navitem -> find('class') + '"') + '>\r')
+
 				if(#navitem -> find('disabled')) => {
-					#output += '<span'
-					#output += (#navitem -> find('class') -> size > 0 ? ' class="' + #navitem -> find('class') + '"')
-					#output += ' disabled="disabled">'
-					#output += #navitem -> find('label')
-					#output += '</span>'
+					#output -> append('<span' + (#navitem -> find('class') -> size > 0 ? ' class="' + #navitem -> find('class') + '"') + ' disabled="disabled">' + #navitem -> find('label') + '</span>')
+
 				else
 /* code from original nav
 		if((#topself -> 'navmethod') == 'param') => {
@@ -273,20 +269,20 @@ Error Msg: Definition Not Found: knop_nav->renderhtml(array, boolean, array, boo
 		else  // path
 			#url = (#topself -> 'root') + #url +  (#urlparams -> size || (local: 'urlargs') != '' ? '?')
 		}
-Still need to implement urlparams support
+TODO Still need to implement urlparams support
 */
 
-					#output += '<a href="'
-					(.'navmethod' == 'param' ? #output += './?')
-					#output += (#navitem -> find('url') -> size > 0 ? #navitem -> find('url') | '/' + #localkeyval -> join('/') + '/')
-					#output += '"'
-					(#navitem -> find('id') -> size > 0 ? #output += ' id="' + #navitem -> find('id') + '"')
-					(#navitem -> find('class') -> size > 0 ? #output += ' class="' + #navitem -> find('class') + '"')
-					(#navitem -> find('title') -> size > 0 ? #output += ' title="' + #navitem -> find('title') + '"')
-					(#navitem -> find('target') -> size > 0 ? #output += ' target="' + #navitem -> find('target') + '"')
-					#output += '>'
-					#output += #navitem -> find('label')
-					#output += '</a>'
+					#output -> append('<a href="' +
+						(.'navmethod' == 'param' ? './?') +
+						(#navitem -> find('url') -> size > 0 ? #navitem -> find('url') | '/' + #localkeyval -> join('/') + '/') +
+						'"' +
+						(#navitem -> find('id') -> size > 0 ? ' id="' + #navitem -> find('id') + '"') +
+						(#navitem -> find('class') -> size > 0 ? ' class="' + #navitem -> find('class') + '"') +
+						(#navitem -> find('title') -> size > 0 ? ' title="' + #navitem -> find('title') + '"') +
+						(#navitem -> find('target') -> size > 0 ? ' target="' + #navitem -> find('target') + '"') +
+						'>' + #navitem -> find('label') + '</a>'
+					)
+
 				} // (#navitem -> find('disabled'))
 
 				if((!#flat || #patharray -> first == #navitem -> find('key')) && #navitem >> 'children' && #navitem -> find('children') -> isa('array') && #navitem -> find('children') -> size) => {
@@ -294,13 +290,13 @@ Still need to implement urlparams support
 					#subpatharray -> size > 0 ? #subpatharray -> removefirst
 					!#levelcounted ? #levelcount += 1
 					#levelcounted = true
-					#output += .renderhtml(#navitem -> find('children'), #localkeyval -> ascopy, #flat, false, #xhtml, #subpatharray, #levelcount)
+					#output -> append(.renderhtml(#navitem -> find('children'), #localkeyval -> ascopy, #flat, false, #xhtml, #subpatharray, #levelcount))
 				} // (!#flat || #patharray -> first == #navitem -> find('key')) && #navitem >> 'children' && #navitem -> find('children') -> isa('array') && #navitem -> find('children') -> size
-				#output += '</li>\r'
+				#output -> append('</li>\r')
 			} // !(#navitem -> find('hide'))
 			#localkeyval = #keyval -> ascopy
-		} //iterate
-		#output += '</ul>\r'
+		} //with
+		#output -> append('</ul>\r')
 
 		return #output
 //	} // end debug
@@ -453,11 +449,13 @@ Grabs path and actionpath from params or urlhandler, translates from url to path
 					#path = .'default'
 				else
 					// use first page as default, if it exists
-					iterate(.'navitems') => {
-						if(loop_value -> value >> 'key'
-							&& !(loop_value -> value -> find('disabled'))
-							&& !(loop_value -> value -> find('hide'))) =>{
-							#path = loop_value -> value -> find('key')
+					local(loopvalue = string)
+					loop(.'navitems' -> size) => {
+						#loopvalue = .'navitems' -> get(loop_count)
+						if(#loopvalue -> value >> 'key'
+							&& !(#loopvalue -> value -> find('disabled'))
+							&& !(#loopvalue -> value -> find('hide'))) =>{
+							#path = #loopvalue -> value -> find('key')
 							loop_abort
 						}
 					}
@@ -480,7 +478,7 @@ Grabs path and actionpath from params or urlhandler, translates from url to path
 						&& !(.getnav(#path + '/' + #defaultkey) -> find('disabled'))
 						&& #defaultkey != '' && .getnav(#path) -> find('children_nav') && .getnav(#path) -> find('children_nav') -> 'pathmap' >> #defaultkey) => {
 
-						#path += '/' + #defaultkey
+						#path -> append('/' + #defaultkey)
 					else
 
 						#hasdefault = false
@@ -610,7 +608,7 @@ Returns a map of all existing knop file paths.
 		// first time calling this tag - create the directory tree
 		local(path = #basepath -> ascopy)
 
-		!(#path -> endswith('/')) ? #path += '/'
+		!(#path -> endswith('/')) ? #path -> append('/')
 
 		local('dirlist' = map)
 		local('diritem' = string)
@@ -628,8 +626,9 @@ Returns a map of all existing knop file paths.
 						|| #diritem -> beginswith('_mod_'))) => {
 					// recursive call for sub folder within the Knop directory structure
 					#dirlist_sub = .directorytree(#path + #diritem, false)
-					iterate(#dirlist_sub) => {
-						#dirlist -> insert(#diritem + '/' +  loop_key)
+
+					with loopkey in #dirlist_sub -> keys do => {
+						#dirlist -> insert(#diritem + '/' +  #loopkey)
 					}
 				}
 				// Add item to map, with trailing / if item has sub items (folder contents)
@@ -704,22 +703,22 @@ Returns full url for current path or specified path. Path parameters can be prov
 			#params -> merge(.linkparams(-navitem = #navitem))
 		}
 
-		iterate(#except) => {
-			#params -> removeall(loop_value)
+		with excepttmp in #except do => {
+			#params -> removeall(#excepttmp)
 		}
 
 		#url = (.path(#path) + (.path(#path) != '' ? '/'))
 		if(.getargs -> size > 0 && #getargs) => {
 			// for links to the current path, add the path args
-			#url += (.getargs + '/')
+			#url -> append((.getargs + '/'))
 		}
 
 		if(#params >> '-keyvalue') => {
-			#url += (#params -> find('-keyvalue') -> first -> value + '/')
+			#url -> append((#params -> find('-keyvalue') -> first -> value + '/'))
 			#params -> removeall('-keyvalue')
 		}
 
-		iterate(#params, #param) => {
+		with param in #params do => {
 
 			if(#param -> type == 'pair') => {
 				#urlparams -> insert(encode_stricturl(#param -> name) + '=' + encode_stricturl(string(#param -> value)))
@@ -730,7 +729,7 @@ Returns full url for current path or specified path. Path parameters can be prov
 
 		if(#autoparams) => {
 			// add getparams that begin with -
-			iterate(#clientparams, #param) => {
+			with param in #clientparams do => {
 				if(#param -> type == 'pair') => {
 					if(#param -> name -> beginswith('-') && #except !>> #param -> name) => {
 						#urlparams -> insert(encode_stricturl(string(#param -> name)) + '=' + encode_stricturl(string(#param -> value)))
@@ -751,10 +750,10 @@ Returns full url for current path or specified path. Path parameters can be prov
 		#urlparams = string(#urlparams -> join('&amp;'))
 		// restore / in paths for looks
 		#urlparams -> replace('%2f', '/')
-		#url += #urlparams
+		#url -> append(#urlparams)
 
-		#urlparams -> size && #urlargs -> size ? #url += '&amp;'
-		#urlargs -> size ? #url += #urlargs
+		#urlparams -> size && #urlargs -> size ? #url -> append('&amp;')
+		#urlargs -> size ? #url -> append(#urlargs)
 
 		return #url
 
@@ -866,7 +865,7 @@ Returns the full path to the specified type of precissing file for the current n
 				#suffix = ''
 				#prefix = ''
 			case // prefix as default
-				#prefix += '_'
+				#prefix -> append('_')
 				#extension = '.inc'
 				#suffix = ''
 		}
@@ -884,7 +883,7 @@ Returns the full path to the specified type of precissing file for the current n
 							// at least 1 level, look in module folder
 							#filenamearray_temp = #filenamearray -> ascopy
 							#filename = #basefolder + '_mod_' + string(#filenamearray_temp -> first)
-							#filename += '/' + string(#prefix) + string(#filenamearray_temp -> join('_')) + string(#suffix) + string(#extension)
+							#filename -> append('/' + string(#prefix) + string(#filenamearray_temp -> join('_')) + string(#suffix) + string(#extension))
 						}
 
 					case(2)
@@ -894,7 +893,7 @@ Returns the full path to the specified type of precissing file for the current n
 							#filenamearray_temp = #filenamearray -> ascopy
 							#filename = #basefolder + '_mod_' + string(#filenamearray_temp -> first)
 							#filenamearray_temp -> removefirst
-							#filename += '/' + string(#prefix) + string(#filenamearray_temp -> join('_')) + string(#suffix) + string(#extension)
+							#filename -> append('/' + string(#prefix) + string(#filenamearray_temp -> join('_')) + string(#suffix) + string(#extension))
 							if(#filenamearray -> size == 1) => {
 								// clean up underscore so filename ends up as lib.inc instead of lib_.inc etc
 								#filename -> replace('/' + string(#type_short) + '_' + string(#extension), '/' + string(#type_short) + string(#extension))
@@ -908,7 +907,7 @@ Returns the full path to the specified type of precissing file for the current n
 							// at least 2 levels, look in module folder
 							#filenamearray_temp = #filenamearray -> ascopy
 							#filename = #basefolder + '_mod_' + string(#filenamearray_temp -> first)
-							#filename += '/' + string(#typefolder) + string(#prefix) + string(#filenamearray_temp -> join('_')) + string(#suffix) + string(#extension)
+							#filename -> append('/' + string(#typefolder) + string(#prefix) + string(#filenamearray_temp -> join('_')) + string(#suffix) + string(#extension))
 						}
 
 					case(4)
@@ -918,7 +917,7 @@ Returns the full path to the specified type of precissing file for the current n
 							#filenamearray_temp = #filenamearray -> ascopy
 							#filename = #basefolder + '_mod_' + string(#filenamearray_temp -> first)
 							#filenamearray_temp -> removefirst
-							#filename += '/' + string(#typefolder) + string(#prefix) + string(#filenamearray_temp -> join('_')) + string(#suffix) + string(#extension)
+							#filename -> append('/' + string(#typefolder) + string(#prefix) + string(#filenamearray_temp -> join('_')) + string(#suffix) + string(#extension))
 						}
 
 					case
@@ -986,8 +985,7 @@ Includes any of the files for the current path, fails silently if file does not 
 		local('result' = string)
 		local('type'= (#translation >> #file ? #translation -> find(#file) | #types >> #file ? #file | 'other'))
 		// find out full filename
-		local('filename' = null)
-
+		local('filename' = string)
 		if(#types >> #type) => {
 			// knop include
 			#filename = .filename(#type, #path)
@@ -1114,8 +1112,8 @@ Returns an array for all parameters that should be sent along with nav links
 			local('linkparams' = array)
 			local('clientparams' = knop_client_params)
 
-			iterate(#navitem -> find('params'), local('param')) => {
-				iterate(#clientparams -> find(#param), local('paraminstance')) => {
+			with param in #navitem -> find('params') do => {
+				with paraminstance in #clientparams -> find(#param) do => {
 					if(#paraminstance -> type == 'pair') => {
 						#linkparams -> insert((#paraminstance -> name) = (#paraminstance -> value))
 					else
@@ -1240,18 +1238,18 @@ Returns true if nav object has children that are not all -hide.
 
 		local(timer = knop_timer)
 
-		local('haschildren' = #navitem >> 'children')
+		local(haschildren = #navitem >> 'children')
 		if(#haschildren) => {	// verify that there is at least one child that does not have -hide
 			#haschildren = false // assume there is no child to show
-			iterate(#navitem -> find('children') -> 'navitems', local('childitem')) => {
-				if(!(#childitem -> find('hide'))) => { // found one
+			loop(#navitem -> find('children') -> 'navitems' -> size) => {
+				if(!(#navitem -> find('children') -> 'navitems' -> get(loop_count) -> find('hide'))) => { // found one
 					#haschildren = true
 					loop_abort
 				}
 			}
 		}
 
-		..'tagtime' = integer(#timer) // cast to integer to trigger onconvert and to "stop timer"
+//		..'tagtime' = integer(#timer) // cast to integer to trigger onconvert and to "stop timer"
 
 		return(#haschildren)
 
@@ -1285,10 +1283,10 @@ Shows the current navigation as breadcrumb trail. \n\
 
 			// find default path
 			if(.'default' != '' && .'pathmap' >>  .'default') => {
-				local('homepath'= .'default')
+				local(homepath = .'default')
 			else
 				// use first top level nav item as default
-				local('homepath'= .'navitems' -> first ->value -> find('key'))
+				local(homepath = .'navitems' -> first ->value -> find('key'))
 			}
 
 			if(!.'path' -> beginswith(#homepath)) => {
@@ -1299,9 +1297,8 @@ Shows the current navigation as breadcrumb trail. \n\
 				}
 			}
 		}
-		iterate(.'patharray') => {
-
-			#path -> insert(loop_value)
+		loop(.'patharray' -> size) => {
+			#path -> insert(.'patharray' -> get(loop_count))
 			if(.getnav(#path) -> find('hide')) => {
 				// do not show in navigation
 				loop_abort
@@ -1317,7 +1314,7 @@ Shows the current navigation as breadcrumb trail. \n\
 			#output -> removelast
 		}
 
-		..'tagtime' = integer(#timer) // cast to integer to trigger onconvert and to "stop timer"
+//		..'tagtime' = integer(#timer) // cast to integer to trigger onconvert and to "stop timer"
 
 		return(#output -> join(#delimiter))
 
