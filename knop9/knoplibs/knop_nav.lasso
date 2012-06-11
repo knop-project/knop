@@ -710,11 +710,11 @@ Returns full url for current path or specified path. Path parameters can be prov
 		#url = (.path(#path) + (.path(#path) != '' ? '/'))
 		if(.getargs -> size > 0 && #getargs) => {
 			// for links to the current path, add the path args
-			#url -> append((.getargs + '/'))
+			#url -> append(.getargs + '/')
 		}
 
 		if(#params >> '-keyvalue') => {
-			#url -> append((#params -> find('-keyvalue') -> first -> value + '/'))
+			#url -> append(#params -> find('-keyvalue') -> first -> value + '/')
 			#params -> removeall('-keyvalue')
 		}
 
