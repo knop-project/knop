@@ -1,6 +1,8 @@
 ﻿<?LassoScript
-// uncomment the next line to activate l-debug, assuming you have installed it
-//knop_debug->activate;
+// Use some kind of security to prevent l-debug running where it should not.
+// Uncomment the next line to activate l-debug, assuming you have installed it.
+// client_getparams >> 'debug' && server_name == 'knop8' ? debug->activate;
+
 // general configuration
 var: 'maxrecords'=20, 
 	'skiprecords'=0,

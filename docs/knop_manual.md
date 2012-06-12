@@ -79,7 +79,99 @@ You can choose to only use selected parts of Knop. For example you can use just 
 * Basic templates for HTML and CSS.
 * Support for URL handling with virtual (abstracted) URLs.
 
-Knop Modules
+Knop examples
+-------------
+Before we get into the details of Knop, let's look at a couple of demonstrations on how Knop can be used. One of the Knop modules is a form generator. `Knop_form` is a custom type, just as the other Knop modules. It is used to create HTML forms and to help process the form submission.
+
+###Example 1 - A Simple Form
+
+This code sample demonstrates how to create and show an HTML form.
+
+	// 1-simple-form.lasso
+	// Create a new form object
+	// Usually we put this into a Knop config include file
+	var('form'=knop_form);
+	
+	// Add text fields and a submit button
+	$form -> addfield(-type='text', -name='firstname', -label='First name');
+	$form -> addfield(-type='text', -name='lastname', -label='Last name');
+	$form -> addfield(-type='textarea', -name='message', -label='Message');
+	$form -> addfield(-type='submit', -name='button_send', -value='Send message');
+	
+	// Show the form on the page
+	<form action="1-simple-form-response.lasso">
+	[$form -> renderform]
+
+To take care of the form input, the response page also needs to know about the form, so we first have to define the same form object again (of course we normally define the form object in an include file, but for this demonstration we just repeat the form definition in the response file).
+
+	// 1-simple-form-response.lasso
+	// Create the same form object again
+	var('form'=knop_form);
+	$form -> addfield(-type='text', -name='firstname', -label='First name');
+	$form -> addfield(-type='text', -name='lastname', -label='Last name');
+	$form -> addfield(-type='textarea', -name='message', -label='Message');
+	$form -> addfield(-type='submit', -name='button_send', -value='Send message');
+	
+	// Load field values from the submission
+	$form -> loadfields;
+	
+	// Look at the fielvalues
+	$form -> updatefields;
+
+The output from `$form -> updatefields` is a pair array, and one of the nice things with a pair array is that it can be used as dynamic input in an inline. This is very handy and can be used for example like this:
+
+	// Use the form input in an inline, for example like this:
+	inline(-database=...,
+		$form -> updatefields,
+		-add);
+	/inline;
+
+###Example 2 - A Form Talks To A Database
+
+Now we are going to combine two Knop modules to see how they can interact. We will create a database object that the form will interact with. We will also specify an HTML form action in the form object to make it self-contained so a complete HTML form can be rendered easily. Finally we'll hook the database object up to the form object. This is where the fun begins.
+
+In this example we have moved the configuration to an include file so that it can be easily reused and to avoid duplicating code used in the previous form-response model.  We will include this file in this example.
+
+	// 2-form-and-database-config.lasso
+	// Create a database object
+	var('db'=knop_database(-database='knopdemo', -table='customer', -keyfield='id'));
+	
+	// Create a form object
+	var('form'=knop_form(-formaction='2-form-and-database-response.lasso', -database=$db));
+	
+	// Add text fields and a submit button
+	$form -> addfield(-type='text', -name='firstname', -label='First name');
+	$form -> addfield(-type='text', -name='lastname', -label='Last name');
+	$form -> addfield(-type='textarea', -name='message', -label='Message');
+	$form -> addfield(-type='addbutton', -value='Send message');
+
+Next the input page is a simplified version of Example 1, since we've moved the configuration to an include and made the form object self-contained.
+
+	// 2-form-and-database.lasso
+	// Include the database and form objects config
+	include('2-form-and-database-config.lasso');
+	
+	// Show the form on the page, this time the form object is a complete html form
+	$form -> renderform;
+
+The response page is really simple. To handle the form submission, Knop requires only a single line of code.
+
+	[
+	// 2-form-and-database-response.lasso
+	// Configure database and form objects in an include
+	include('2-form-and-database-config.lasso');
+	
+	// Handle the form submission
+	$form -> process;
+	
+	// Show the result
+	]
+	[$form -> renderhtml(-excludetype='submit')]
+	Adding record [$db -> error_msg]
+
+The preceding examples demonstrate a few of the basic principles of some common Knop operations.  In the next section, we'll go deeper into each of the Knop modules and provide more code examples.
+
+Knop modules
 ------------
 The Knop modules are implemented as a number of custom types supported by a few custom tags.  Some of the custom types can interact with each other.
 
@@ -108,6 +200,37 @@ The visitor's current location is called "path" and the current action (if any) 
 
 `Knop_nav` can interact with `knop_grid`.
 
+####Example 3 - Knop navigation
+
+The following example demonstrates how to create a `knop_nav` object, add navigation items, then render the navigation to the page.
+
+	// 3-nav.lasso
+	// Create the parent nav object.
+	var('nav'=knop_nav(-navmethod='param', -currentmarker=' »'));
+	
+	// Define the site structure
+	$nav -> insert(-key='home', -label='Home Page');
+	
+	// Create a child nav object
+	var('subnav'=knop_nav);
+	$subnav -> insert(-key='latest', -label='Latest News');
+	$subnav -> insert(-key='archive', -label='News Archive');
+	
+	// Insert the child nav object into its parent nav object
+	$nav -> insert(-key='news', -label='News', -children=$subnav);
+	
+	// Determine current location so the nav object knows where we are
+	$nav -> getlocation;
+	
+	// Generate navigation menu
+	$nav -> renderhtml;
+	
+	// Generate a breadcrumb
+	$nav -> renderbreadcrumb;
+	]
+	<h1>The current page is [$nav -> label]</h1>
+	<p>The current framework path is [$nav -> path]</p>
+
 ###Knop_database
 
 `Knop_database` is a database abstraction layer that sits on top of Lasso's own database abstraction. It supports both regular Lasso inlines and SQL syntax. MySQL and FileMaker databases are supported currently.
@@ -117,6 +240,71 @@ The visitor's current location is called "path" and the current action (if any) 
 `Knop_database` primarily uses pair arrays as field specifications (which makes it easy to integrate with standard Lasso inlines) but can also use SQL statements for some of the operations.  When interacting with knop\_form and `knop_grid`, pair arrays are normally used to exchange field data and other search parameters.  The use of pair arrays for standard inlines is one way to provide greater flexibility.
 
 `Knop_database` can interact with `knop_form`, `knop_grid`, and `knop_user` (for record locking).
+
+####Example 4 - Knop database
+
+The following examples demonstrates how to use `knop_database` to output some fields from a specific database record.
+
+	<?LassoScript
+	// 4-database.lasso
+	// initiate the database object (normally in a config file)
+	var('db_news'=knop_database(-database='acme',
+		-table='news',
+		-username='*****',
+		-password='*****',
+		-keyfield='id');
+	
+	// perform a database search to grab the record (normally in a lib file)
+	$db_news -> getrecord(-keyvalue=185);
+	
+	// show some fields from the database record (normally in a content file)
+	?>
+	
+	<h3>[$db_news -> field('title')]</h3>
+	<p>
+	[encode_break($db_news -> field('text'))]
+	</p>
+	
+	<hr>
+	
+	<?LassoScript
+	// The getrecord statement can be simplified slightly since the first parameter is the keyvalue.  The following statements have equivalent results.
+	$db_news -> getrecord(-keyvalue=185);
+	$db_news -> getrecord(185);
+	?>
+	
+	<hr>
+	
+	<?LassoScript
+	// Complex SQL queries can be used to get a single record.
+	$db_news -> getrecord(-sql='SELECT * FROM news LEFT JOIN ...');
+	
+	// A general select can be used as well to return multiple records.
+	// The data from the first found record will be available as ->field.
+	$db_news -> select(-sql='SELECT * FROM news LEFT JOIN ...');
+	?>
+	
+	<hr>
+	
+	<?LassoScript
+	// To output a record listing from a database search, different methods can be used.
+	// 1. A standard records loop (fastest)
+	records(-inlinename=($db_news -> inlinename));
+		field('title');'<br>';
+	/records;
+	
+	// 2. Iterate the database object
+	iterate($db_news, var('record'));
+		$record -> field('title');'<br>';
+	/iterate;
+	
+	// 3. Use the record pointer
+	while($db -> nextrecord); // increment the record pointer
+	// (nextrecord returns true as long as there are more records to show)
+	// fetch data from the record the record pointer currently points at
+		$db -> field('title');'<br>';
+	/while;
+	?>
 
 ###Knop_form
 
@@ -142,6 +330,8 @@ If the validation passed, the form object comes back to our help once again and 
 
 `Knop_form` can interact with `knop_database`.
 
+See previous Examples 1 and 2 for code samples of `knop_form`.
+
 ###Knop_grid
 
 This custom type is used to display record listings with sortable columns, pagination, detail link to edit a record, filtering/quicksearch, and so on. It requires a reference to a `knop_database` object because they are so tightly related. It can highlight the affected record when returning to the listing after adding or editing a record.
@@ -150,7 +340,30 @@ We can also give it a reference to a `knop_nav` object, to get the right paginat
 
 Quicksearch and the sort headings generate pair arrays or SQL snippets to interact with `knop_database`. Sort parameters and the quicksearch query is automatically propagated through a `knop_form`, so the same set of records is selected after editing a record.
 
-`Knop_grid` must interact with `Knop_database` and can optionally interact with `Knop_nav`.
+`Knop_grid` must interact with `knop_database` and can optionally interact with `knop_nav`.
+
+####Example 5 - Knop grid
+
+The following examples demonstrates how to use `knop_grid`.
+
+	<?LassoScript
+	// 5-grid.lasso
+	// Configuration
+	// Create a database object
+	var('db'=knop_database(-database='knopdemo', -table='customer', -keyfield='id'));
+	
+	// Create a grid object
+	var('grid'=knop_grid(-database=$db));
+	$grid -> addfield(-name='firstname', -label='First Name');
+	$grid -> addfield(-name='lastname', -label='Last Name');
+	
+	// Prepare page output
+	// Perform a search
+	$db -> select($grid -> sortparams);
+	
+	// Generate the grid
+	$grid -> renderhtml;
+	?>
 
 ###Knop_lang
 
@@ -163,6 +376,44 @@ When the language of a `knop_lang` object is set, that language is used for all 
 If no specific language is set on the page, `knop_lang` uses the browser's most preferred language if it's available in the `knop_lang` object, otherwise it defaults to the first language (unless a default language has been set for the `knop_lang` object).
 
 The strings in a `knop_lang` object can contain replacement placeholders which insert dynamic text when retrieving a string. The strings can also be a Lasso compound expression which will be evaluated at runtime when the string is retrieved.
+
+####Example 6 - Knop language
+
+The following examples demonstrates how to use `knop_lang`.
+
+	<?LassoScript
+	// 6-lang.lasso
+	var('lang_messages'=knop_lang(-default='en'));
+	$lang_messages -> addstring(-key='welcome', -value='Welcome to the home page', -language='en');
+	$lang_messages -> addstring(-key='welcome', -value='Välkommen till hemsidan', -language='sv');
+	$lang_messages -> addstring(-key='loggedin', -value='You are logged in as #1# #2#', -language='en');
+	$lang_messages -> addstring(-key='loggedin', -value='Du är inloggad som #1# #2#', -language='sv');
+	
+	// call
+	$lang_messages -> getstring('welcome');
+	
+	// change language
+	$lang_messages -> setlanguage('sv');
+	$lang_messages -> welcome;
+	
+	// call with replacements
+	$lang_messages -> getstring(-key='loggedin',
+		-replace=array(field('firstname'), field('lastname')));
+	?>
+	
+	<hr>
+	
+	<?LassoScript
+	// -> addlanguage is suitable if you use config files to configure strings, like the strings in knop_grid.
+	lang -> addlanguage(-language='en', -strings=map(
+		'quicksearch_showall' = 'Show all',
+		'quicksearch_search' = 'Search',
+		'linktext_edit' = '(edit)',
+		'linktitle_showunsorted' = 'Show unsorted',
+		'linktitle_changesort' = 'Change sort order to',
+		...));
+	?>
+
 
 Knop uses `knop_lang` internally to handle text strings. By providing access to the internal lang object that a Knop module uses, it is easy to add custom localizations or modified strings also to the core Knop modules without actually altering Knop itself. As an example if you want to localize an instance of `knop_grid` to another language on the fly, you can first find out what strings that need to be localized by calling $grid -> lang -> keys. This gives you an array of all string keys that are used across all defined languages.
 
@@ -186,6 +437,30 @@ Authenticating a user checks the login credentials against a specified table, wi
 When a user is being authenticated, all available fields from the user table are stored in the `knop_user` variable so user information can be retrieved easily throughout the session. Any additional custom data for the user can also be stored manually in the `knop_user` variable.
 
 `knop_user` can keep track of user permissions by storing arbitrary permission information in the `knop_user` variable. `knop_user` enhances `knop_database` objects by keeping track of record locks set by the user, and releasing record locks, for example, when navigating to a list of records without saving an edited record.
+
+####Example 7 - Knop user
+
+The following examples demonstrates how to use `knop_user`.
+
+	<?LassoScript
+	// 7-user.lasso
+	var('session_user'=knop_user(-userdb=$users));
+	session_start(-name='test');
+	session_addvar(-name='test', 'session_user');
+	$session_user -> login(-username=action_param('u'), -password=action_param('p'));
+	if($session_user -> auth);
+		if($session_user -> groups >> 'admin');
+			$session_user -> setpermission('candelete');
+		/if;
+	else;
+		'Authentication failed, ' + ($session_user -> error_msg);
+		abort;
+	/if;
+	'Welcome, ' + ($session_user -> firstname) + '! ';
+	if($session_user -> getpermission('candelete'));
+		'You are allowed to delete records.';
+	/if;
+	?>
 
 Knop file structure
 -------------------
@@ -310,7 +585,7 @@ If `$cache_refresh` is `true` in this example, then the cache will be ignored an
 
 The caching can also be done per visitor by specifying a session name to use for cache storage. The specified session must be started before using the `knop_cache` tags with session. `knop_cachestore` adds the session variable `$_knop_cache` to the session. Using session to store the cached data is useful, for example, for navigation, where the configuration can be different for each visitor.
 
-Example:
+####Example 8 - Knop cache
 
 	if(!knop_cachefetch(-type='knop_nav', -session=$session_name));
 		var('nav'=knop_nav(
