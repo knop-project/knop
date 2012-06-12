@@ -548,7 +548,7 @@ Other Knop Features
 
 All Knop modules can log debug information internally using the method `->trace`.  The module's trace can be output to reveal what is happening, e.g. `[$nav->trace(-html)]`.
 
-In addition Knop provides integration with [L-Debug](http://www.l-debug.org/), a Lasso debugging tool created by Greg Willits and improved upon and maintained by Ke Carlton.  L-Debug has two versions, one each for Lasso 8 and 9, just like Knop.  See the documentation for each version of Knop for installation instructions.
+In addition Knop provides integration with [L-Debug](http://www.l-debug.org/), a Lasso debugging tool created and maintained by Ke Carlton.  L-Debug has two versions, one each for Lasso 8 and 9, just like Knop.  See the documentation for each version of Knop for installation instructions.
 
 * [Knop for Lasso 8.x](../knop8/INSTALL.md#install-l-debug)
 * [Knop for Lasso 9.x](../knop9/INSTALL.md#install-l-debug)
