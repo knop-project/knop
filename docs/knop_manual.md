@@ -204,7 +204,6 @@ The visitor's current location is called "path" and the current action (if any) 
 
 The following example demonstrates how to create a `knop_nav` object, add navigation items, then render the navigation to the page.
 
-	// 3-nav.lasso
 	// Create the parent nav object.
 	var('nav'=knop_nav(-navmethod='param', -currentmarker=' »'));
 	
@@ -243,10 +242,9 @@ The following example demonstrates how to create a `knop_nav` object, add naviga
 
 ####Example 4 - Knop database
 
-The following examples demonstrates how to use `knop_database` to output some fields from a specific database record.
+The following examples demonstrate how to use `knop_database` to output some fields from a specific database record.
 
 	<?LassoScript
-	// 4-database.lasso
 	// initiate the database object (normally in a config file)
 	var('db_news'=knop_database(-database='acme',
 		-table='news',
@@ -264,30 +262,24 @@ The following examples demonstrates how to use `knop_database` to output some fi
 	<p>
 	[encode_break($db_news -> field('text'))]
 	</p>
-	
-	<hr>
-	
-	<?LassoScript
-	// The getrecord statement can be simplified slightly since the first parameter is the keyvalue.  The following statements have equivalent results.
+
+The getrecord statement in the above snippet can be simplified slightly since the first parameter is the keyvalue.
+
+	// The .  The following statements have equivalent results.
 	$db_news -> getrecord(-keyvalue=185);
 	$db_news -> getrecord(185);
-	?>
-	
-	<hr>
-	
-	<?LassoScript
+
+You can also use SQL statements.
+
 	// Complex SQL queries can be used to get a single record.
 	$db_news -> getrecord(-sql='SELECT * FROM news LEFT JOIN ...');
 	
 	// A general select can be used as well to return multiple records.
 	// The data from the first found record will be available as ->field.
 	$db_news -> select(-sql='SELECT * FROM news LEFT JOIN ...');
-	?>
-	
-	<hr>
-	
-	<?LassoScript
-	// To output a record listing from a database search, different methods can be used.
+
+There are multiple methods to output a record listing.
+
 	// 1. A standard records loop (fastest)
 	records(-inlinename=($db_news -> inlinename));
 		field('title');'<br>';
@@ -304,7 +296,6 @@ The following examples demonstrates how to use `knop_database` to output some fi
 	// fetch data from the record the record pointer currently points at
 		$db -> field('title');'<br>';
 	/while;
-	?>
 
 ###Knop_form
 
@@ -340,14 +331,14 @@ We can also give it a reference to a `knop_nav` object, to get the right paginat
 
 Quicksearch and the sort headings generate pair arrays or SQL snippets to interact with `knop_database`. Sort parameters and the quicksearch query is automatically propagated through a `knop_form`, so the same set of records is selected after editing a record.
 
+`Knop_grid` supports the use of simple SQL JOINs.
+
 `Knop_grid` must interact with `knop_database` and can optionally interact with `knop_nav`.
 
 ####Example 5 - Knop grid
 
-The following examples demonstrates how to use `knop_grid`.
+The following examples demonstrate how to use `knop_grid`.
 
-	<?LassoScript
-	// 5-grid.lasso
 	// Configuration
 	// Create a database object
 	var('db'=knop_database(-database='knopdemo', -table='customer', -keyfield='id'));
@@ -363,7 +354,77 @@ The following examples demonstrates how to use `knop_grid`.
 	
 	// Generate the grid
 	$grid -> renderhtml;
-	?>
+
+This example shows how to use `knop_grid` with MySQL JOIN.  See this thread in the list archive.
+
+[Using knop_grid with JOIN](http://lasso.2283332.n4.nabble.com/grid-with-join-tt3159065.html)
+
+	// Configuration
+	// Create a database object
+	var('d'=knop_database(-database='mydb', -table='mytable', -keyfield='id'));
+	
+	// create grid object for the record list
+	var('grid')=knop_grid(-database=$d, -nav=$nav);
+	
+	// add columns to the list
+	$grid -> addfield(
+		-label=$lang_ui -> firstname,
+		-dbfield='users.firstname',
+		-template={return(field('firstname'))},
+		-name='f',
+		-url='admin/users/edit',
+		-quicksearch);
+	$grid -> addfield(
+		-label=$lang_ui -> lastname,
+		-dbfield='users.lastname',
+		-template={return(field('lastname'))},
+		-name='ln',
+		-quicksearch,
+		-defaultsort);
+	$grid -> addfield(
+		-label='Group Name',
+		-dbfield='groups.name',
+		-template={return(field('name'))},
+		-name='gn',
+		-quicksearch);
+
+	// Prepare page output
+	var('sql') = "
+	SELECT
+		users.id as id,
+		users.keyfield as keyfield,
+		users.firstname as firstname,
+		users.lastname as lastname,
+		groups.name as name
+	FROM users, groups
+	WHERE
+		users.group_id = groups.id
+	";
+
+	// Perform a search
+	// find out the current skiprecords value based on the -page parameter and $maxrecords
+	$skiprecords = $grid -> page_skiprecords($maxrecords);
+
+	// build search params
+	// first set some basic search parameters
+	var('searchparams'=array(
+		-maxrecords=$maxrecords,
+		-skiprecords=$skiprecords,
+		-uselimit));
+
+	if($grid->quicksearch->size);
+		$sql += "
+		AND ";
+		$sql += $grid->quicksearch(-sql,-contains);
+	/if;
+	
+	$sql += $grid->sortparams(-sql);
+	
+	// get list of records
+	$d->select(-sql=$sql, $searchparams);
+
+	// Generate the grid
+	$grid -> renderhtml;
 
 ###Knop_lang
 
@@ -379,10 +440,8 @@ The strings in a `knop_lang` object can contain replacement placeholders which i
 
 ####Example 6 - Knop language
 
-The following examples demonstrates how to use `knop_lang`.
+The following examples demonstrate how to use `knop_lang`.
 
-	<?LassoScript
-	// 6-lang.lasso
 	var('lang_messages'=knop_lang(-default='en'));
 	$lang_messages -> addstring(-key='welcome', -value='Welcome to the home page', -language='en');
 	$lang_messages -> addstring(-key='welcome', -value='Välkommen till hemsidan', -language='sv');
@@ -399,12 +458,9 @@ The following examples demonstrates how to use `knop_lang`.
 	// call with replacements
 	$lang_messages -> getstring(-key='loggedin',
 		-replace=array(field('firstname'), field('lastname')));
-	?>
-	
-	<hr>
-	
-	<?LassoScript
-	// -> addlanguage is suitable if you use config files to configure strings, like the strings in knop_grid.
+
+You can use config files to configure language strings with `-> addlanguage`.
+
 	lang -> addlanguage(-language='en', -strings=map(
 		'quicksearch_showall' = 'Show all',
 		'quicksearch_search' = 'Search',
@@ -412,8 +468,6 @@ The following examples demonstrates how to use `knop_lang`.
 		'linktitle_showunsorted' = 'Show unsorted',
 		'linktitle_changesort' = 'Change sort order to',
 		...));
-	?>
-
 
 Knop uses `knop_lang` internally to handle text strings. By providing access to the internal lang object that a Knop module uses, it is easy to add custom localizations or modified strings also to the core Knop modules without actually altering Knop itself. As an example if you want to localize an instance of `knop_grid` to another language on the fly, you can first find out what strings that need to be localized by calling $grid -> lang -> keys. This gives you an array of all string keys that are used across all defined languages.
 
@@ -440,10 +494,8 @@ When a user is being authenticated, all available fields from the user table are
 
 ####Example 7 - Knop user
 
-The following examples demonstrates how to use `knop_user`.
+The following example demonstrates how to use `knop_user`.
 
-	<?LassoScript
-	// 7-user.lasso
 	var('session_user'=knop_user(-userdb=$users));
 	session_start(-name='test');
 	session_addvar(-name='test', 'session_user');
@@ -460,7 +512,6 @@ The following examples demonstrates how to use `knop_user`.
 	if($session_user -> getpermission('candelete'));
 		'You are allowed to delete records.';
 	/if;
-	?>
 
 Knop file structure
 -------------------
