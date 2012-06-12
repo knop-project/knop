@@ -1,11 +1,8 @@
 ﻿<?LassoScript
-//debug->activate
+// Use some kind of security to prevent l-debug running where it should not.
+// Uncomment the next line to activate l-debug, assuming you have installed it.
+// client_getparams >> 'debug' && server_name == 'knop9' ? debug->activate
 
-if(decimal(lasso_version->split(' ')->last)>=8.6
-	&& decimal(lasso_version->split(' ')->last) < 9.0);
-	// fix for 8.6 decimal bug fix
-	Decimal_SetGlobalDefaultPrecision( 0 );
-/if;
 // general configuration
 var('maxrecords'=20,
 	'skiprecords'=0,
