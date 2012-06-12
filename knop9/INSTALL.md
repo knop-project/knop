@@ -79,6 +79,8 @@ To upgrade Knop, overwrite the Knop libraries in the appropriate location, then 
 
 Install L-Debug
 ===============
+__IMPORTANT:__ Do not run L-Debug in production environments or anywhere that critical information can be revealed to unauthorized persons.  Use some level of security.
+
 1. Download L-Debug by using SVN:
 
 	`svn export svn://svn.zeroloop.com/l-debug/tags/9/stable/debug.type.lasso`
