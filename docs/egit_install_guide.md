@@ -1,4 +1,4 @@
-EGit Installation Guide
+Testing EGit Installation Guide
 =======================
 EGit is a plugin to use git within any Eclipse-based IDE, including Lasso Lab.
 
