@@ -204,7 +204,7 @@ From this point you can now view and work with all of your Gists in LassoLab/Ecl
 
 GitHub Pull Requests
 --------------------
-A Pull Request is a notification you send to a project maintainer to update their repository.
+A Pull Request is a notification you send to a project maintainer to update their repository.  EGit supports the display and opening of Pull Requests.  As of this writing, EGit does not support the creation of Pull Requests.  However you can use GitHub's website through the internal web browser of Eclipse/LassoLab to submit a Pull Request.
 
 To configure a GitHub Pull Request repository, follow steps 1-6 for GitHub Issues above, then proceed as follows.
 
@@ -227,12 +227,6 @@ To configure a GitHub Pull Request repository, follow steps 1-6 for GitHub Issue
 7. Filter: __task l__.
 8. Select __Mylyn > Task List__.  The view "Task List" appears with your recently created query.
 9. To open a Pull Request, double-click it in the Task List.
-10. To create a Pull Request:
-	- Open or create a new file in the project.
-	- Select either the file itself or a section of code in the file.
-	- CTRL-click or right-click on the selection, and select either __GitHub > Create Public Gist__ or __GitHub > Create Private Gist__.   A new Gist is created in the Task List.
-
-From this point you can now view and work with all of your Gists in LassoLab/Eclipse or through the GitHub website.
 
 More Information
 ----------------
