@@ -1,8 +1,15 @@
 How to install and configure the EGit plugin for Eclipse (and LassoLab) to work with the Knop Project on GitHub
 ===============================================================================================================
-EGit is a plugin to use git within any Eclipse-based IDE, including LassoLab.  This document covers the process to install and configure the EGit plugin for LassoLab/Eclipse.  In addition, you can use the EGit plugin to work with GitHub Issues (a public bug tracker) and Gists (a code snippet sharing tool).  We'll use the Knop Project on GitHub for this document.
+EGit is a plugin to use git within any Eclipse-based IDE, including LassoLab.  This document covers the process to install and configure the EGit plugin for LassoLab/Eclipse.  In addition, you can use the EGit plugin to work with GitHub Issues (a public bug tracker), Gists (a code snippet sharing tool), and Pull Requests (a method to submit contributions to a project).  We'll use the Knop Project on GitHub for this document.
 
-In LassoLab/Eclipse, there are many ways of doing the same thing.  You can use menus, CTRL-click or right-click on an item to get a contextual menu, click on buttons in toolbars, or map keyboard shortcuts to specific functions.  We'll use menus as they tend to be the easiest to locate.  We will also use the internal web browser in LassoLab/Eclipse for browsing the web, and maximize and minimize that view as needed.
+In LassoLab/Eclipse, there are many ways of doing the same thing.  You can use menus, CTRL-click or right-click on an item to get a contextual menu, click on buttons in toolbars, or map keyboard shortcuts to specific functions.  We'll use menus as they tend to be the easiest to locate.
+
+We will also use the internal web browser in LassoLab/Eclipse for browsing the web, and maximize and minimize that view as needed.  Here is one way to open the internal web browser:
+
+* Select __Window > Show View > Other...__.
+* Filter: __`web`__.
+* Select __General > Internal Web Browser__.
+* Click button: __OK__.
 
 Pre-requisites
 --------------
@@ -19,7 +26,7 @@ Install the EGit plugin
 -----------------------
 1. Select menu __Help > Install New Software...__.  A new window "Install" appears.
 	- Work with: __http://download.eclipse.org/releases/indigo__.
-	- Filter: __git__.
+	- Filter: __`git`__.
 	- Check both items:
 		- Eclipse Git Team Provider
 		- JGit
@@ -148,7 +155,7 @@ You have already installed this component when you installed the EGit plugin.  F
 
 1. Select __Window > Open Perspective > Other...__.
 2. Select __Window > Show View > Other...__.
-3. Filter: __task r__.
+3. Filter: __`task r`__.
 4. Select __Mylyn > Task Repositories__.
 5. Click button: __OK__. A new view "Task Repositories" appears.
 6. CTRL-click or right-click in the Task Repositories view, and select __Add Task Repository...__. A new wizard "Add Task Repository..." appears, with the initial step "Select a task repository type".
@@ -167,7 +174,7 @@ You have already installed this component when you installed the EGit plugin.  F
 	- Title: __All Knop Project Issues__.
 	- Click button: __Finish__.
 12. Select __Window > Show View > Other...__.
-13. Filter: __task l__.
+13. Filter: __`task l`__.
 14. Select __Mylyn > Task List__.  The view "Task List" appears with your recently created query.
 
 From this point you can now view and work with the Knop Project Issues in LassoLab/Eclipse or through the GitHub website.  Depending on your permissions, you will have different features enabled.
@@ -193,7 +200,7 @@ To configure a GitHub Gist repository, follow steps 1-6 for GitHub Issues above,
 	- Title: __My Gists__.
 	- User: enter your __GitHub account__.
 6. Select __Window > Show View > Other...__.
-7. Filter: __task l__.
+7. Filter: __`task l`__.
 8. Select __Mylyn > Task List__.  The view "Task List" appears with your recently created query.
 9. To create a Gist:
 	- Open or create a new file in the project.
@@ -226,7 +233,7 @@ To configure a GitHub Pull Request repository, follow steps 1-6 for GitHub Issue
 	- Status: check both __Open__ and __Closed__.
 	- Click button: __Finish__.
 6. Select __Window > Show View > Other...__.
-7. Filter: __task l__.
+7. Filter: __`task l`__.
 8. Select __Mylyn > Task List__.  The view "Task List" appears with your recently created query.
 9. To open a Pull Request, double-click it in the Task List.
 
