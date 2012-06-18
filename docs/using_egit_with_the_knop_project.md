@@ -1,7 +1,11 @@
 How to install and configure the EGit plugin for Eclipse (and LassoLab) to work with the Knop Project on GitHub
 ===============================================================================================================
-EGit is a plugin to use git within any Eclipse-based IDE, including LassoLab.  This document covers the process to install and configure the EGit plugin for Eclipse (and LassoLab).  In addition, you can use the EGit plugin to work with GitHub Issues (a public bug tracker) and Gists (a code snippet sharing tool).  We'll use the Knop Project on GitHub for this document.
+EGit is a plugin to use git within any Eclipse-based IDE, including LassoLab.  This document covers the process to install and configure the EGit plugin for LassoLab/Eclipse.  In addition, you can use the EGit plugin to work with GitHub Issues (a public bug tracker) and Gists (a code snippet sharing tool).  We'll use the Knop Project on GitHub for this document.
 
+In LassoLab/Eclipse, there are many ways of doing the same thing.  You can use menus, CTRL-click or right-click on an item to get a contextual menu, click on buttons in toolbars, or map keyboard shortcuts to specific functions.  We'll use menus as they tend to be the easiest to locate.  We will also use the internal web browser in LassoLab/Eclipse for browsing the web, and maximize and minimize that view as needed.
+
+Pre-requisites
+--------------
 Before you begin, you must do the following:
 
 * install and set up git
@@ -10,8 +14,6 @@ Before you begin, you must do the following:
 * enter your public SSH key into your GitHub account
 
 See [Git and GitHub Installation and Configuration Guide](git_install_guide.md) for complete instructions.
-
-In LassoLab/Eclipse, there are many ways of doing the same thing.  You can use menus, CTRL- or right-click on an item to get a contextual menu, click on buttons in toolbars, or map keyboard shortcuts to specific functions.  We'll use menus as they tend to be the easiest to locate.  We will also use the internal web browser in LassoLab/Eclipse for browsing the web, and maximize and minimize that view as needed.
 
 Install the EGit plugin
 -----------------------
@@ -204,7 +206,7 @@ From this point you can now view and work with all of your Gists in LassoLab/Ecl
 
 GitHub Pull Requests
 --------------------
-A Pull Request is a notification you send to a project maintainer to update their repository.  EGit supports the display and opening of Pull Requests.  As of this writing, EGit does not support the creation of Pull Requests.  However you can use GitHub's website through the internal web browser of Eclipse/LassoLab to submit a Pull Request.
+A Pull Request is a notification you send to a project maintainer to update their repository.  EGit supports the display and opening of Pull Requests.  As of this writing, EGit does not support the creation of Pull Requests.  However you can use GitHub's website through the internal web browser of LassoLab/Eclipse to submit a Pull Request.
 
 To configure a GitHub Pull Request repository, follow steps 1-6 for GitHub Issues above, then proceed as follows.
 
