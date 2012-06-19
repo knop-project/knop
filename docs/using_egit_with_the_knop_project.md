@@ -110,42 +110,29 @@ Modifying and contributing to the Knop Project
 You can use EGit essentially as you would use git from the command line, but using a graphical user interface.  The process is similar to that in the guide [Using git with the Knop Project](using_git_with_the_knop_project.md#modifying-and-contributing-to-the-knop-project).
 
 1. Update your local repo.
-
 	Before you start working on your local files, you should pull down all updates from the upstream repo to your local repo, and merge any changes into your working files.
-	
 	* Fetch any new changes from the original repo. Select __Git > Fetch from Upstream__.
 	* Merge any changes fetched into your working files. Select __Git > Pull__.
-
 2. Create a branch.
-
 	Branching allows you to test an idea or add new features to the project.  Let's create a branch (MYBRANCH or whatever you like) and begin working in it.
-
 	* Select __Git > Switch to...__.  A new window "Branches" appears.
 	* Click button __New branch...__.  A new window "Create Branch" appears.
 	* Select Source ref: __refs/remotes/origin/master__.
 	* Branch name: __MYBRANCH__
 	* Select Pull strategy: __Merge__.
 	* Check __Checkout new branch__.
-
 3. You can __switch between branches__ at any time and determine on which branch you are currently working.
-
 	* Select __Git > Switch to...__.  A new window "Branches" appears.  The current branch is indicated with a white checkmark in a tiny black square.
 	* Select a branch without the white checkmark.  The button "Checkout" is enabled.
 	* Click button: __Checkout__.
-	
 	When you edit files, changes are tracked according to whichever branch is current at that time.  Thus you should always switch to the branch where you want to do your code editing before editing code.
-
 4. Once you are done editing files, you need to __stage__ them (add them to the index) and __commit__ them with a message.
-
 	* Select __Git > Commit...__.  A new window "Commit Changes" appears.
 	* Enter a __Commit message__.
 	* Click button: __Commit__.
-
 5. Next, push your branch from your clone up to your fork on GitHub.
-
 	* Select __Git > Push to Upstream__.  A new window "Push Results: knop-project - origin" appears.  It displays information about what will be pushed.
 	* Click button: __OK__.
-
 6. Finally, to contribute your changes to the Knop Project, submit a __pull request__ through the GitHub website.  The project administrators will review your request.  Read details of [how to use pull requests](https://help.github.com/articles/using-pull-requests).
 
 If you like to write documentation or produce demo videos, then you can contribute your work to the Knop Project.  The Knop Project's documentation uses the Markdown syntax, which GitHub supports.
