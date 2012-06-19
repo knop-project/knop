@@ -25,14 +25,14 @@ See [Git and GitHub Installation and Configuration Guide](git_install_guide.md) 
 Install the EGit plugin
 -----------------------
 1. Select menu __Help > Install New Software...__.  A new window "Install" appears.
-	- Work with: __http://download.eclipse.org/releases/indigo__.
-	- Filter: __`git`__.
-	- Check all items:
-		- Eclipse Git
-		- Eclipse Git Mylyn GitHub Feature
-		- Eclipse JGit
-		- EGit Mylyn
-	- Click button: __Next >__.
+	* Work with: __http://download.eclipse.org/releases/indigo__.
+	* Filter: __`git`__.
+	* Check all items:
+		* Eclipse Git
+		* Eclipse Git Mylyn GitHub Feature
+		* Eclipse JGit
+		* EGit Mylyn
+	* Click button: __Next >__.
 2. Click button: __Next >__.
 3. Select "I accept the terms of the license agreement".
 4. Click button: __Finish__.
@@ -59,14 +59,14 @@ After you have forked the Knop Project repository, you will have your own copy u
 5. Click button: __OK__. The Git Repository perspective opens.
 6. Select the Git Repositories view to make it active.
 7. Paste the URI you copied from Git.  A new wizard "Clone Git Repository" appears with most of the information auto-populated.  Complete required information for __Source Git Repository__.
-	- URI: __git@github.com:MYACCOUNT/knop.git__
-	- Host: __github.com__
-	- Repository path: __MYACCOUNT/knop.git__
-	- Connection > Protocol, select: __ssh__.
-	- User: __git__.
-	- Password: __enter your password__.
-	- Check: __Store in Secure Store__.
-	- Click button: __Next >__. The next step "Branch Selection" appears.
+	* URI: __git@github.com:MYACCOUNT/knop.git__
+	* Host: __github.com__
+	* Repository path: __MYACCOUNT/knop.git__
+	* Connection > Protocol, select: __ssh__.
+	* User: __git__.
+	* Password: __enter your password__.
+	* Check: __Store in Secure Store__.
+	* Click button: __Next >__. The next step "Branch Selection" appears.
 8. Select the master branch.
 9. Click button: __Next >__. The next step "Local Destination" appears.
 10. Now you can browse to put the project anywhere on the file system.  You can put it in your web root, your user directory, whatever is most familiar and convenient for you and your workflow.  For the purpose of this tutorial, we will put it in the web root for Mac OS X and give it a unique name.
@@ -94,11 +94,14 @@ Create a new project in LassoLab/Eclipse for your clone
 Finally we need to add the cloned local git repository into a new project in our workspace.  Let's create a new Lasso project.
 
 1. Switch to the Lasso perspective
-2. Select __File > New... > Lasso Project__.
-	- Project name: knop-project
-	- Contents: Create project at existing location (from existing source).  This is where you cloned your fork to your local computer.
-	- Click button: __Next >__.
-3. Click button: __Finish__.
+2. Select __File > New... > Project...__.  A new window "New Project" appears, with the initial step "Select a wizard".
+3. Select __General > Project__.
+4. Click button: __Next >__.  The next step "Project" appears.
+5. Enter the following information
+	* Project name: __knop-project__
+	* __Uncheck: Use default location__.
+	* Location: You can either enter the location or click the button __Browse...__ to locate your local clone.
+	* Click button: __Finish__.
 
 Now you're ready to start doing some work.
 
@@ -107,42 +110,29 @@ Modifying and contributing to the Knop Project
 You can use EGit essentially as you would use git from the command line, but using a graphical user interface.  The process is similar to that in the guide [Using git with the Knop Project](using_git_with_the_knop_project.md#modifying-and-contributing-to-the-knop-project).
 
 1. Update your local repo.
-
 	Before you start working on your local files, you should pull down all updates from the upstream repo to your local repo, and merge any changes into your working files.
-	
-	- Fetch any new changes from the original repo. Select __Git > Fetch from Upstream__.
-	- Merge any changes fetched into your working files. Select __Git > Pull__.
-
+	* Fetch any new changes from the original repo. Select __Git > Fetch from Upstream__.
+	* Merge any changes fetched into your working files. Select __Git > Pull__.
 2. Create a branch.
-
 	Branching allows you to test an idea or add new features to the project.  Let's create a branch (MYBRANCH or whatever you like) and begin working in it.
-
-	- Select __Git > Switch to...__.  A new window "Branches" appears.
-	- Click button __New branch...__.  A new window "Create Branch" appears.
-	- Select Source ref: __refs/remotes/origin/master__.
-	- Branch name: __MYBRANCH__
-	- Select Pull strategy: __Merge__.
-	- Check __Checkout new branch__.
-
+	* Select __Git > Switch to...__.  A new window "Branches" appears.
+	* Click button __New branch...__.  A new window "Create Branch" appears.
+	* Select Source ref: __refs/remotes/origin/master__.
+	* Branch name: __MYBRANCH__
+	* Select Pull strategy: __Merge__.
+	* Check __Checkout new branch__.
 3. You can __switch between branches__ at any time and determine on which branch you are currently working.
-
-	- Select __Git > Switch to...__.  A new window "Branches" appears.  The current branch is indicated with a white checkmark in a tiny black square.
-	- Select a branch without the white checkmark.  The button "Checkout" is enabled.
-	- Click button: __Checkout__.
-	
+	* Select __Git > Switch to...__.  A new window "Branches" appears.  The current branch is indicated with a white checkmark in a tiny black square.
+	* Select a branch without the white checkmark.  The button "Checkout" is enabled.
+	* Click button: __Checkout__.
 	When you edit files, changes are tracked according to whichever branch is current at that time.  Thus you should always switch to the branch where you want to do your code editing before editing code.
-
 4. Once you are done editing files, you need to __stage__ them (add them to the index) and __commit__ them with a message.
-
-	- Select __Git > Commit...__.  A new window "Commit Changes" appears.
-	- Enter a __Commit message__.
-	- Click button: __Commit__.
-
+	* Select __Git > Commit...__.  A new window "Commit Changes" appears.
+	* Enter a __Commit message__.
+	* Click button: __Commit__.
 5. Next, push your branch from your clone up to your fork on GitHub.
-
-	- Select __Git > Push to Upstream__.  A new window "Push Results: knop-project - origin" appears.  It displays information about what will be pushed.
-	- Click button: __OK__.
-
+	* Select __Git > Push to Upstream__.  A new window "Push Results: knop-project - origin" appears.  It displays information about what will be pushed.
+	* Click button: __OK__.
 6. Finally, to contribute your changes to the Knop Project, submit a __pull request__ through the GitHub website.  The project administrators will review your request.  Read details of [how to use pull requests](https://help.github.com/articles/using-pull-requests).
 
 If you like to write documentation or produce demo videos, then you can contribute your work to the Knop Project.  The Knop Project's documentation uses the Markdown syntax, which GitHub supports.
@@ -164,17 +154,17 @@ You have already installed this component when you installed the EGit plugin.  F
 7. Select: __GitHub Issues__.
 8. Click button: __Next >__. The next step "GitHub Issue Repository Settings" appears.
 9. Configure settings for the GitHub Issue repository:
-	- Server: __http://github.com/knop-project/knop__.
-	- Label: __knop-project/knop issues__ (auto-entered, but you can change it).
-	- User ID: enter your __GitHub account__.
-	- Password: enter your __GitHub password__.
-	- Optionally check __Save Password__.
-	- Click button: __Validate Settings__. Either an error or success message will appear at the top of the wizard.
-	- If successful, click button: __Finish__.  A new window "Add new query" appears.
+	* Server: __http://github.com/knop-project/knop__.
+	* Label: __knop-project/knop issues__ (auto-entered, but you can change it).
+	* User ID: enter your __GitHub account__.
+	* Password: enter your __GitHub password__.
+	* Optionally check __Save Password__.
+	* Click button: __Validate Settings__. Either an error or success message will appear at the top of the wizard.
+	* If successful, click button: __Finish__.  A new window "Add new query" appears.
 10. To display and work with the issues in the task repository, we need to create a query to find the issues.  When you first create a task repository, you will be prompted to create a query, so let's do that now.  Click the button __Yes__.  A new window "Edit Query" appears.
 11. Configure your query.  __Note:__ the UI to the filters is misleading.  The checkboxes for labels actually perform an AND search, not an OR search.  Therefore to view all items, select no labels.
-	- Title: __All Knop Project Issues__.
-	- Click button: __Finish__.
+	* Title: __All Knop Project Issues__.
+	* Click button: __Finish__.
 12. Select __Window > Show View > Other...__.
 13. Filter: __`task l`__.
 14. Select __Mylyn > Task List__.  The view "Task List" appears with your recently created query.
@@ -190,24 +180,24 @@ To configure a GitHub Gist repository, follow steps 1-6 for GitHub Issues above,
 1. Select: __GitHub Gists__.
 2. Click button: __Next >__. The next step "GitHub repository settings" appears.
 3. Configure settings for the GitHub Gist repository:
-	- Server: __https://gist.github.com__ (auto-entered).
-	- Label: __Gists__ (auto-entered, but you can change it).
-	- User ID: enter your __GitHub account__.
-	- Password: enter your __GitHub password__.
-	- Optionally check __Save Password__.
-	- Click button: __Validate Settings__. Either an error or success message will appear at the top of the wizard.
-	- If successful, click button: __Finish__.  A new window "Add new query" appears.
+	* Server: __https://gist.github.com__ (auto-entered).
+	* Label: __Gists__ (auto-entered, but you can change it).
+	* User ID: enter your __GitHub account__.
+	* Password: enter your __GitHub password__.
+	* Optionally check __Save Password__.
+	* Click button: __Validate Settings__. Either an error or success message will appear at the top of the wizard.
+	* If successful, click button: __Finish__.  A new window "Add new query" appears.
 4. To display and work with the Gists in the task repository, we need to create a query to find the issues.  When you first create a task repository, you will be prompted to create a query, so let's do that now.  Click the button __Yes__.  A new window "Edit Query" appears.
 5. Configure your query.
-	- Title: __My Gists__.
-	- User: enter your __GitHub account__.
+	* Title: __My Gists__.
+	* User: enter your __GitHub account__.
 6. Select __Window > Show View > Other...__.
 7. Filter: __`task l`__.
 8. Select __Mylyn > Task List__.  The view "Task List" appears with your recently created query.
 9. To create a Gist:
-	- Open or create a new file in the project.
-	- Select either the file itself or a section of code in the file.
-	- CTRL-click or right-click on the selection, and select either __GitHub > Create Public Gist__ or __GitHub > Create Private Gist__.   A new Gist is created in the Task List.
+	* Open or create a new file in the project.
+	* Select either the file itself or a section of code in the file.
+	* CTRL-click or right-click on the selection, and select either __GitHub > Create Public Gist__ or __GitHub > Create Private Gist__.   A new Gist is created in the Task List.
 10. To open a Gist, double-click it.  Its repository appears.
 11. Under Files > Name, double-click the name of the file to open it.
 
@@ -222,18 +212,18 @@ To configure a GitHub Pull Request repository, follow steps 1-6 for GitHub Issue
 1. Select: __GitHub Pull Requests__.
 2. Click button: __Next >__. The next step "Pull Request Repository" appears.
 3. Configure settings for the GitHub Pull Request repository:
-	- Server: __http://github.com/knop-project/knop__.
-	- Label: __knop-project/knop issues__ (auto-entered, but you can change it).
-	- User ID: enter your __GitHub account__.
-	- Password: enter your __GitHub password__.
-	- Optionally check __Save Password__.
-	- Click button: __Validate Settings__. Either an error or success message will appear at the top of the wizard.
-	- If successful, click button: __Finish__.  A new window "Add new query" appears.
+	* Server: __http://github.com/knop-project/knop__.
+	* Label: __knop-project/knop issues__ (auto-entered, but you can change it).
+	* User ID: enter your __GitHub account__.
+	* Password: enter your __GitHub password__.
+	* Optionally check __Save Password__.
+	* Click button: __Validate Settings__. Either an error or success message will appear at the top of the wizard.
+	* If successful, click button: __Finish__.  A new window "Add new query" appears.
 4. To display and work with the Pull Requests in the task repository, we need to create a query to find the issues.  When you first create a task repository, you will be prompted to create a query, so let's do that now.  Click the button __Yes__.  A new window "Edit Query" appears.
 5. Configure your query.
-	- Title: __Knop Project Pull Requests__.
-	- Status: check both __Open__ and __Closed__.
-	- Click button: __Finish__.
+	* Title: __Knop Project Pull Requests__.
+	* Status: check both __Open__ and __Closed__.
+	* Click button: __Finish__.
 6. Select __Window > Show View > Other...__.
 7. Filter: __`task l`__.
 8. Select __Mylyn > Task List__.  The view "Task List" appears with your recently created query.
