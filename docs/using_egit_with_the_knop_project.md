@@ -27,9 +27,11 @@ Install the EGit plugin
 1. Select menu __Help > Install New Software...__.  A new window "Install" appears.
 	- Work with: __http://download.eclipse.org/releases/indigo__.
 	- Filter: __`git`__.
-	- Check both items:
-		- Eclipse Git Team Provider
-		- JGit
+	- Check all items:
+		- Eclipse Git
+		- Eclipse Git Mylyn GitHub Feature
+		- Eclipse JGit
+		- EGit Mylyn
 	- Click button: __Next >__.
 2. Click button: __Next >__.
 3. Select "I accept the terms of the license agreement".
