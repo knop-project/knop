@@ -93,15 +93,29 @@ Create a new project in LassoLab/Eclipse for your clone
 -------------------------------------------------------
 Finally we need to add the cloned local git repository into a new project in our workspace.  Let's create a new Lasso project.
 
-1. Switch to the Lasso perspective
-2. Select __File > New... > Project...__.  A new window "New Project" appears, with the initial step "Select a wizard".
-3. Select __General > Project__.
-4. Click button: __Next >__.  The next step "Project" appears.
-5. Enter the following information
+1. Switch to the Lasso perspective.
+2. Select __File > New... > Lasso Project__.  A new window "Create Lasso 9 Project" appears, with the initial step "Create a Lasso 9 project".
+3. Enter the following information.
 	* Project name: __knop-project__
-	* __Uncheck: Use default location__.
-	* Location: You can either enter the location or click the button __Browse...__ to locate your local clone.
-	* Click button: __Finish__.
+	* Under Contents, select __Create project at existing location (from existing source)__.
+	* Host: __Localhost__.
+	* Directory: You can either enter the location or click the button __Browse...__ to locate the directory that contains your local clone.
+	* Click button: __Next >__.  The next step "Script Settings" appears.
+4. Within the root directory `knop-project`, select all the folders marked with a small brown "source" icon.
+	* docs
+	* knop8/demo
+	* knop8/LassoLibraries
+	* knop8/LassoStartup
+	* knop8/source
+	* knop9/demo
+	* knop9/knoplibs
+	* knop9/LassoStartup
+5. Click the toolbar button: __Remove from Build Path__.
+6. Select the root directory `knop-project`.
+7. Click the toolbar button: __Use as Source Folder__.
+8. Select the directory `.git`.
+9. Click the toolbar button: __Exclude__.
+10. Click button: __Finish__.
 
 Now you're ready to start doing some work.
 
@@ -145,15 +159,14 @@ GitHub Issues
 -------------
 You have already installed this component when you installed the EGit plugin.  First let's configure our GitHub Issues Repository.
 
-1. Select __Window > Open Perspective > Other...__.
-2. Select __Window > Show View > Other...__.
-3. Filter: __`task r`__.
-4. Select __Mylyn > Task Repositories__.
-5. Click button: __OK__. A new view "Task Repositories" appears.
-6. CTRL-click or right-click in the Task Repositories view, and select __Add Task Repository...__. A new wizard "Add Task Repository..." appears, with the initial step "Select a task repository type".
-7. Select: __GitHub Issues__.
-8. Click button: __Next >__. The next step "GitHub Issue Repository Settings" appears.
-9. Configure settings for the GitHub Issue repository:
+1. Select __Window > Show View > Other...__.
+2. Filter: __`task r`__.
+3. Select __Mylyn > Task Repositories__.
+4. Click button: __OK__. A new view "Task Repositories" appears.
+5. CTRL-click or right-click in the Task Repositories view, and select __Add Task Repository...__. A new wizard "Add Task Repository..." appears, with the initial step "Select a task repository type".
+6. Select: __GitHub Issues__.
+7. Click button: __Next >__. The next step "GitHub Issue Repository Settings" appears.
+8. Configure settings for the GitHub Issue repository:
 	* Server: __http://github.com/knop-project/knop__.
 	* Label: __knop-project/knop issues__ (auto-entered, but you can change it).
 	* User ID: enter your __GitHub account__.
@@ -161,13 +174,13 @@ You have already installed this component when you installed the EGit plugin.  F
 	* Optionally check __Save Password__.
 	* Click button: __Validate Settings__. Either an error or success message will appear at the top of the wizard.
 	* If successful, click button: __Finish__.  A new window "Add new query" appears.
-10. To display and work with the issues in the task repository, we need to create a query to find the issues.  When you first create a task repository, you will be prompted to create a query, so let's do that now.  Click the button __Yes__.  A new window "Edit Query" appears.
-11. Configure your query.  __Note:__ the UI to the filters is misleading.  The checkboxes for labels actually perform an AND search, not an OR search.  Therefore to view all items, select no labels.
+9. To display and work with the issues in the task repository, we need to create a query to find the issues.  When you first create a task repository, you will be prompted to create a query, so let's do that now.  Click the button __Yes__.  A new window "Edit Query" appears.
+10. Configure your query.  __Note:__ the UI to the filters is misleading.  The checkboxes for labels actually perform an AND search, not an OR search.  Therefore to view all items, select no labels.
 	* Title: __All Knop Project Issues__.
 	* Click button: __Finish__.
-12. Select __Window > Show View > Other...__.
-13. Filter: __`task l`__.
-14. Select __Mylyn > Task List__.  The view "Task List" appears with your recently created query.
+11. Select __Window > Show View > Other...__.
+12. Filter: __`task l`__.
+13. Select __Mylyn > Task List__.  The view "Task List" appears with your recently created query.
 
 From this point you can now view and work with the Knop Project Issues in LassoLab/Eclipse or through the GitHub website.  Depending on your permissions, you will have different features enabled.
 
@@ -175,7 +188,7 @@ GitHub Gists
 ------------
 A Gist is a simple way to share snippets and pastes with others. All gists are git repositories, so they are automatically versioned, forkable and usable as a git repository.
 
-To configure a GitHub Gist repository, follow steps 1-6 for GitHub Issues above, then proceed as follows.
+To configure a GitHub Gist repository, follow steps 1-5 for GitHub Issues above, then proceed as follows.
 
 1. Select: __GitHub Gists__.
 2. Click button: __Next >__. The next step "GitHub repository settings" appears.
@@ -207,7 +220,7 @@ GitHub Pull Requests
 --------------------
 A Pull Request is a notification you send to a project maintainer to update their repository.  EGit supports the display and opening of Pull Requests.  As of this writing, EGit does not support the creation of Pull Requests.  However you can use GitHub's website through the internal web browser of LassoLab/Eclipse to submit a Pull Request.
 
-To configure a GitHub Pull Request repository, follow steps 1-6 for GitHub Issues above, then proceed as follows.
+To configure a GitHub Pull Request repository, follow steps 1-5 for GitHub Issues above, then proceed as follows.
 
 1. Select: __GitHub Pull Requests__.
 2. Click button: __Next >__. The next step "Pull Request Repository" appears.
