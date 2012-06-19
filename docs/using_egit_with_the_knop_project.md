@@ -139,7 +139,7 @@ If you like to write documentation or produce demo videos, then you can contribu
 
 Steve Piercy produced a brief video of how to configure BBEdit to do syntax highlighting for the Markdown markup language and how to preview your changes in real-time.
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/XgCq_6xKLAc" frameborder="0" allowfullscreen></iframe>
+[BBEdit and Markdown syntax](https://www.youtube.com/XgCq_6xKLAc)
 
 GitHub Issues
 -------------
