@@ -117,6 +117,26 @@ Finally we need to add the cloned local git repository into a new project in our
 9. Click the toolbar button: __Exclude__.
 10. Click button: __Finish__.
 
+Enable EGit menu and toolbar items
+----------------------------------
+To facilitate working with EGit in LassoLab/Eclipse, it helps to enable menu and toolbar items.  You can also set up keyboard shortcuts to perform routine tasks, such as commit and push.
+
+Note that sometimes the settings for EGit in LassoLab/Eclipse do not always take effect, so you may need to toggle settings back and forth or even restart LassoLab/Eclipse.
+
+1. Make sure you start from the Lasso perspective.
+2. Select __Window > Customize Perspective...__.  A new window "Customize Perspective - Lasso" appears.
+3. Click tab: __Command Groups Availability__.
+4. Under __Available command groups:__, check the following:
+	* Git
+	* Git Navigation Actions
+5. Click tab: __Menu Visibility__.
+6. Under __Menu Structure:__, uncheck, then check again, the following:
+	* Git
+7. Click tab: __Tool Bar Visibility__.
+8. Under __Tool Bar Structure:__, uncheck, then check again, the following:
+	* Git
+9. Click button: __OK__.
+
 Now you're ready to start doing some work.
 
 Modifying and contributing to the Knop Project
