@@ -75,9 +75,9 @@ Syntevo provides SmartGit with either a commercial or an open source license dep
 
 ####EGit
 
-EGit is a plugin for Eclipse and Eclipse based products, such as LassoLab from LassoSoft.  Eclipse, LassoLab, and EGit are all available at no cost.  We recommend using an integrated development environment (IDE) for writing, testing, and debugging code, as well as adding in plugins to improve your project workflow.
+EGit is a plugin for Eclipse and Eclipse-based products, including [LassoLab from LassoSoft](http://www.lassosoft.com/LassoLab).  Eclipse, LassoLab, and EGit are all available at no cost.  Eclipse and LassoLab are both integrated development environments (IDE) for writing, testing, and debugging code.  In addition plugins can be installed to add features and improve your project workflow.
 
-[EGit]()
+Please see the Knop Project documentation [How to install and configure the EGit plugin for Eclipse (and LassoLab) to work with the Knop Project on GitHub](using_egit_with_the_knop_project.md).
 
 ####Other desktop clients
 
@@ -85,4 +85,4 @@ EGit is a plugin for Eclipse and Eclipse based products, such as LassoLab from L
 
 Conclusion
 ==========
-Now that you have a GitHub account, installed git, and optionally installed a git GUI client, you are ready to [work with the Knop Project](using_git_with_the_knop_project.md).
+Now that you have a GitHub account, installed git, and optionally installed a git GUI client, you are ready to work with the Knop Project, either by using [git](using_git_with_the_knop_project.md) or [EGit in Eclipse/LassoLab](using_egit_with_the_knop_project.md).
