@@ -11,6 +11,7 @@ define_type: 'database',
 /*
 
 CHANGE NOTES
+2012-06-22	JC	Fix for Issue #53: knop_database -> getrecord does not clear stale lockvalue.
 2012-06-10	SP	Fix for decimal precision bug in 8.6.0.1 in renderfooter.
 2012-01-15	SP	Add support for inline host method.  Thanks to Ric Lewis.
 2010-11-23	JS	->settable: removed reference for -table
@@ -1147,7 +1148,14 @@ datetime_create and datetime_mod, and also user_create and user_mod.
 			/if;
 			if: (self -> 'lockfield') != ''; 
 				(self -> 'lockvalue')=(field: (self -> 'lockfield'));
-				(self -> 'lockvalue_encrypted')=(encrypt_blowfish: (field: (self -> 'lockfield')), -seed=(self -> 'lock_seed'));
+				local: 'lockvalue'=(self -> 'lockvalue') -> (split: '|');
+				local: 'lock_timestamp'=date: (#lockvalue->size > 1 ? #lockvalue -> (get: 2) | null);
+				if: (date - #lock_timestamp) -> seconds >= (self -> 'lock_expires');
+					(self -> 'lockvalue') = string;
+					(self -> 'lockvalue_encrypted')= string;
+				else;
+					(self -> 'lockvalue_encrypted')=(encrypt_blowfish: (field: (self -> 'lockfield')), -seed=(self -> 'lock_seed'));
+				/if;
 			/if;
 		/if;
 		if: error_code == 0;
