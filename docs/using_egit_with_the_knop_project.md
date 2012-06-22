@@ -2,6 +2,8 @@ How to install and configure the EGit plugin for Eclipse (and LassoLab) to work 
 ===============================================================================================================
 EGit is a plugin to use git within any Eclipse-based IDE, including LassoLab.  This document covers the process to install and configure the EGit plugin for LassoLab/Eclipse.  In addition, you can use the EGit plugin to work with GitHub Issues (a public bug tracker), Gists (a code snippet sharing tool), and Pull Requests (a method to submit contributions to a project).  We'll use the Knop Project on GitHub for this document.
 
+This document is a companion to a video on YouTube by Steve Piercy, [Install and configure the EGit plugin for Eclipse/LassoLab to work with the Knop Project on GitHub](http://www.youtube.com/watch?v=Qmix1cXZt-Y).
+
 In LassoLab/Eclipse, there are many ways of doing the same thing.  You can use menus, CTRL-click or right-click on an item to get a contextual menu, click on buttons in toolbars, or map keyboard shortcuts to specific functions.  We'll use menus as they tend to be the easiest to locate.
 
 We will also use the internal web browser in LassoLab/Eclipse for browsing the web, and maximize and minimize that view as needed.  Here is one way to open the internal web browser:
@@ -264,6 +266,8 @@ To configure a GitHub Pull Request repository, follow steps 1-5 for GitHub Issue
 
 More Information
 ----------------
+* [Mylyn](http://eclipse.org/mylyn/)
+* [Mylyn Extensions (including connectors for Subversion, Mercurial, Trac, Bugzilla, Mantis, and dozens more)](http://wiki.eclipse.org/index.php/Mylyn_Extensions)
 * [How to download and install EGit](http://www.eclipse.org/egit/download/)
 * [EGit User Guide](http://wiki.eclipse.org/EGit/User_Guide)
 * [EGit Tutorial for Beginners](http://unicase.blogspot.com/2011/01/egit-tutorial-for-beginners.html)
