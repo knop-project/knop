@@ -1,7 +1,7 @@
 ﻿[/* 
 
 	On-Demand library for namespace knop
-	Namespace file built date 2012-06-22 03:14:34 by http://knop-project/source/buildnamespace.lasso
+	Namespace file built date 2012-06-25 00:43:21 by http://knop-project/source/buildnamespace.lasso
 	Montania System AB
 
 */]
@@ -680,6 +680,7 @@ define_type: 'database',
 /*
 
 CHANGE NOTES
+2012-06-25	JC	Another fix for Issue #53: knop_database -> getrecord does not clear stale lockvalue.
 2012-06-22	JC	Fix for Issue #53: knop_database -> getrecord does not clear stale lockvalue.
 2012-06-10	SP	Fix for decimal precision bug in 8.6.0.1 in renderfooter.
 2012-01-15	SP	Add support for inline host method.  Thanks to Ric Lewis.
@@ -1816,7 +1817,7 @@ datetime_create and datetime_mod, and also user_create and user_mod.
 				(self -> 'affectedrecord_keyvalue') = (self -> 'keyvalue');
 			/if;
 			if: (self -> 'lockfield') != ''; 
-				(self -> 'lockvalue')=(field: (self -> 'lockfield'));
+				(self -> 'lockvalue')=string(field: (self -> 'lockfield'));
 				local: 'lockvalue'=(self -> 'lockvalue') -> (split: '|');
 				local: 'lock_timestamp'=date: (#lockvalue->size > 1 ? #lockvalue -> (get: 2) | null);
 				if: (date - #lock_timestamp) -> seconds >= (self -> 'lock_expires');
@@ -8042,7 +8043,8 @@ tbody is used in renderfooter, which is not semantically correct. can\'t use tfo
 Move templates to a member tag to be make it easier to subclass
 Change ->addfield to ->insert and make ->addfield deprecated
 
-','knop_database'='2012-06-22	JC	Fix for Issue #53: knop_database -> getrecord does not clear stale lockvalue.
+','knop_database'='2012-06-25	JC	Another fix for Issue #53: knop_database -> getrecord does not clear stale lockvalue.
+2012-06-22	JC	Fix for Issue #53: knop_database -> getrecord does not clear stale lockvalue.
 2012-06-10	SP	Fix for decimal precision bug in 8.6.0.1 in renderfooter.
 2012-01-15	SP	Add support for inline host method.  Thanks to Ric Lewis.
 2010-11-23	JS	->settable: removed reference for -table
