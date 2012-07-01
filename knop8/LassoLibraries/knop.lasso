@@ -1,7 +1,7 @@
 ﻿[/* 
 
 	On-Demand library for namespace knop
-	Namespace file built date 2012-06-25 00:43:21 by http://knop-project/source/buildnamespace.lasso
+	Namespace file built date 2012-07-01 03:39:29 by http://knop/knop8/source/buildnamespace.lasso
 	Montania System AB
 
 */]
@@ -1816,9 +1816,13 @@ datetime_create and datetime_mod, and also user_create and user_mod.
 			if: lasso_currentaction == 'add' || lasso_currentaction == 'update';
 				(self -> 'affectedrecord_keyvalue') = (self -> 'keyvalue');
 			/if;
-			if: (self -> 'lockfield') != ''; 
+			if: (self -> 'lockfield') != '';
 				(self -> 'lockvalue')=string(field: (self -> 'lockfield'));
-				local: 'lockvalue'=(self -> 'lockvalue') -> (split: '|');
+				if(self -> 'lockvalue' != '');
+					local: 'lockvalue'=(self -> 'lockvalue') -> (split: '|');
+				else;
+					local('lockvalue'=string);
+				/if;
 				local: 'lock_timestamp'=date: (#lockvalue->size > 1 ? #lockvalue -> (get: 2) | null);
 				if: (date - #lock_timestamp) -> seconds >= (self -> 'lock_expires');
 					(self -> 'lockvalue') = string;
