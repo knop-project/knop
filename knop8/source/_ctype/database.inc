@@ -1147,9 +1147,13 @@ datetime_create and datetime_mod, and also user_create and user_mod.
 			if: lasso_currentaction == 'add' || lasso_currentaction == 'update';
 				(self -> 'affectedrecord_keyvalue') = (self -> 'keyvalue');
 			/if;
-			if: (self -> 'lockfield') != ''; 
+			if: (self -> 'lockfield') != '';
 				(self -> 'lockvalue')=string(field: (self -> 'lockfield'));
-				local: 'lockvalue'=(self -> 'lockvalue') -> (split: '|');
+				if(self -> 'lockvalue' != '');
+					local: 'lockvalue'=(self -> 'lockvalue') -> (split: '|');
+				else;
+					local('lockvalue'=string);
+				/if;
 				local: 'lock_timestamp'=date: (#lockvalue->size > 1 ? #lockvalue -> (get: 2) | null);
 				if: (date - #lock_timestamp) -> seconds >= (self -> 'lock_expires');
 					(self -> 'lockvalue') = string;
