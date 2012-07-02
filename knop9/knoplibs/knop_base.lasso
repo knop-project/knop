@@ -1,5 +1,5 @@
 ﻿<?LassoScript
-log_critical('loading knop_base')
+log_critical('loading knop_base from LassoApp')
 /**!All Knop custom types should have this type as parent type. This is to be able to identify all registered knop types.
 	*/
 define knop_knoptype => type {
@@ -15,7 +15,8 @@ define knop_base => type {
 	/*
 
 	CHANGE NOTES
-	2012-05-18	JC	Removed a old style colon syntax call
+	2012-07-02	JC	Improved speed for method varname. Prev: ca 500 micros to run, now ca 55 micros. Note that varname does not work if the knop object is stored in a local
+	2012-05-18	JC	Removed an old style colon syntax call
 	2011-05-30	JC	Fixed bug in regards to calling error_msg
 	2010-08-27	TT	complete Lasso9 syntax rewrite of all functions (not as hard as it sounds)
 	2009-09-14	JS	Syntax adjustments for Lasso 9
@@ -40,7 +41,7 @@ define knop_base => type {
 
 	*/
 
-	data public version = '2010-08-27'
+	data public version = '2012-07-02'
 	data public debug_trace::array=array
 	data public _debug_trace::array=array
 	data public instance_unique=null
@@ -243,27 +244,26 @@ define knop_base => type {
 		/if;
 	}
 
-	public varname()=>{
-		local('description'='Returns the name of the variable that this type instance is stored in.')
-		local('timer'=knop_timer)
-		if(self -> 'instance_unique' == null)
-			self -> 'instance_unique' = knop_unique9
-		/if
-		if(self -> 'instance_varname' == null)
-			// look for the var name and store it in instance variable
-			iterate((vars -> keys), local('varname'))
-				if(var(#varname) -> type == self -> type
-					&& (var(#varname) -> 'instance_unique') == (self -> 'instance_unique'))
-					(self -> 'instance_varname')=#varname
-					loop_abort
-				/if
-			/iterate
-		/if
+	public varname() => debug => {
 
-		self -> 'tagtime_tagname'=tag_name
-		self -> 'tagtime'=integer(#timer)
-		return(self -> 'instance_varname')
-	}
+		.'instance_unique' == null ? .'instance_unique' = knop_unique9
+
+		local(thisvar = string)
+		if(.'instance_varname' == null) => {
+			// look for the var name and store it in instance variable
+			with varname in vars -> keys do => {
+				#thisvar = var(#varname)
+				if(#thisvar -> type == .type
+					&& (#thisvar -> 'instance_unique') == .'instance_unique') => {
+					.'instance_varname' = string(#varname)
+					return(.'instance_varname')
+				}
+			}
+
+		}
+
+	} // END varname
+
 /* removed by Jolle 2011-03-10
 	public trace(html::boolean=false, xhtml::boolean=false) =>{
 		local('description'='Returns the debug trace for a type instance');
@@ -313,6 +313,6 @@ In dialog between Jolle and Tim 2011-03-10
 
 }
 
-log_critical('load base.inc end')
+log_critical('loading  knop_base done')
 
 ?>
