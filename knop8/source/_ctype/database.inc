@@ -11,6 +11,7 @@ define_type: 'database',
 /*
 
 CHANGE NOTES
+2012-07-05	RL	knop_database -> clearlocks now accepts user object as in knop 9, (or userid - so existing code does not break).
 2012-07-04	RL	knop_database -> saverecord no longer copies user object.
 2012-07-03	RL	Yet another fix for Issue #53: knop_database -> getrecord does not clear stale lockvalue.
 2012-07-02	RL	Fix for Issue #53: knop_database -> deleterecord changes user object to string.
@@ -862,14 +863,17 @@ datetime_create and datetime_mod, and also user_create and user_mod.
 
 		fail_if: (self -> 'lockfield') == '', 7003,  self -> error_msg(7003); //  Lockfield not specified
 		fail_if: #user == '', 7004, self -> error_msg(7004); // User not specified
+		
+		// Fix: now accepts user object for consistency but falls back on userid
+		local: 'id_user' = #user -> isa('user') ? #user -> id_user | #user;
 	
 		if: (self -> 'isfilemaker');
 			inline: (self -> 'db_connect'),
 				-maxrecords=all,
-				(self -> 'lockfield')='"' + #user + '|"',
+				(self -> 'lockfield')='"' + #id_user + '|"',
 				-search;
 				if: found_count > 0;
-					(self -> 'debug_trace') -> (insert: tag_name + ': clearing locks for ' + #user + ' in ' + found_count + ' FileMaker records ' + error_msg + ' ' + error_code);
+					(self -> 'debug_trace') -> (insert: tag_name + ': clearing locks for ' + #id_user + ' in ' + found_count + ' FileMaker records ' + error_msg + ' ' + error_code);
 					records;
 						inline: -keyvalue=keyfield_value,
 							(self -> 'lockfield')='',
@@ -890,13 +894,13 @@ datetime_create and datetime_mod, and also user_create and user_mod.
 		else;
 			inline: (self -> 'db_connect'),
 				-sql='UPDATE `' + (self -> 'table_realname') + '` SET `' + (self -> 'lockfield') + '`=""  WHERE `' + (self -> 'lockfield') 
-					+ '` LIKE "' + (encode_sql: #user) + '|%"';
+					+ '` LIKE "' + (encode_sql: #id_user) + '|%"';
 				if: error_code != 0;
 					(self -> 'error_code') = 7013; // Clearlocks failed
 					(self -> 'error_data') = (map: 'error_code'=error_code, 'error_msg'=error_msg);
 				/if;
 			/inline;
-			(self -> 'debug_trace') -> (insert: tag_name + ': clearing all locks for ' + #user + ' ' + (self -> error_msg) + ' ' + (self -> error_code));
+			(self -> 'debug_trace') -> (insert: tag_name + ': clearing all locks for ' + #id_user + ' ' + (self -> error_msg) + ' ' + (self -> error_code));
 		/if;
 		self -> 'tagtime_tagname'=tag_name;
 		self -> 'tagtime'=integer: #timer; // cast to integer to trigger onconvert and to "stop timer"
