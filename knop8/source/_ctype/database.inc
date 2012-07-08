@@ -11,6 +11,7 @@ define_type: 'database',
 /*
 
 CHANGE NOTES
+2012-07-02	RL	Fix for Issue #53: knop_database -> deleterecord changes user object to string.
 2012-06-25	JC	Another fix for Issue #53: knop_database -> getrecord does not clear stale lockvalue.
 2012-06-22	JC	Fix for Issue #53: knop_database -> getrecord does not clear stale lockvalue.
 2012-06-10	SP	Fix for decimal precision bug in 8.6.0.1 in renderfooter.
@@ -760,10 +761,10 @@ datetime_create and datetime_mod, and also user_create and user_mod.
 			fail_if: (local: 'user') == '' && !((local: 'user') -> isa('user')), 7004, self -> error_msg(7004); 
 			(self -> 'debug_trace') -> insert(tag_name ': user is type ' + (#user -> type) + ', isa(user) = ' + (#user -> isa('user')) );
 			if: #user -> isa('user');
-				#user= #user -> id_user;
-				fail_if: #user == '', 7004, self -> error_msg(7004); // User must be logged in to get record with lock
+				local: 'id_user' = #user -> id_user ? #user -> id_user | '';
+				fail_if: #id_user == '', 7004, self -> error_msg(7004); // User must be logged in to get record with lock
 			/if;
-			(self -> 'debug_trace') -> insert(tag_name ': user id is ' + #user);
+			(self -> 'debug_trace') -> insert(tag_name ': user id is ' + #id_user);
 		/if;
 		
 		local: '_fields'=array;
@@ -778,7 +779,7 @@ datetime_create and datetime_mod, and also user_create and user_mod.
 				local: 'lock_timestamp'=date: (#lockvalue->size > 1 ? #lockvalue -> (get: 2) | null);
 				local: 'lock_user'=(#lockvalue -> first);
 				if: (date - #lock_timestamp) -> seconds < (self -> 'lock_expires')
-					&& #lock_user != #user;
+					&& #lock_user != #id_user;
 					// the lock is still valid and it is locked by another user
 					(self -> 'error_code') = 7010; // Delete failed, record locked 
 					(self -> 'error_data') = (map: 'user' = #lock_user, 'timestamp' = #lock_timestamp);
