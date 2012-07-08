@@ -1,26 +1,31 @@
 ﻿<?Lasso
-log_critical('loading knop_utils')
+log_critical('loading knop_utils from LassoApp')
 /*
-2011-09-05	JC	Added knop_encodesql_full
-2011-05-16	JC	Removed the unneeded if(web_request) on knop_client_params
-2011-01-27	JC	knop_unique9 Adjusted version running faster than the original but also returning longer unique values. Can take an optional prefix that will be added to the id
-2011-01-27	JC	Added knop_affected_count Adding a affected_count method pending a native implementation in Lasso 9. Used in sql updates, deletes etc returning number of rows affected by the change
-2010-11-13	JC	Added knop_trim
-2010-11-11	JC	Yet a rewrite of knop_client_params. This time based on same code as action_params drawing content from the web_request object but without the inline sensing parts
-2010-10-24	JC	adding methods knop_encrypt, knop_crypthash, knop_blowfish, knop_math_hexToDec and knop_math_decToHex. To begin with used within knop_user
-2010-10-23	TT	More compact version of knop_client_params. Added knop_normalize_slashes
-2010-10-22	JC	adding knop_client_params and knop_client_param methods
-2010-10-09	JC	Removed a lot of semicolons
-2010-09-17	JC 	removed knop_removeall since regular removeall now works the same in Lasso 9 as in Lasso 8.5
-2010-09-05	TT	added knop_debug placeholder
-2010-08-03	JC	knop_foundrows now uses Lasso 9 style regexps
-2009-12-13	JC	Added knop_removeall as a replacement of array -> removeall to fix Lasso nine handling of pairs in arrays
-2009-11-26	JC	knop_foundrows for Lasso version 9 started. Not done yet pending bug fixes for string_replaceregexp.
-2009-11-26	JC	knop_timer for Lasso version 9 finished.
-2009-11-25	JC	knop_IDcrypt created. Probably not compatible with encrypted material created with Lasso pre 9 due to differences in Blowfish.
-2009-11-25	JC	knop_seed for Lasso version 9 created. Not finished pending how to replace __lassoservice_ip__
-2009-11-25	JC	knop_stripbackticks for Lasso version 9 created
-2009-11-25	JC	Knop_unique for Lasso version 9 created
+	CHANGE NOTES
+
+	2012-06-25	JC	Added knop_response_filepath
+	2012-06-24	JC	Enhancing knop_stripbackticks to deal with more than strings
+	2012-06-11	JC	knop_math_hexToDec; changed iterate to loop to speed it up
+	2011-09-05	JC	Added knop_encodesql_full
+	2011-05-16	JC	Removed the unneeded if(web_request) on knop_client_params
+	2011-01-27	JC	knop_unique9 Adjusted version running faster than the original but also returning longer unique values. Can take an optional prefix that will be added to the id
+	2011-01-27	JC	Added knop_affected_count Adding a affected_count method pending a native implementation in Lasso 9. Used in sql updates, deletes etc returning number of rows affected by the change
+	2010-11-13	JC	Added knop_trim
+	2010-11-11	JC	Yet a rewrite of knop_client_params. This time based on same code as action_params drawing content from the web_request object but without the inline sensing parts
+	2010-10-24	JC	adding methods knop_encrypt, knop_crypthash, knop_blowfish, knop_math_hexToDec and knop_math_decToHex. To begin with used within knop_user
+	2010-10-23	TT	More compact version of knop_client_params. Added knop_normalize_slashes
+	2010-10-22	JC	adding knop_client_params and knop_client_param methods
+	2010-10-09	JC	Removed a lot of semicolons
+	2010-09-17	JC 	removed knop_removeall since regular removeall now works the same in Lasso 9 as in Lasso 8.5
+	2010-09-05	TT	added knop_debug placeholder
+	2010-08-03	JC	knop_foundrows now uses Lasso 9 style regexps
+	2009-12-13	JC	Added knop_removeall as a replacement of array -> removeall to fix Lasso nine handling of pairs in arrays
+	2009-11-26	JC	knop_foundrows for Lasso version 9 started. Not done yet pending bug fixes for string_replaceregexp.
+	2009-11-26	JC	knop_timer for Lasso version 9 finished.
+	2009-11-25	JC	knop_IDcrypt created. Probably not compatible with encrypted material created with Lasso pre 9 due to differences in Blowfish.
+	2009-11-25	JC	knop_seed for Lasso version 9 created. Not finished pending how to replace __lassoservice_ip__
+	2009-11-25	JC	knop_stripbackticks for Lasso version 9 created
+	2009-11-25	JC	Knop_unique for Lasso version 9 created
 
 */
 /*
@@ -55,6 +60,11 @@ if(!tag_exists('knop_debug')) => {
 
 */
 
+/**!
+knop_response_filepath
+Safer than using Lasso 9 response_filepath when dealing wit hone file systems on Apache
+**/
+define knop_response_filepath => web_request->fcgiReq->requestParams->find(::REQUEST_URI)->asString -> split('?') -> first
 
 /**!
 knop_affected_count
@@ -70,9 +80,12 @@ knop_stripbackticks
 Remove backticks (`) from a string to make it safe for MySQL object names
 **/
 define knop_stripbackticks(input::string) => #input -> split('`') -> first
+define knop_stripbackticks(input::bytes) => #input -> split('`') -> first
+define knop_stripbackticks(input::any) => knop_stripbackticks(string(#input))
 
 /**!
-knop_unique Original version
+knop_unique
+Original version
 Returns a very unique but still rather short random string. Can in most cases be replaced by the Lasso 9 version of lasso_unique since it's safer than the pre 9 version.
 **/
 define knop_unique => {
@@ -610,7 +623,10 @@ define knop_math_hexToDec(
 	base16::string
 	) => {
  /* was lp_math_hexToDec by Bil Corry. Integrated in Knop for internal use
-    // http://www.danbbs.dk/~erikoest/hex.htm
+ 	// http://www.danbbs.dk/~erikoest/hex.htm
+
+	CHANGE NOTES
+	2012-06-11	JC	Changed iterate to loop to speed it up
  */
 
 	local(_base16 = string(#base16))
@@ -619,9 +635,9 @@ define knop_math_hexToDec(
 	local('base10' = integer)
 	local('hex_list'='123456789ABCDEF')
 
-	iterate(#_base16)
-		#base10 += ((#hex_list -> find((#_base16 -> get(loop_count)))) * math_pow(16, #base16_len - loop_count))
-	/iterate
+	loop(#_base16 -> size) => {
+		#base10 += ((#hex_list -> find((#_base16 -> get(loop_count)))) * integer(16.0 -> pow(decimal(#base16_len - loop_count))))
+	}
 
 	// return base10 number
 	return integer(#base10)
@@ -714,5 +730,6 @@ define knop_trait_providesProperties => trait {
 	}
 }
 */
+log_critical('loading knop_utils done')
 
 ?>
