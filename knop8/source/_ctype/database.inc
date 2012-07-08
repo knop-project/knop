@@ -11,6 +11,7 @@ define_type: 'database',
 /*
 
 CHANGE NOTES
+2012-07-04	RL	knop_database -> saverecord no longer copies user object.
 2012-07-03	RL	Yet another fix for Issue #53: knop_database -> getrecord does not clear stale lockvalue.
 2012-07-02	RL	Fix for Issue #53: knop_database -> deleterecord changes user object to string.
 2012-06-25	JC	Another fix for Issue #53: knop_database -> getrecord does not clear stale lockvalue.
@@ -595,7 +596,7 @@ datetime_create and datetime_mod, and also user_create and user_mod.
 		-optional='keyvalue', -copy,
 		-optional='lockvalue', -copy,
 		-optional='keeplock',
-		-optional='user', -copy,
+		-optional='user',
 		-optional='inlinename', -copy;
 		
 		local: 'timer'=knop_timer; 
@@ -619,10 +620,10 @@ datetime_create and datetime_mod, and also user_create and user_mod.
 			fail_if: (local: 'user') == '' && !((local: 'user') -> isa('user')), 7004, self -> error_msg(7004); 
 			(self -> 'debug_trace') -> insert(tag_name ': user is type ' + (#user -> type) + ', isa(user) = ' + (#user -> isa('user')) );
 			if: #user -> isa('user');
-				#user= #user -> id_user;
-				fail_if: #user == '', 7004, self -> error_msg(7004); // User must be logged in to get record with lock
+				local: 'id_user' = #user -> id_user ? #user -> id_user | '';
+				fail_if: #id_user == '', 7004, self -> error_msg(7004); // User must be logged in to get record with lock
 			/if;
-			(self -> 'debug_trace') -> insert(tag_name ': user id is ' + #user);
+			(self -> 'debug_trace') -> insert(tag_name ': user id is ' + #id_user);
 		/if;
 		
 		!(local_defined: 'keyfield') ? local: 'keyfield'=self -> 'keyfield';
@@ -646,7 +647,7 @@ datetime_create and datetime_mod, and also user_create and user_mod.
 				local: 'lock_timestamp'=date: (#lock->size > 1 ? (#lock -> (get: 2)) | null);
 				local: 'lock_user'=#lock -> first;
 				if: (date - #lock_timestamp) -> seconds < (self -> 'lock_expires')
-					&& #lock_user != #user;
+					&& #lock_user != #id_user;
 					// the lock is still valid and it is locked by another user
 					(self -> 'error_code') = 7010; 
 					(self -> 'error_data') = (map: 'user' = #lock_user, 'timestamp' = #lock_timestamp);
@@ -677,7 +678,7 @@ datetime_create and datetime_mod, and also user_create and user_mod.
 					#_fields -> (removeall: (self -> 'lockfield'));
 					if: ((local_defined: 'keeplock') && #keeplock != false);
 						// update the lock timestamp
-						(self -> 'lockvalue') = #user + '|' + (date -> format: '%Q %T');
+						(self -> 'lockvalue') = #id_user + '|' + (date -> format: '%Q %T');
 						(self -> 'lockvalue_encrypted') = (encrypt_blowfish: (self -> 'lockvalue'), -seed=(self -> 'lock_seed'));
 						#_fields -> (insert: (self -> 'lockfield')=(self -> 'lockvalue'));
 					else;
