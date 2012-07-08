@@ -1,5 +1,5 @@
 ﻿<?Lasso
-log_critical('loading knop_database')
+log_critical('loading knop_database from LassoApp')
 
 /**!
 knop_database
@@ -11,6 +11,10 @@ define knop_database => type {
 
 	CHANGE NOTES
 
+	2012-07-02	JC	Replaced all old style if, inline and loop with code blocks
+	2012-07-02	JC	Commented out method varname to be used from knop_base instead
+	2012-07-02	JC	Fixed erroneous handling of addlock and clearlocks
+	2012-06-22	JC	Fixed bug that would allow capturesearchvars to populate lockfield values despite the lock being obsolete
 	2012-01-19	JC	Fixing bug in regards to keyfield in saverecord and getrecord
 	2012-01-15	JC	Added support for -host param in inlines
 	2011-12-22	JC	Fixing bug when calling user as knop_user object
@@ -32,7 +36,7 @@ define knop_database => type {
 
 	parent knop_base
 
-	data public version = '2012-01-15'
+	data public version = '2012-06-22'
 
 	data public description::string = 'Custom type to interact with databases. Supports both MySQL and FileMaker datasources'
 
@@ -130,9 +134,9 @@ define knop_database => type {
 			.'datasource_name' = #dbhost -> find('datasource_name')
 
 		// validate database name to make sure it exists in Lasso
-		if(#validate)
+		if(#validate) => {
 			fail_if(.'datasource_name' -> size == 0, 1010, 'No Datasource Module for that database')
-		/if
+		}
 
 		// build inline connection array
 		.'db_connect' -> insert('-database' = #database)
@@ -141,12 +145,12 @@ define knop_database => type {
 		#username -> size > 0 ? .'db_connect' -> insert('-username' = #username)
 		#password -> size > 0 ? .'db_connect' -> insert('-password' = #password)
 
-		if(#validate)
+		if(#validate) => {
 			// validate db connection
-			inline(.'db_connect')
+			inline(.'db_connect') => {
 				fail_if( error_code != 0, error_code, 'Error on validate: ' + error_msg)
-			/inline
-		/if
+			}
+		}
 
 		(.'datasource_name' >> 'Filemaker' ? .'isfilemaker' = true)
 
@@ -183,7 +187,7 @@ define knop_database => type {
 	Shortcut to field
 **/
 	public _unknownTag(...) => {
-		local(name = string(currentCapture->calledName))
+		local(name = string(currentCapture -> calledName))
 		if( .'field_names_map' >> #name) => {
 			return (.field(#name))
 		else
@@ -194,19 +198,6 @@ define knop_database => type {
 		}
 		return 'unknown called with ' + #name + ' ' + #rest
 	}
-
-
-
-/*
-
-	public _unknowntag() => {
-		if: .'field_names_map' >> tag_name
-			return (.field(tag_name))
-		else
-//			.'_debug_trace' -> insert(.type + '->' + tag_name + ' not known.')
-		/if
-	}
-*/
 
 /**!
 	Called when a knop_database object is stored in a session
@@ -237,7 +228,7 @@ define knop_database => type {
 	public acceptDeserializedElement(d::serialization_element)  => {
 //debug => {
 
-		if(#d->key == 'items')
+		if(#d->key == 'items') => {
 
 			local(ret = #d -> value)
 
@@ -253,7 +244,7 @@ define knop_database => type {
 			.'lock_seed' = (#ret-> find('lock_seed'))
 			.'user' = (#ret-> find('user'))
 
-		/if
+		}
 
 // 	} // end debug
 	}
@@ -317,7 +308,6 @@ Parameters:
 		keyvalue::any = '',
 		inlinename::string = 'inline_' + knop_unique9 // inlinename defaults to a random string
 	) => {
-//log_critical('knop_database select started')
 
 //	debug => {
 
@@ -352,49 +342,49 @@ Parameters:
 
 		if(#sql -> size > 0 && (regexp(-input = #sql,
 					-find = `\bLIMIT\b`,
-					-ignorecase = true) -> findcount) > 0)
+					-ignorecase = true) -> findcount) > 0) => {
 
 //			debug(tag_name + ': grabbing -maxrecords and -skiprecords from search array')
 
 			// store maxrecords and skiprecords for later use
-			if(#_search >> '-maxrecords')
+			if(#_search >> '-maxrecords') => {
 				.'maxrecords_value' = #_search -> find('-maxrecords') -> last -> value
 //				debug(tag_name + ': -maxrecords value found in search array ' + .'maxrecords_value')
-			/if
-			if(#_search >> '-skiprecords')
+			}
+			if(#_search >> '-skiprecords') => {
 				.'skiprecords_value' = #_search -> find('-skiprecords') -> last -> value
 //				debug(tag_name + ': -skiprecords value found in search array ' + .'skiprecords_value')
-			/if
+			}
 			// remove skiprecords from the actual search parameters since it will conflict with LIMIT
 			#_search -> removeall('-skiprecords')
-		/if
+		}
 
-		if(#keyfield -> size == 0)
+		if(#keyfield -> size == 0) => {
 			#keyfield = .'keyfield'
-		/if
+		}
 
-		if(#keyfield -> size > 0)
+		if(#keyfield -> size > 0) => {
 			#_search -> removeall( '-keyfield')
-			if(!.'isfilemaker' && #keyvalue != '')
+			if(!.'isfilemaker' && #keyvalue != '') => {
 				#_search -> insert( '-keyfield' = #keyfield)
-			/if
-			if(#keyvalue != '')
+			}
+			if(#keyvalue != '') => {
 				#_search -> removeall( '-keyvalue')
-				if(.'isfilemaker')
+				if(.'isfilemaker') => {
 					#_search -> insert( '-op' = 'eq')
 					#_search -> insert( #keyfield = #keyvalue)
 				else
 					#_search -> insert('-keyvalue' = #keyvalue)
-				/if
-			/if
-		/if
+				}
+			}
+		}
 
 		// add sql action or normal search action
-		if(#sql -> size > 0)
+		if(#sql -> size > 0) => {
 			#_search -> insert('-sql' = #sql)
 		else
 			#_search -> insert('-search')
-		/if
+		}
 
 		// perform database query, put connection parameters last to override any provided by the search parameters
 		local(querytimer = knop_timer)
@@ -451,31 +441,31 @@ Parameters:
 			& removeall( '-sql') & removeall( '-nothing') & removeall( '-show')
 			& removeall( '-database') // table is ok to override
 
-		inline(.'db_connect') // connection wrapper
+		inline(.'db_connect') => { // connection wrapper
 
-			if(#keyvalue -> size > 0 && .'keyfield' -> size > 0)
+			if(#keyvalue -> size > 0 && .'keyfield' -> size > 0) => {
 				// look for existing keyvalue
 				inline(-op = 'eq',.'keyfield' = #keyvalue,
 					-maxrecords = 1,
 					-returnfield = .'keyfield',
-					-search)
-					if(found_count > 0)
+					-search) => {
+					if(found_count > 0) => {
 						.'error_code' = 7017 // duplicate keyvalue
 					else
 						.'keyvalue' = #keyvalue
-					/if
-				/inline
-			/if
+					}
+				}
+			}
 
-			if(.'error_code' == 0)
+			if(.'error_code' == 0) => {
 				// proceed to add record
 
-				if(.'keyfield' -> size > 0)
+				if(.'keyfield' -> size > 0) => {
 					#_fields -> removeall(.'keyfield')
 					#_fields -> removeall('-keyfield') & removeall('-keyvalue')
 					#_fields -> insert('-keyfield' = .'keyfield')
 					#_fields -> insert(.'keyfield' = .'keyvalue')
-				/if
+				}
 
 				// inlinename defaults to a random string
 				.'inlinename' = #inlinename
@@ -483,18 +473,18 @@ Parameters:
 				#_fields -> insert('-inlinename' = .'inlinename')
 
 				local(querytimer = knop_timer)
-				inline(#_fields, -add)
+				inline(#_fields, -add) => {
 					.'querytime' = integer(#querytimer)
 					.'searchparams' = #_fields
 
 					.capturesearchvars
-					if(error_code != 0)
-log_critical('knop_database add inline error ' + error_code + ' : ' + error_msg)
+					if(error_code != 0) => {
+						log_critical('knop_database add inline error ' + error_code + ' : ' + error_msg)
 						.'keyvalue' = ''
-					/if
-				/inline
-			/if
-		/inline
+					}
+				}
+			}
+		} // inline
 
 
 //		debug(tag_name + ': keyvalue ' + .'keyvalue')
@@ -525,7 +515,7 @@ Parameters:
 		keyfield::string = string(.'keyfield'),
 		inlinename::string = 'inline_' + knop_unique9,
 		lock::boolean = false,
-		user::any = '',
+		user::any = .'user',
 		sql::string = ''
 	) => {
 //debug => {
@@ -544,7 +534,8 @@ Parameters:
 		#keyvalue = #keyvalue -> ascopy
 		.'keyvalue' = #keyvalue
 		#inlinename = #inlinename -> ascopy
-		#user = #user -> ascopy
+		local(id_user = string)
+//		#user = #user
 		.'user' = #user
 		#sql = #sql -> ascopy
 
@@ -555,85 +546,87 @@ Parameters:
 		.reset
 
 		fail_if(#keyfield -> size == 0, 7002, .error_msg(7002)) // Keyfield not specified
-		if(#lock)
+		if(#lock) => {
 			fail_if(.'lockfield' -> size == 0, 7003, .error_msg(7003)) // Lockfield must be specified to get record with lock
-			if(#user -> size == 0 && (.'user' -> size > 0 || .'user' -> isa(::knop_user))) => {
-				// use user from database object
-				#user = .'user'
-			}
+//			if(#user -> size == 0 && (.'user' -> size > 0 || .'user' -> isa(::knop_user))) => {
+//				// use user from database object
+//				#user = .'user'
+//			}
 			fail_if(#user -> size  == 0 && !(#user -> isa(::knop_user)), 7004, .error_msg(7004)) // User must be specified to get record with lock
 //			.'debug_trace' -> insert(tag_name ': user is type ' + (#user -> type) + ', isa(user) = ' + (#user -> isa(::knop_user)) )
 			if(#user -> isa(::knop_user)) => {
-				#user = #user -> id_user
-				fail_if(#user -> size == 0, 7004, .error_msg(7004)) // User must be logged in to get record with lock
+				#id_user = #user -> id_user
+				fail_if(#id_user -> size == 0, 7004, .error_msg(7004)) // User must be logged in to get record with lock
+			else
+				#id_user = #user
 			}
 //			.'debug_trace' -> insert(tag_name ': user id is ' + #user)
-		/if
+		}
 		if(#sql -> size == 0 && string(#keyvalue) -> size == 0) => {
 			.'error_code' = 7007 // keyvalue missing
 		}
 
-		if(.'error_code' == 0)
-			inline(.'db_connect') // connection wrapper
+		if(.'error_code' == 0) => {
+			inline(.'db_connect') => { // connection wrapper
 
-				if(#sql -> size)
+				if(#sql -> size) => {
 					.select(-sql = #sql, -inlinename = #inlinename)
 					#keyvalue = .'keyvalue'
 				else
 					.select(-keyfield = #keyfield, -keyvalue = #keyvalue, -inlinename = #inlinename)
-				/if
+				}
 
-				if(.field_names !>> #keyfield)
+				if(.field_names !>> #keyfield) => {
 					.'error_code' = 7020 // Keyfield not present in query
-				/if
+				}
 
-				if(.field_names !>> .'lockfield' && #lock)
+				if(.field_names !>> .'lockfield' && #lock) => {
 					.'error_code' = 7021 // Lockfield not present in query
-				/if
+				}
 
-				if(.'found_count' == 0 && .'error_code' == 0)
+				if(.'found_count' == 0 && .'error_code' == 0) => {
 					.'error_code' = -1728
 				else(.'found_count' > 1 &&.'error_code' == 0)
 					.reset
 					.'error_code' = 7008 // keyvalue not unique
-				/if
+				}
 
 				// handle record locking
-				if(.'error_code' == 0 && #lock)
+				if(.'error_code' == 0 && #lock) => {
 					// check for current lock
-					if(.'lockvalue' -> size > 0)
+					if(.'lockvalue' -> size > 0) => {
 						// there is a lock already set, check if it has expired or if it is the same user
 						#lockvalue = .'lockvalue' -> split('|')
 						#lock_timestamp = date((#lockvalue -> size > 1 ? #lockvalue -> get(2) | null))
 						#lock_user = #lockvalue -> first
 						if((date - #lock_timestamp) -> asInteger < .'lock_expires'
-							&& #lock_user != #user)
+							&& #lock_user != #id_user) => {
 							// the lock is still valid and it is locked by another user
 							// this is not a real error, more a warning condition
 							.'error_code' = 7010
 							.'error_data' = map('user' = #lock_user, 'timestamp' = #lock_timestamp)
 							.'keyvalue' = ''
 //							debug(tag_name ': record ' + #keyvalue + ' was already locked by ' + #lock_user + '.')
-						/if
-					/if
+						}
+					}
 
-					if(.'error_code' == 0)
+					if(.'error_code' == 0) => {
 						// go ahead and lock record
-						.'lockvalue' = #user + '|' + (date -> format('%Q %T'))
+						.'lockvalue' = #id_user + '|' + (date -> format('%Q %T'))
 						.'lockvalue_encrypted' = string(encode_base64(encrypt_blowfish(.'lockvalue', -seed = .'lock_seed')))
 						#keyvalue_temp = #keyvalue
-						if(.'isfilemaker')
+						if(.'isfilemaker') => {
 							// find internal keyvalue
 							inline(-op = 'eq', #keyfield = #keyvalue,
-								-search)
-								if(found_count == 1)
+								-search) => {
+								if(found_count == 1) => {
 									#keyvalue_temp = keyfield_value
 //									.'debug_trace' -> insert(tag_name + ': will set record lock for FileMaker record id ' + keyfield_value + ' ' + error_msg + ' ' + error_code)
 								else
 //									debug(tag_name + ': could not get record id for FileMaker record, ' found_count + ' found ' + error_msg + ' ' + error_code)
-								/if
-							/inline
-						/if
+								}
+							}
+						}
 
 						inline(-keyfield = #keyfield,
 							-keyvalue = #keyvalue_temp,
@@ -653,14 +646,15 @@ Parameters:
 								if(.'user' -> isa(::knop_user)) => {
 									// tell user it has locked a record in this db object
 									.'user' -> addlock(.varname)
+stdoutnl('knop_database getrecord lock ' + .'user' -> 'dblocks')
 								}
 							}
 						} // inline
-					/if
-				/if
+					}
+				}
 
-			/inline
-		/if
+			} //inline
+		}
 
 // 	} // end debug
 	} // END getrecord
@@ -670,7 +664,7 @@ Parameters:
 		-keyfield::string = string(.'keyfield'),
 		-inlinename::string = 'inline_' + knop_unique9,
 		-lock::boolean = false,
-		-user::any = '',
+		-user::any = .'user',
 		-sql::string = ''
 	) => .getrecord(#keyvalue, #keyfield, #inlinename, #lock, #user, #sql)
 
@@ -679,7 +673,7 @@ Parameters:
 		-keyfield::string = string(.'keyfield'),
 		-inlinename::string = 'inline_' + knop_unique9,
 		-lock::boolean = false,
-		-user::any = '',
+		-user::any = .'user',
 		-sql::string = ''
 	) => .getrecord(#keyvalue, #keyfield, #inlinename, #lock, #user, #sql)
 
@@ -700,14 +694,13 @@ Parameters:
 		keyvalue::string = string(.'keyvalue'),
 		lockvalue::string = '',
 		keeplock::boolean = false,
-		user::any = .user,
+		user::any = .'user',
 		inlinename::string = 'inline_' + knop_unique9
 	) => {
 //debug => {
 		// conserve error
 		error_push
 		handle => { error_pop }
-
 
 		local(lock = null)
 		local(lock_timestamp = null)
@@ -718,8 +711,10 @@ Parameters:
 		#keyfield = #keyfield -> ascopy
 		#keyvalue = #keyvalue -> ascopy
 		#lockvalue = #lockvalue -> ascopy
-		#user = #user -> ascopy
+//		#user = #user -> ascopy
 		#inlinename = #inlinename -> ascopy
+
+		local(id_user = #user)
 
 		.'keyfield' = #keyfield
 		.'keyvalue' = #keyvalue
@@ -730,47 +725,47 @@ Parameters:
 		fail_if((#keyvalue -> size == 0 && #lockvalue -> size == 0), 7005, .error_msg(7005)) // Either keyvalue or lockvalue must be specified for update or delete
 		fail_if(#keyvalue -> size > 0 && #keyfield -> size == 0, 7002, .error_msg(7002)) // Keyfield not specified
 
-		if(#lockvalue -> size > 0)
+		if(#lockvalue -> size > 0) => {
 			fail_if(.'lockfield' -> size == 0, 7003, .error_msg(7003)) // Lockfield not specified
 
 			fail_if(#user -> size == 0 && !(#user -> isa(::knop_user)), 7004, .error_msg(7004))
 //			.'debug_trace' -> insert(tag_name ': user is type ' + (#user -> type) + ', isa(user) = ' + (#user -> isa(::knop_user)) )
-			if(#user -> isa(::knop_user))
-				#user = #user -> id_user
-				fail_if(#user -> size == 0, 7004, .error_msg(7004)) // User must be logged in to get record with lock
-			/if
+			if(#user -> isa(::knop_user)) => {
+				#id_user = #user -> id_user
+				fail_if(#id_user -> size == 0, 7004, .error_msg(7004)) // User must be logged in to get record with lock
+			}
 //			.'debug_trace' -> insert(tag_name ': user id is ' + #user)
-		/if
+		}
 
 		// remove all database actions from the field array
 		#_fields -> removeall( '-search') & removeall( '-add') & removeall( '-delete') & removeall( '-update')
 			& removeall( '-sql') & removeall( '-nothing') & removeall( '-show')
 			& removeall( '-database') // table is ok to override
 
-		inline(.'db_connect') // connection wrapper
+		inline(.'db_connect') => { // connection wrapper
 
 			// handle record locking
-			if(.'error_code' == 0 && #lockvalue -> size > 0)
+			if(.'error_code' == 0 && #lockvalue -> size > 0) => {
 
 				// first check if record was locked by someone else, and that lock is still valid
 				#lock = string(decrypt_blowfish(decode_base64(#lockvalue), -seed = .'lock_seed')) -> split('|')
 				#lock_timestamp = date(#lock -> size > 1 ? #lock -> get(2) | null)
 				#lock_user = #lock -> first
 				if((date - #lock_timestamp) -> asInteger < .'lock_expires'
-					&& #lock_user != #user)
+					&& #lock_user != #id_user) => {
 					// the lock is still valid and it is locked by another user
 					.'error_code' = 7010
 					.'error_data' = map('user' = #lock_user, 'timestamp' = #lock_timestamp)
-				/if
+				}
 
 				// check that the current lock is still valid
-				if(.'error_code' == 0)
+				if(.'error_code' == 0) => {
 					inline(-op = 'eq', .'lockfield' = #lock -> join('|'),
 						-maxrecords = 1,
 						-returnfield = .'lockfield',
 						-returnfield = #keyfield,
-						-search)
-						if(error_code == 0 && found_count != 1)
+						-search) => {
+						if(error_code == 0 && found_count != 1) => {
 							// lock is not valid any more
 							.'error_code' = 7011 // Update failed, record lock not valid any more
 						else(error_code != 0)
@@ -780,48 +775,48 @@ Parameters:
 						else
 							// lock OK, grab keyvalue for update
 							local('keyvalue' = field(#keyfield))
-						/if
-					/inline
-				/if
+						}
+					}
+				}
 
-				if(.'error_code' == 0)
+				if(.'error_code' == 0) => {
 					// go ahead and release record lock by clearing the field value in the update fields array
 					#_fields -> removeall(.'lockfield')
-					if(#keeplock)
+					if(#keeplock) => {
 						// update the lock timestamp
-						.'lockvalue' = #user + '|' + (date -> format('%Q %T'))
+						.'lockvalue' = #id_user + '|' + (date -> format('%Q %T'))
 						.'lockvalue_encrypted' = string(encode_base64(encrypt_blowfish(.'lockvalue', -seed = .'lock_seed')))
 						#_fields -> insert(.'lockfield' = .'lockvalue')
 					else
 						#_fields -> insert(.'lockfield' = '')
-					/if
-				/if
+					}
+				}
 
-			/if
+			}
 
-			if(.'error_code' == 0 && #keyvalue -> size > 0)
-				if(.'isfilemaker')
-					inline(-op = 'eq', #keyfield = #keyvalue, -search)
-						if(found_count == 1)
+			if(.'error_code' == 0 && #keyvalue -> size > 0) => {
+				if(.'isfilemaker') => {
+					inline(-op = 'eq', #keyfield = #keyvalue, -search) => {
+						if(found_count == 1) => {
 							#_fields -> insert('-keyvalue' = keyfield_value)
 //							.'debug_trace' -> insert(tag_name + ': FileMaker record id ' + keyfield_value)
-						/if
-					/inline
+						}
+					}
 				else
 					#_fields -> insert('-keyfield' = #keyfield)
 					#_fields -> insert('-keyvalue' = #keyvalue)
-				/if
-			/if
+				}
+			}
 
 			if((#_fields >> '-keyfield' && #_fields -> find('-keyfield') -> first -> value -> size > 0 || .'isfilemaker')
-				&& #_fields >> '-keyvalue' && #_fields -> find('-keyvalue') -> first -> value -> size > 0)
+				&& #_fields >> '-keyvalue' && #_fields -> find('-keyvalue') -> first -> value -> size > 0) => {
 				// ok to update
 			else
 				.'error_code' = 7006 // Update failed, keyfield or keyvalue missing'
-			/if
+			}
 
 			// update record
-			if(.'error_code' == 0)
+			if(.'error_code' == 0) => {
 
 				// inlinename defaults to a random string
 				.'inlinename' = #inlinename
@@ -829,13 +824,13 @@ Parameters:
 				#_fields -> insert('-inlinename' = .'inlinename')
 
 				local(querytimer = knop_timer)
-				inline(#_fields, -update)
+				inline(#_fields, -update) => {
 					.'querytime' = integer(#querytimer)
 					.'searchparams' = #_fields
 					.capturesearchvars
-				/inline
-			/if
-		/inline
+				}
+			}
+		} //inline
 
 // 	} // end debug
 	} // END saverecord
@@ -846,9 +841,11 @@ Parameters:
 		-keyvalue::string = string(.'keyvalue'),
 		-lockvalue::string = '',
 		-keeplock::boolean = false,
-		-user::any = .user,
+		-user::any = .'user',
 		-inlinename::string = 'inline_' + knop_unique9
-	) => .saverecord(#fields, #keyfield, #keyvalue, #lockvalue, #keeplock, #user, #inlinename + 'sec') // END saverecord
+	) => {
+		return .saverecord(#fields, #keyfield, #keyvalue, #lockvalue, #keeplock, #user, #inlinename) // END saverecord
+	}
 
 /**!
 deleterecord Deletes a specific database record.
@@ -860,7 +857,7 @@ Parameters:
 	public deleterecord(
 		keyvalue::string = .'keyvalue',
 		lockvalue::string = '',
-		user::any = .user
+		user::any = .'user'
 	) => {
 //debug => {
 		// conserve error
@@ -883,42 +880,42 @@ Parameters:
 		fail_if((#keyvalue -> size == 0 && #lockvalue -> size == 0), 7005, .error_msg(7005)) // Either keyvalue or lockvalue must be specified for update or delete
 		fail_if(#keyvalue -> size > 0 && .'keyfield' -> size == 0, 7002,  .error_msg(7002)) // Keyfield not specified
 
-		if(#lockvalue -> size > 0)
+		if(#lockvalue -> size > 0) => {
 			fail_if(.'lockfield' -> size == 0, 7003, .error_msg(7003)) // Lockfield not specified
 
 			fail_if(#user -> size == 0 && !(#user -> isa(::knop_user)), 7004, .error_msg(7004))
 //			.'debug_trace' -> insert(tag_name ': user is type ' + (#user -> type) + ', isa(user) = ' + (#user -> isa(::knop_user)) )
-			if(#user -> isa(::knop_user))
+			if(#user -> isa(::knop_user)) => {
 				#user = #user -> id_user
 				fail_if(#user -> size == 0, 7004, .error_msg(7004)) // User must be logged in to get record with lock
-			/if
+			}
 //			.'debug_trace' -> insert(tag_name ': user id is ' + #user)
-		/if
+		}
 
-		inline(.'db_connect') // connection wrapper
+		inline(.'db_connect') => { // connection wrapper
 
 			// handle record locking
-			if(.'error_code' == 0 && #lockvalue -> size > 0)
+			if(.'error_code' == 0 && #lockvalue -> size > 0) => {
 
 				// first check if record was locked by someone else, and that lock is still valid
 				#lock = string(decrypt_blowfish(decode_base64(#lockvalue), -seed = .'lock_seed')) -> split('|')
 				#lock_timestamp = date(#lock -> size > 1 ? #lock -> get(2) | null)
 				#lock_user = #lock -> first
 				if((date - #lock_timestamp) -> asInteger < .'lock_expires'
-					&& #lock_user != #user)
+					&& #lock_user != #user) => {
 					// the lock is still valid and it is locked by another user
 					.'error_code' = 7010
 					.'error_data' = map('user' = #lock_user, 'timestamp' = #lock_timestamp)
-				/if
+				}
 
 				// check that the current lock is still valid
-				if(.'error_code' == 0)
+				if(.'error_code' == 0) => {
 					inline(-op = 'eq', .'lockfield' = #lock -> join('|'),
 						-maxrecords = 1,
 						-returnfield = .'lockfield',
 						-returnfield = .'keyfield',
-						-search)
-						if(error_code == 0 && found_count != 1)
+						-search) => {
+						if(error_code == 0 && found_count != 1) => {
 							// lock is not valid any more
 							.'error_code' = 7011 // Delete failed, record lock not valid any more
 						else(error_code != 0)
@@ -927,46 +924,46 @@ Parameters:
 						else
 							// lock OK, grab keyvalue for delete
 							local('keyvalue' = field(.'keyfield'))
-						/if
-					/inline
-				/if
+						}
+					}
+				}
 
-			/if
+			}
 
-			if(.'error_code' == 0 && #keyvalue -> size > 0)
-				if(.'isfilemaker')
-					inline(-op = 'eq', .'keyfield' = #keyvalue, -search)
-						if(found_count == 1)
+			if(.'error_code' == 0 && #keyvalue -> size > 0) => {
+				if(.'isfilemaker') => {
+					inline(-op = 'eq', .'keyfield' = #keyvalue, -search) => {
+						if(found_count == 1) => {
 							#fields -> insert('-keyvalue' = keyfield_value)
 //							.'debug_trace' -> insert(tag_name + ': FileMaker record id ' + keyfield_value)
-						/if
-					/inline
+						}
+					}
 				else
 					#fields -> insert('-keyfield' = .'keyfield')
 					#fields -> insert('-keyvalue' = #keyvalue)
-				/if
-			/if
+				}
+			}
 
 //			.'debug_trace' -> insert(tag_name + ': will delete record with params ' + #fields)
 
 			if((#fields >> '-keyfield' && #fields -> find('-keyfield') -> first -> value -> size > 0 || .'isfilemaker')
-				&& #fields >> '-keyvalue' && #fields -> find('-keyvalue') -> first -> value -> size > 0)
+				&& #fields >> '-keyvalue' && #fields -> find('-keyvalue') -> first -> value -> size > 0) => {
 				// ok to delete
 			else(.'error_code' == 0)
 				.'error_code' = 7006 // Delete failed, keyfield or keyvalue missing'
-			/if
+			}
 
 			// delete record
-			if(.'error_code' == 0)
+			if(.'error_code' == 0) => {
 
 				local(querytimer = knop_timer)
-				inline(#fields, -delete)
+				inline(#fields, -delete) => {
 					.'querytime' = integer(#querytimer)
 					.'searchparams' = #fields
 					.capturesearchvars
-				/inline
-			/if
-		/inline
+				}
+			}
+		} //inline
 
 // 	} // end debug
 	} // END deleterecord
@@ -974,7 +971,7 @@ Parameters:
 	public deleterecord(
 		-keyvalue::string = .'keyvalue',
 		-lockvalue::string = '',
-		-user::any = .user
+		-user::any = .'user'
 	) => .deleterecord(#keyvalue, #lockvalue, #user)
 
 /**!
@@ -990,58 +987,61 @@ Parameters:
 		error_push
 		handle => { error_pop }
 
-		#user = #user -> ascopy
+	local(id_user = #user)
 
 		fail_if(.'lockfield' -> size == 0, 7003,  .error_msg(7003)) //  Lockfield not specified
 		fail_if((#user -> size == 0 && !(#user -> isa(::knop_user))), 7004, .error_msg(7004)) // User not specified
 
-		if(#user -> isa(::knop_user))
-			#user = #user -> id_user
-			fail_if(#user -> size == 0, 7004, .error_msg(7004)) // User must be logged in to clear locks
-		/if
+		if(#user -> isa(::knop_user)) => {
+			#id_user = #user -> id_user
+			fail_if(#id_user -> size == 0, 7004, .error_msg(7004)) // User must be logged in to clear locks
+		}
 
-		if(.'isfilemaker')
+		if(.'isfilemaker') => {
 			inline(.'db_connect',
 				-maxrecords = all,
-				.'lockfield' = '"' + #user + '|"',
-				-search)
-				if(found_count > 0)
+				.'lockfield' = '"' + #id_user + '|"',
+				-search) => {
+				if(found_count > 0) => {
 //					debug(tag_name + ': clearing locks for ' + #user + ' in ' + found_count + ' FileMaker records ' + error_msg + ' ' + error_code)
 
-					records
+					records => {
 						inline(-keyvalue = keyfield_value,
 							.'lockfield' = '',
-							-update)
-							if(error_code)
+							-update) => {
+							if(error_code) => {
 								.'error_code' = 7013 // Clearlocks failed
 								.'error_data' = map('error_code' = error_code, 'error_msg' = error_msg)
 //								debug(tag_name + ': error when clearing lock on FileMaker record ' + keyfield_value + ' ' + error_msg + ' ' + error_code)
 								return
-							/if
-						/inline
-					/records
+							}
+						}
+					}
 				else(error_code)
 					.'error_code' = 7013 // Clearlocks failed
 					.'error_data' = map('error_code' = error_code, 'error_msg' = error_msg)
-				/if
-			/inline
+				}
+			} //inline
 		else
 			inline(.'db_connect',
 				-sql = 'UPDATE `' + .'table' + '` SET `' + .'lockfield'
 					+ '`=""  WHERE `' + .'lockfield'
-					+ '` LIKE "' + knop_encodesql_full(#user) + '|%"')
-				if(error_code != 0)
+					+ '` LIKE "' + knop_encodesql_full(#id_user) + '|%"') => {
+				if(error_code != 0) => {
 					.'error_code' = 7013 // Clearlocks failed
 					.'error_data' = map('error_code' = error_code, 'error_msg' = error_msg)
-				/if
-			/inline
+				}
+			}
 //			debug(tag_name + ': clearing all locks for ' + #user + ' ' + .'error_msg' + ' ' + .'error_code')
-		/if
+		}
 
 
 // 	} // end debug
 	} // END clearlocks
 
+	public clearlocks(
+		-user::any
+	) => .clearlocks(#user)
 
 	public action_statement() => .'action_statement'
 
@@ -1088,7 +1088,7 @@ recorddata A map containing all fields, only available for single record results
 		#recordindex = #recordindex -> ascopy
 
 		#recordindex < 1 ? #recordindex = 1
-		if(#recordindex == 1)
+		if(#recordindex == 1) => {
 			// return default (i.e. first) record
 			return(.'recorddata')
 		else(.'records_array' -> size >= #recordindex)
@@ -1100,7 +1100,7 @@ recorddata A map containing all fields, only available for single record results
 			return(#recorddata)
 		else
 			return(map)
-		/if
+		}
 
 // 	} // end debug
 	} // END recorddata
@@ -1121,21 +1121,21 @@ Parameters:
 
 		local(field_names = .'field_names')
 
-		if(#field_names -> size == 0 || #types)
+		if(#field_names -> size == 0 || #types) => {
 			#field_names = array
-			if(#types)
+			if(#types) => {
 				local(types_mapping = map('text' = 'string', 'number' = 'decimal', 'date/time' = 'date'))
-			/if
-			inline(.'db_connect', -table = #table, -show)
-				if(#types)
-					loop(field_name(-count))
+			}
+			inline(.'db_connect', -table = #table, -show) => {
+				if(#types) => {
+					loop(field_name(-count)) => {
 						#field_names -> insert(field_name(loop_count) = #types_mapping -> find(field_name(loop_count, -type)))
-					/loop
+					}
 				else
 					#field_names = field_names -> asarray
-				/if
-			/inline
-		/if
+				}
+			}
+		}
 		return(#field_names) // NOTE was return(@#field_names) in 8.5. Why?
 
 // 	} // end debug
@@ -1148,11 +1148,11 @@ table_names Returns an array with all table names for the database.
 //debug => {
 
 		local(table_names = array)
-		inline(.'db_connect')
-			Database_TableNames(.'database')
-				#table_names -> insert(Database_TableNameItem)
-			/Database_TableNames
-		/inline
+		inline(.'db_connect') => {
+			database_tablenames(.'database') => {
+				#table_names -> insert(database_tablenameitem)
+			}
+		}
 		return(#table_names) // NOTE was return(@#table_names) in 8.5. Why?
 
 // 	} // end debug
@@ -1163,11 +1163,11 @@ error_data Returns more info for those errors that provide such.
 **/
 	public error_data() => {
 
-		if(.'errors_error_data' >> .error_code)
+		if(.'errors_error_data' >> .error_code) => {
 			return(.'error_data')
 		else
 			return(map)
-		/if
+		}
 
 	} // END error_data
 
@@ -1191,13 +1191,13 @@ records Returns all found records as a knop_databaserows object.
 	) => {
 //debug => {
 
-		if(.'databaserows_map' !>> #inlinename)
+		if(.'databaserows_map' !>> #inlinename) => {
 			// create knop_databaserows on demand
 			.'databaserows_map' -> insert(#inlinename = knop_databaserows(
 					.'records_array',
 					.'field_names')
 				)
-		/if
+		}
 		return(.'databaserows_map' -> find(#inlinename)) // NOTE was return(@(.'databaserows_map' -> find(#inlinename))) in 8.5. Why?
 
 
@@ -1223,24 +1223,24 @@ field A shortcut to return a specific field from a single record result.
 
 		#recordindex < 1 ? #recordindex = 1
 
-		if(#recordindex == 1 && #index == 1)
+		if(#recordindex == 1 && #index == 1) => {
 			// return first field occurrence from the default (i.e. first) record
 			return(.'recorddata' -> find(#fieldname))
 		else(.'field_names_map' >> #fieldname
 			&& #recordindex >= 1
 			&& #recordindex <= .'records_array' -> size)
 			// return specific record
-			if(#index == 1)
+			if(#index == 1) => {
 				// return first ocurrence of field name through the index map - this is faster
 				return(.'records_array' -> get(#recordindex) -> get(.'field_names_map' -> find(#fieldname)))
 			else
 				// return another occurrence of the field - this is slightly slower
 				local(indexmatches = .'field_names' -> findposition(#fieldname))
-				if(#index >= 1 && #index <= #indexmatches -> size)
+				if(#index >= 1 && #index <= #indexmatches -> size) => {
 					return(.'records_array' -> get(#recordindex) -> get(#indexmatches -> get(#index)))
-				/if
-			/if
-		/if
+				}
+			}
+		}
 
 // 	} // end debug
 	} // END field
@@ -1254,14 +1254,14 @@ Useful as an alternative to a regular records loop:
 	/while;.
 **/
 	public next() => {
-		if(.'current_record' < .'shown_count')
+		if(.'current_record' < .'shown_count') => {
 			.'current_record' += 1
 			return(true)
 		else
 			// reset record pointer
 			.'current_record' = 0
 			return(false)
-		/if
+		}
 
 	} // END next
 
@@ -1327,7 +1327,6 @@ capturesearchvars Internal.
 	private capturesearchvars() => {
 //debug => {
 
-
 		// capture various result variables like found_count, shown_first, shown_last, shown_count
 		// searchresultvars
 		.'action_statement' = action_statement
@@ -1356,34 +1355,43 @@ capturesearchvars Internal.
 		// handle queries that use LIMIT
 		if(!.'isfilemaker' && (regexp(-input = action_statement,
 					-find = `\sLIMIT\s`,
-					-ignorecase = true)) -> findcount)
+					-ignorecase = true)) -> findcount) => {
 //			.'debug_trace' -> insert(tag_name + ': old found_count, shown_first and shown_last ' + .'found_count' + ' '+ .'shown_first' + ' '+ .'shown_last')
 			.'found_count' = knop_foundrows
 			// adjust shown_first and shown_last
 			.'shown_first' = (.'found_count' ? .'skiprecords_value' + 1 | 0)
 			.'shown_last' = math_min((.'skiprecords_value' + .'maxrecords_value'), .'found_count')
 //			.'debug_trace' -> insert(tag_name + ': new found_count, shown_first and shown_last ' + .'found_count' + ' '+ .'shown_first' + ' '+ .'shown_last')
-		/if
+		}
 
 		// capture some variables for single record results
 		if(found_count <= 1  // -update gives found_count 0 but still has one record result
-			&& error_code == 0)
-			if(.'keyfield' -> size > 0 && string(field(.'keyfield')) -> size)
+			&& error_code == 0) => {
+			if(.'keyfield' -> size > 0 && string(field(.'keyfield')) -> size) => {
 				.'keyvalue' = field(.'keyfield')
 			else(.'keyfield' -> size > 0 && .'keyvalue'-> size == 0 && !(.'isfilemaker'))
 //				.'keyvalue' = (keyfield_value != void ? keyfield_value | string)
 				.'keyvalue' = string(keyfield_value)
-			/if
-			if(lasso_currentaction == 'add' || lasso_currentaction == 'update')
+			}
+			if(lasso_currentaction == 'add' || lasso_currentaction == 'update') => {
 				.'affectedrecord_keyvalue' = .'keyvalue'
-			/if
-			if(.'lockfield' -> size > 0)
-				.'lockvalue' = string(field(.'lockfield'))
-				.'lockvalue_encrypted' = string(encode_base64(encrypt_blowfish(string(field(.'lockfield')), -seed = .'lock_seed')))
-			/if
-		/if
+			}
 
-		if(error_code == 0)
+			if(.'lockfield' -> size > 0) => {
+				.'lockvalue' = string(field(.'lockfield'))
+				local(lockvalue) = .'lockvalue' -> split('|')
+				local(lock_timestamp) = date(#lockvalue -> size > 1 ? #lockvalue -> get(2) | null)
+					if((date - #lock_timestamp) -> asinteger >= .'lock_expires') => {
+						.'lockvalue' = string
+						.'lockvalue_encrypted' = string
+					else;
+						.'lockvalue_encrypted' = string(encode_base64(encrypt_blowfish(string(field(.'lockfield')), -seed = .'lock_seed')))
+					}
+
+			}
+		}
+
+		if(error_code == 0) => {
 			// populate recorddata with field values from the first found record
 			iterate(field_names)
 				.'recorddata' !>> loop_value
@@ -1391,7 +1399,7 @@ capturesearchvars Internal.
 			/iterate
 		else
 //			debug(tag_name + ': ' + error_msg)
-		/if
+		}
 
 //		debug( tag_name + ': found_count ' + string(.'found_count') + ' ' + .'keyfield' + ' '+ string(field(.'keyfield')) + ' keyfield_value ' + string(keyfield_value) + ' keyvalue ' + string(.'keyvalue'))
 
@@ -1403,26 +1411,29 @@ capturesearchvars Internal.
 /**!
 varname Returns the name of the variable that this type instance is stored in.
 **/
+/* used from knop_base instead
 	public varname() => {
 //debug => {
 
 		.'instance_unique' == null ? .'instance_unique' = knop_unique9
 
-		if(.'instance_varname' == null)
+		if(.'instance_varname' == null) => {
 			// look for the var name and store it in instance variable
-			iterate(vars -> keys)
-				if(var(string(loop_value)) -> type == .type
-					&& (var(string(loop_value)) -> 'instance_unique') == .'instance_unique')
-					.'instance_varname' = string(loop_value)
-					loop_abort
+
+			with varname in vars -> keys do => {
+				if(var(#varname) -> type == .type
+					&& (var(#varname) -> 'instance_unique') == .'instance_unique')
+					.'instance_varname' = string(#varname)
+//					loop_abort
 				/if
-			/iterate
-		/if
+			}
+		}
 
 		return(.'instance_varname')
 
 // 	} // end debug
 	} // END varname
+*/
 
 	public error_code() => .'error_code'
 
@@ -1496,16 +1507,16 @@ varname Returns the name of the variable that this type instance is stored in.
 			/if;
 		/iterate;
 **/
-		if(#errorcodes >> #error_code)
+		if(#errorcodes >> #error_code) => {
 			// return error message defined by this tag
-			if(false)
+			if(false) => {
 //pending			if(#error_lang -> keys >> #error_code)
 //pending				return(#error_lang -> getstring(#error_code))
 			else
 				return(#errorcodes -> find(#error_code))
-			/if
+			}
 		else
-			if(.'error_msg' -> size > 0)
+			if(.'error_msg' -> size > 0) => {
 				// return literal error message
 				return(.'error_msg')
 			else
@@ -1513,8 +1524,8 @@ varname Returns the name of the variable that this type instance is stored in.
 				error_code = #error_code
 				// return Lasso error message
 				return(error_msg)
-			/if
-		/if
+			}
+		}
 
 
 
@@ -1529,7 +1540,7 @@ varname Returns the name of the variable that this type instance is stored in.
 		local(ret = array)
 		with i in #input
 		do {
-			if (#i->isa(::keyword))
+			if(#i->isa(::keyword)) => {
 				#ret->insert(pair('-'+#i->name->asString, .scrubKeywords(#i->value)))
 			else (#i->isa(::pair))
 				#ret->insert(pair(#i->first, .scrubKeywords(#i->second)))
@@ -1541,7 +1552,7 @@ varname Returns the name of the variable that this type instance is stored in.
 				#ret->insert(pair(#i, true))
 			else
 				#ret->insert(#i)
-			/if
+			}
 		}
 		return #ret->asStaticArray
 	}
@@ -1609,9 +1620,9 @@ onconvert Output the current record as a plain array of field values.
 //debug => {
 
 		#recordindex < 1 ? #recordindex = 1
-		if(#recordindex >= 1 && #recordindex <= (.'records_array' -> size))
+		if(#recordindex >= 1 && #recordindex <= (.'records_array' -> size)) => {
 			return(.'records_array' -> get(#recordindex))
-		/if
+		}
 
 // 	} // end debug
 	} // END onconvert
@@ -1641,19 +1652,19 @@ field Return an individual field value.
 
 		if(.'field_names_map' >> #fieldname
 			&& #recordindex >= 1
-			&& #recordindex <= .'records_array' -> size)
+			&& #recordindex <= .'records_array' -> size) => {
 			// return specific record
-			if(#index==1)
+			if(#index==1) => {
 				// return first ocurrence of field name through the index map - this is faster
 				return(.'records_array' -> get(#recordindex) -> get(.'field_names_map' -> find(#fieldname)))
 			else
 				// return another occurrence of the field - this is slightly slower
 				local(indexmatches = .'field_names' -> findposition(#fieldname))
-				if(#index >= 1 && #index <= #indexmatches -> size)
+				if(#index >= 1 && #index <= #indexmatches -> size) => {
 					return(.'records_array' -> get(#recordindex) -> get(#indexmatches -> get(#index)))
-				/if
-			/if
-		/if
+				}
+			}
+		}
 
 // 	} // end debug
 	} // END field
@@ -1670,11 +1681,11 @@ summary_header Returns true if the specified field name has changed since the pr
 		#recordindex < 1 ? #recordindex = 1
 
 		if(#recordindex == 1 // first record
-			|| .field(#fieldname) != .field(#fieldname, -recordindex = (#recordindex - 1)) ) // different than previous record (look behind)
+			|| .field(#fieldname) != .field(#fieldname, -recordindex = (#recordindex - 1)) ) => { // different than previous record (look behind)
 			return(true)
 		else
 			return(false)
-		/if
+		}
 
 // 	} // end debug
 	} // END summary_header
@@ -1691,11 +1702,11 @@ summary_footer Returns true if the specified field name will change in the follo
 		#recordindex < 1 ? #recordindex = 1
 
 		if(#recordindex == .'records_array' -> size // last record
-			|| .field(#fieldname) != .field(#fieldname, -recordindex = (#recordindex + 1)) ) // different than next record (look ahead)
+			|| .field(#fieldname) != .field(#fieldname, -recordindex = (#recordindex + 1)) ) => { // different than next record (look ahead)
 			return(true)
 		else
 			return(false)
-		/if
+		}
 
 // 	} // end debug
 	} // END summary_footer
@@ -1705,14 +1716,14 @@ next Increments the record pointer, returns true if there are more records to sh
 **/
 	public next() => {
 
-		if(.'current_record' < .'records_array' -> size)
+		if(.'current_record' < .'records_array' -> size) => {
 			.'current_record' += 1
 			return(true)
 		else
 			// reset record pointer
 			.'current_record' = 0
 			return(false)
-		/if
+		}
 
 	} // END next
 
@@ -1780,13 +1791,13 @@ field Return an individual field value.
 //debug => {
 
 
-		if(.'field_names' >> #fieldname)
+		if(.'field_names' >> #fieldname) => {
 			// return any occurrence of the field
 			local('indexmatches' = .'field_names' -> findposition(#fieldname))
-			if(#index >= 1 && #index <= #indexmatches -> size)
+			if(#index >= 1 && #index <= #indexmatches -> size) => {
 				return(.'record_array' -> get(#indexmatches -> get(#index)))
-			/if
-		/if
+			}
+		}
 
 // 	} // end debug
 	} // END field
@@ -1794,6 +1805,6 @@ field Return an individual field value.
 
 } // END knop_databaserow
 
-log_critical('load knop_database ended')
+log_critical('loading knop_database done')
 
 ?>
