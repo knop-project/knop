@@ -1,5 +1,5 @@
 ﻿<?LassoScript
-log_critical('loading knop_nav')
+log_critical('loading knop_nav from LassoApp')
 
 /**!
 knop_nav
@@ -374,7 +374,7 @@ Grabs path and actionpath from params or urlhandler, translates from url to path
 				.'getlocation_didrun' = true
 			else(.'navmethod' != 'param')
 				.'navmethod' = 'path'
-				#originalpath = web_request->fcgiReq->requestParams->find(::REQUEST_URI)->asString -> split('?') -> first
+				#originalpath = knop_response_filepath
 				#originalpath -> removeleading(.'root')
 			else(.'navmethod' != 'path')
 				.'navmethod' = 'param'
@@ -672,11 +672,11 @@ Returns full url for current path or specified path. Path parameters can be prov
 		#path = #path -> ascopy
 
 		#params = #params -> ascopy
-		!#params -> isa('array') ? #params = array(#params)
+		!#params -> isa(::array) ? #params = array(#params)
 		#params = .scrubKeywords(#params) -> asarray
 
 		#except = #except -> ascopy
-		#except -> type != 'array' ? #except = array(#except)
+		!#except -> isa(::array) ? #except = array(#except)
 
 		local(url = string)
 		local(urlparams = array)
@@ -731,7 +731,7 @@ Returns full url for current path or specified path. Path parameters can be prov
 		if(#autoparams) => {
 			// add getparams that begin with -
 			with param in #clientparams do => {
-				if(#param -> type == 'pair') => {
+				if(#param -> isa(::pair)) => {
 					if(#param -> name -> beginswith('-') && #except !>> #param -> name) => {
 						#urlparams -> insert(encode_stricturl(string(#param -> name)) + '=' + encode_stricturl(string(#param -> value)))
 					}
@@ -1479,5 +1479,6 @@ trace // can wait
     }
 
 }
+log_critical('loading knop_nav done')
 
 ?>

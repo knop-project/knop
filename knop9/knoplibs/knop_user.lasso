@@ -1,5 +1,5 @@
 ﻿<?LassoScript
-log_critical('loading knop_user')
+log_critical('loading knop_user from LassoApp')
 
 /**!
 knop_user
@@ -89,6 +89,8 @@ Permissions can be read, create, update, delete, or application specific (for ex
 define knop_user => type {
 /*
 CHANGE NOTES
+	2012-07-02	JC	Replaced all old style if, inline and loop with code blocks
+	2012-07-02	JC	Fixed erroneous handling of addlock and clearlocks
 	2012-05-19	JC	Made sure id_user is always of type string
 	2012-05-18	JC	Reactivated _unknownTag
 	2012-05-18	JC	Changed login so it accepts byte params for username and password
@@ -165,7 +167,7 @@ Parameters:\n\
 		allowsidejacking::boolean = false
 	) => {
 
-		local(timer = knop_timer)
+//		local(timer = knop_timer)
 
 		.'userfield' = #userfield
 		.'useridfield' = #useridfield
@@ -182,24 +184,24 @@ Parameters:\n\
 		.'userdb' = #userdb
 		#logdb -> isa('knop_database') ? .'logdb' = #logdb
 
-		if(#encrypt -> isa('boolean'))
+		if(#encrypt -> isa('boolean')) => {
 			.'encrypt' = #encrypt
 		else(#encrypt -> size > 0 && cipher_list( -digest) >> #encrypt)
 			.'encrypt' = true
 			.'encrypt_cipher' = #encrypt
-		/if
+		}
 
-		if(#cost -> isa('boolean'))
+		if(#cost -> isa('boolean')) => {
 			.'cost' = #cost
 		else(#cost -> isa('integer'))
 			.'cost' = true
 			.'costsize' = #cost
 		else(#costfield != '')
 			.'cost' = true
-		/if
+		}
 
 		.'singleuser' = #singleuser
-//		..'tagtime_tagname'=tag_name;
+//		..'tagtime_tagname'=tag_name
 //		..'tagtime'=integer(#timer) // cast to integer to trigger onconvert and to "stop timer"
 
 
@@ -229,7 +231,7 @@ Parameters:\n\
 ** /
 	public ondeserialize() => {
 		// MARK: Why is client_fingerprint_expression considered a transient variable?
-//		.'properties' -> first -> insert('client_fingerprint_expression' = {return(encrypt_md5(string(client_ip) + client_type))});
+//		.'properties' -> first -> insert('client_fingerprint_expression' = {return(encrypt_md5(string(client_ip) + client_type))})
 	}
 */
 
@@ -244,7 +246,7 @@ Parameters:\n\
 	Called when a knop_user object is stored in a session
 **/
 	public serializationElements() => {
-//		local('timer' = knop_timer);
+//		local('timer' = knop_timer)
 
 		local(ret = map)
 
@@ -290,7 +292,7 @@ Parameters:\n\
 	Called when a knop_user object is retrieved from a session
 **/
 	public acceptDeserializedElement(d::serialization_element)  => {
-		if(#d->key == 'items')
+		if(#d->key == 'items') => {
 
 			local(ret = #d -> value)
 
@@ -326,7 +328,7 @@ Parameters:\n\
 			.'allowsidejacking' = (#ret-> find('allowsidejacking'))
 			.'dblocks' = (#ret-> find('dblocks'))
 //			.'error_lang' = (#ret-> find('error_lang'))
-		/if
+		}
 
 	}
 
@@ -381,117 +383,117 @@ Log in user. On successful login, all fields on the user record will be availabl
 		local(_username = string(#username))
 		local(_password = string(#password))
 
-		if(#force -> size == 0 && (#_username -> size == 0 || #_password -> size == 0))
+		if(#force -> size == 0 && (#_username -> size == 0 || #_password -> size == 0)) => {
 			fail(-9956, 'knop_user -> login requires -username and -password, or -force')
-		/if
+		}
 
 		local('db' = .'userdb')
 		local('validlogin' = false)
 
-		if(#force -> size > 0)
+		if(#force -> size > 0) => {
 //			..'_debug_trace' -> insert('login: Manually authenticating user id ' + #force)
 			#validlogin = true
 			.'id_user' = #force
 
 		else
-			if(#_username -> size > 0 && #_password -> size > 0)
+			if(#_username -> size > 0 && #_password -> size > 0) => {
 
-				if(.'loginattempt_count' >= 5)
+				if(.'loginattempt_count' >= 5) => {
 					// login delay since last attempt was made
 //					..'_debug_trace' -> insert('login: Too many login attempts, wait until ' + (2 * .'loginattempt_count') + ' seconds has passed since last attempt.')
 					while(((date - .'loginattempt_date') -> second) <  (2 * .'loginattempt_count') // at least 5 seconds, longer the more attempts
 						&& loop_count < 100) // rescue sling
 						sleep(200)
 					/while
-				/if
+				}
 				// authenticate user against database (username must be unique)
 //				..'_debug_trace' -> insert('knop_user -> login: Authenticating user')
-				if(#db -> 'isfilemaker')
+				if(#db -> 'isfilemaker') => {
 					#searchparams -> merge(array(-op='eq', .'userfield '= '="' + #_username + '"'))
-				else;
+				else
 					#searchparams -> merge(array(-op='eq', .'userfield' = #_username))
-				/if;
+				}
 
 				#db -> select(#searchparams)
 //				..'_debug_trace' -> insert('knop_user -> login: Searching user db, ' (#db -> found_count) + ' found ' + (#db -> error_msg) + ' ' + (#db -> action_statement))
 
 				if(#db -> found_count == 1
-					&& #db -> field(.'userfield') == #_username) // double check the username
+					&& #db -> field(.'userfield') == #_username) => { // double check the username
 					// one match, continue by checking the password with case sensitive comparsion
 
-					if(.'encrypt' && .'cost' && .'saltfield' -> size)
+					if(.'encrypt' && .'cost' && .'saltfield' -> size) => {
 						// use encryption with cost & salt
 //						..'_debug_trace' -> insert('knop_user -> login: ' + 'Checking password with cost and salted encryption')
 
 						if(knop_crypthash(#_password,
 							-hash = string(#db -> field(.'passwordfield')),
 							-salt = knop_blowfish(-string = #db -> field(.'saltfield'), -mode = 'D'),
-							-cost = (.'costfield' -> size ? integer(#db -> field(.'costfield')) | .'costsize'), -cipher = (.'encrypt_cipher')) == true);
+							-cost = (.'costfield' -> size ? integer(#db -> field(.'costfield')) | .'costsize'), -cipher = (.'encrypt_cipher')) == true) => {
 
-							#validlogin = true;
+							#validlogin = true
 
-						/if;
+						}
 
 					else(.'encrypt' && .'saltfield' -> size)
 
 //						..'_debug_trace' -> insert('knop_user -> login: ' + 'Checking password with only salted encryption')
 						if(bytes(#db -> field(.'passwordfield'))
-							== bytes(knop_encrypt(#_password, -salt = #db -> field(.'saltfield' ), -cipher = .'encrypt_cipher' )))
+							== bytes(knop_encrypt(#_password, -salt = #db -> field(.'saltfield' ), -cipher = .'encrypt_cipher' ))) => {
 							#validlogin = true
-						/if;
-					else(.'encrypt');
+						}
+					else(.'encrypt')
 						// use encryption with no salt
 //						..'_debug_trace' -> insert('knop_user -> login: ' + 'Checking password with encryption, no salt')
 						if(bytes(#db -> field(.'passwordfield'))
-							== bytes(knop_encrypt(#_password, -salt = '', -cipher = .'encrypt_cipher')))
+							== bytes(knop_encrypt(#_password, -salt = '', -cipher = .'encrypt_cipher'))) => {
 							#validlogin = true
-						/if;
-					else;
+						}
+					else
 //						..'_debug_trace' -> insert('knop_user -> login: ' + 'Checking plain text password')
 						if(bytes(#db -> field(.'passwordfield'))
-							== bytes(#_password))
+							== bytes(#_password)) => {
 							#validlogin = true
-						/if
-					/if
-				/if
+						}
+					}
+				}
 
 				if(#validlogin) => {
 
-//					..'_debug_trace' -> insert('knop_user -> login: ' + 'id_user: ' + #db -> field(.'useridfield'));
+//					..'_debug_trace' -> insert('knop_user -> login: ' + 'id_user: ' + #db -> field(.'useridfield'))
 					// store user id
 					.'id_user' = string(#db -> field(.'useridfield'))
 					// store all user record fields in data map
 					.'data' = #db -> recorddata
 
 				}
-			/if; // #_username and #_password
-		/if; // #force
+			} // #_username and #_password
+		} // #force
 
-		if(#validlogin);
+		if(#validlogin) => {
 
-//			..'_debug_trace' -> insert('knop_user -> login: ' + 'Valid login');
-			.'loginattempt_count' = 0;
-			.'error_code' = 0; // No error
+//			..'_debug_trace' -> insert('knop_user -> login: ' + 'Valid login')
+			.'loginattempt_count' = 0
+			.'error_code' = 0 // No error
 			// set validlogin to true
-			.validlogin = true;
+			.validlogin = true
 			// log the action TODO
 			// store client_fingerprint
 			.'client_fingerprint' = .client_fingerprint_expression
 			// if singleuser, store uniqueid in server side storage
 
-		else(!(local('username') -> size && local('password') -> size));
-			.'error_code' = 7502; // Username or password missing
-			self -> logout;
-		else;
+		else(!(local('username') -> size && local('password') -> size))
+			.'error_code' = 7502 // Username or password missing
+			.logout
+		else
 			// TODO:
 			// - block username for a while after too many attempts
-			.'loginattempt_count' += 1;
-			.'loginattempt_date' = date; // keep track of when last login attempt happened
-//			..'_debug_trace' -> insert('knop_user -> login: ' + 'Invalid login (' +  .'loginattempt_count' + ' attempts)');
-			.'error_code' = 7501; // Authentication failed
-			self -> logout;
+			.'loginattempt_count' += 1
+			.'loginattempt_date' = date // keep track of when last login attempt happened
+//			..'_debug_trace' -> insert('knop_user -> login: ' + 'Invalid login (' +  .'loginattempt_count' + ' attempts)')
+			.'error_code' = 7501 // Authentication failed
+			.logout
 			// exit
-		/if;
+		}
 
 //*/
 //	} // end debug
@@ -546,11 +548,11 @@ Log in user. On successful login, all fields on the user record will be availabl
 **/
 	public id_user() => {
 
-		if(self -> auth);
-			return(.'id_user');
-		else;
-			return(false);
-		/if;
+		if(.auth) => {
+			return(.'id_user')
+		else
+			return(false)
+		}
 	}
 
 /**!
@@ -561,10 +563,10 @@ Log in user. On successful login, all fields on the user record will be availabl
 		value::any = ''
 	) => {
 
-		if(#field -> isa('pair'))
+		if(#field -> isa('pair')) => {
 			#value = #field -> value
 			#field = #field -> name
-		/if
+		}
 
 		fail_if(#value == '', -1, 'knop_user -> setdata requires a value parameter')
 		.'data' -> insert(string(#field) = #value -> ascopy)
@@ -578,11 +580,11 @@ Returns true if user has permission to perform the specified action, false other
 		permission::string
 	) => {
 
-		if(.auth && .'permissions' >> #permission)
+		if(.auth && .'permissions' >> #permission) => {
 			return(.'permissions' -> find(#permission))
-		else;
+		else
 			return(false)
-		/if
+		}
 
 	}
 
@@ -594,13 +596,13 @@ Sets the user\'s permission to perform the specified action (true or false, or j
 		value::any = ''
 	) => {
 
-		if(#value == true || # value -> size > 0) // any non-false value is regarded as true
+		if(#value == true || # value -> size > 0) => { // any non-false value is regarded as true
 			.'permissions' -> insert(#permission=true)
 		else(#value == false) // explicit false
 			.'permissions' -> insert(#permission = false)
 		else // no value specified is regarded as true
 			.'permissions' -> insert(#permission = true)
-		/if
+		}
 
 	}
 
@@ -610,12 +612,13 @@ Called by database object, adds the name of a database object that has been lock
 	public addlock(
 		dbname::any
 	) => {
-//stdoutnl('knop_user addlock called ' + #dbname)
+stdoutnl('knop_user addlock called ' + #dbname)
 //stdoutnl('knop_user addlock check ' + var(#dbname) -> type)
 		if(var(#dbname) -> isa(::knop_database)) => {
 //			..'_debug_trace' -> insert('knop_user -> addlock: adding database name  ' + #dbname)
 			.'dblocks' -> insert(#dbname)
 		}
+stdoutnl('knop_user addlock dblocks ' + .'dblocks')
 	}
 
 	public addlock(
@@ -627,20 +630,27 @@ Called by database object, adds the name of a database object that has been lock
 Clears all database locks that has been set by this user.
 **/
 	public clearlocks() => {
-//stdoutnl('knop_user clearlocks called ')
+//stdoutnl('knop_user clearlocks called ' + .'dblocks')
 
 		if(.auth) => {
-//			..'_debug_trace' -> insert('knop_user -> clearlocks: ' + .'dblocks' -> join(', '));
+//			..'_debug_trace' -> insert('knop_user -> clearlocks: ' + .'dblocks' -> join(', '))
 			local(cleared_dbs = array)
-			iterate(.'dblocks') => {
-				if(var(loop_value) -> isa(::knop_database)) => {
-					var(loop_value) -> clearlocks(-user = .'id_user')
-					#cleared_dbs -> insert(loop_value)
+//			iterate(.'dblocks') => {
+			with locks in .'dblocks' do => {
+				local(thislock =  var(#locks))
+
+//				if(var(loop_value) -> isa(::knop_database)) => {
+				protect => {
+					handle_error => {
+						log_critical('Error on clearlocks ' + error_msg)
+					}
+					#thislock -> clearlocks(.'id_user')
+					#cleared_dbs -> insert(#locks)
 				}
 			}
 			// remove all locks that has been cleared
-			iterate(#cleared_dbs) => {
-				.'dblocks' -> remove(loop_value)
+			with dbs in #cleared_dbs do => {
+				.'dblocks' -> remove(#dbs)
 			}
 		}
 
@@ -663,7 +673,7 @@ Returns an encrypted fingerprint based on client_ip and client_type.
 
 }
 
-log_critical('load knop_user ended')
+log_critical('loading knop_user done')
 
 
 ?>

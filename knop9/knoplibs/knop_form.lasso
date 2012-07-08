@@ -1,8 +1,10 @@
 <?Lasso
-log_critical('loading knop_form')
+log_critical('loading knop_form from LassoApp')
 
 define knop_form => type {
 /*
+	2012-07-02	JC	Fixed erroneous handling of addlock and clearlocks
+	2012-06-10	JC	Changed all iterate to query expr. Changed all += to append. Set br to br /
 	2012-06-07	JC	Tweaks to make knop_form -> process work
 	2012-05-18	JC	Changed all old style containers to Lasso 9 {} style
 	2012-05-18	JC	Fixed bug in process that called database with wrong type of params
@@ -31,7 +33,7 @@ define knop_form => type {
 */
 	parent knop_base
 
-	data public version = '2012-06-07'
+	data public version = '2012-07-02'
 
 	// instance variables
 	data public fields::array = array
@@ -166,19 +168,18 @@ define knop_form => type {
 	public oncreate(-formaction = null, -method = '', -name = '', -id = '', -raw = '', -actionpath = '', -fieldset::boolean = false, -legend = '', -entersubmitblock = false, -noautoparams = false, -template::string = '', -buttontemplate::string = '', -required::string = '*', -class::string = '', -errorclass::string = '', -unsavedmarker::string = '', -unsavedmarkerclass::string = 'unsaved', -unsavedwarning::string = '', -keyparamname::string = '-keyvalue', -noscript = true, -database::any = '') => .oncreate(#formaction, #method, #name, #id, #raw, #actionpath, #fieldset, #legend, #entersubmitblock, #noautoparams, #template, #buttontemplate, #required, #class, #errorclass, #unsavedmarker, #unsavedmarkerclass, #unsavedwarning, #keyparamname, #noscript, #database)
 
 /**!
+onconvert
 Outputs the form data in very basic form, just to see what it contains
 **/
-	public onconvert( xhtml = '') => {
+	public onconvert() => {
 // debug => {
 
-		local(endslash = ( .xhtml(params) ? ' /' | ''))
-
 		local(output = string)
-		iterate(.'fields', local('fieldpair')) => {
-			#output += #fieldpair -> name + ' = ' + #fieldpair -> value + '    <br' + #endslash + '>\n'
+		with fieldpair in .'fields' do {
+			#output -> append(#fieldpair -> name + ' = ' + #fieldpair -> value + '    <br />\n')
 		}
 
-		return(#output)
+		return #output
 
 // 	} // end debug
 	}
@@ -248,6 +249,7 @@ Shortcut to getvalue
 		rows = '',
 		cols = '',
 		class = '',
+		labelclass = '',
 		raw = '',
 		confirmmessage = '',
 		validate = '',
@@ -336,6 +338,7 @@ Shortcut to getvalue
 		#field -> insert('rows' = #rows -> ascopy)
 		#field -> insert('cols' = #cols -> ascopy)
 		#field -> insert('class' = #class -> ascopy)
+		#field -> insert('labelclass' = #labelclass -> ascopy)
 		#field -> insert('raw' = #raw -> ascopy)
 		#field -> insert('confirmmessage' = #confirmmessage -> ascopy)
 		#field -> insert('originaltype' = #originaltype -> ascopy)
@@ -354,9 +357,9 @@ Shortcut to getvalue
 // 	} // end debug
 	}
 
-	public addfield(-type, -name = '', -label = '', -value = '', -id = '', -dbfield = NULL, -hint = '', -options = '', -multiple = false, -linebreak = false, -default = '', -size::integer = -1, -maxlength::integer = -1, -rows::integer = -1, -cols::integer = -1, -focus = false, -class = '', -disabled = false, -raw = '', -confirmmessage = '', -required = false, -validate = '', -filter = '', -nowarning = false, -op::string = 'bw', -logical_op::string = string, -after = '') => {
+	public addfield(-type, -name = '', -label = '', -value = '', -id = '', -dbfield = NULL, -hint = '', -options = '', -multiple = false, -linebreak = false, -default = '', -size::integer = -1, -maxlength::integer = -1, -rows::integer = -1, -cols::integer = -1, -focus = false, -class = '', -labelclass = '', -disabled = false, -raw = '', -confirmmessage = '', -required = false, -validate = '', -filter = '', -nowarning = false, -op::string = 'bw', -logical_op::string = string, -after = '') => {
 
-	.addfield(#type, #name, #label, #value, #id, #dbfield, #hint, #options, #default, #size, #maxlength, #rows, #cols, #class, #raw, #confirmmessage, #validate, #filter, #after, #required, #nowarning, #op, #logical_op, #multiple, #linebreak, #focus, #disabled)
+	.addfield(#type, #name, #label, #value, #id, #dbfield, #hint, #options, #default, #size, #maxlength, #rows, #cols, #class, #labelclass, #raw, #confirmmessage, #validate, #filter, #after, #required, #nowarning, #op, #logical_op, #multiple, #linebreak, #focus, #disabled)
 	}
 
 /*
@@ -404,13 +407,13 @@ init
 Initiates form to grab keyvalue and set formmode if we have a database connected to the form. \
 	Does nothing if no database is specified.
 **/
-	public init(get = '', post = '', keyvalue = '') => {
-// debug => {
+	public init(get = '', post = '', keyvalue = '') => debug => {
 		// Initiates form to grab keyvalue and set formmode if we have a database connected to the form.
 		// TODO: should we run init if form is not valid? Now we have a condition in lib before running init.
 		// TODO: how can we get the right formmode when showing an add form again after failed validation? Now we have an extra condition in lib for this
 
 		if(.'database' -> isa(::knop_database)) => {
+
 			.'db_keyvalue' = string
 			.'db_lockvalue' = string
 			local(_params = array)
@@ -462,7 +465,6 @@ Initiates form to grab keyvalue and set formmode if we have a database connected
 			.'formmode' = 'search'
 		}
 
-// 	} // end debug
 	}
 
 	public init(-get = '', -post = '', -keyvalue = '') => .init(#get, #post, #keyvalue)
@@ -484,13 +486,14 @@ Overwrites all field values with values from either database, action_params or e
 		local(_params = array)
 		local(source = 'form')
 		local(field = map)
+		local(loopcount = 0)
 		//log_critical('checking params')
 		.'fieldsource' = null
-		if(#params!='') => {
+		if(#params != '') => {
 			.'fieldsource' = 'params'
-			local(source = 'params')
+			#source = 'params'
 			#_params = #params
-		else(#database!='' && #inlinename == '')
+		else(#database != '' && #inlinename == '')
 			if(#database -> isa(::knop_database)) => {
 				#inlinename = #database -> inlinename
 			else(.'database' -> isa(::knop_database))
@@ -498,24 +501,24 @@ Overwrites all field values with values from either database, action_params or e
 			}
 		}
 
-		if(#inlinename!='') => {
+		if(#inlinename != '') => {
 			//log_critical('inline name exists')
 			.'fieldsource' = 'database'
-			local(source = 'params')
+			#source = 'params'
 			#_params = map
 
 			//Why is this not a database method??
 			records(-inlinename = #inlinename) => {
 
-				iterate(field_names) => {
-					#_params -> insert(loop_value  =  field(loop_value) )
+				with fieldname in field_names do => {
+					#_params -> insert(#fieldname = field(#fieldname) )
 				}
 				loop_abort
 			}
 
 		else(.'fieldsource' == null && lasso_currentaction != 'nothing')
 			.'fieldsource' = 'database'
-			local(source = 'database')
+			#source = 'database'
 		else(.'fieldsource' == null)
 			//log_critical('getting params from form')
 			.'fieldsource' = 'form'
@@ -538,8 +541,8 @@ Overwrites all field values with values from either database, action_params or e
 		local(fields_samename = array)
 		local(params_fieldname = array)
 
-		iterate(.'fields', local('fieldpair')) => {
-			//#field = @(#fieldpair -> value)
+		with fieldpair in .'fields' do => {
+
 			if(.'exceptionfieldtypes' !>> #fieldpair -> value -> find('type')// do not load data for excluded form fields (maybe it should do that in some cases???)
 				// && (map: 'legend', 'fieldset', 'html') !>> #fieldpair -> value -> (find: 'type')
 				&& !#fieldpair -> name -> beginswith('-')) => {  // exclude field names that begin with "-"
@@ -559,29 +562,24 @@ Overwrites all field values with values from either database, action_params or e
 
 							if(#_params -> isa('map')) => {
 								#fieldpair -> value -> insert('value' = #_params -> find(#fieldpair -> value -> find('dbfield')) -> asCopy )
-							/*else: #_params -> (find: (#fieldpair -> value -> find: 'dbfield') ) -> size > 1
-								// multiple field values
-								local: 'valuearray' = array
-								iterate: #_params -> (find:  (#fieldpair -> value -> find: 'dbfield')), (local: 'parampair')
-									#parampair -> value != '' ? #valuearray -> (insert: #parampair -> value)
-								}
-								(#fieldpair -> value) -> (insert: 'value' = #valuearray);*/
 							else(#_params -> isa('array'))
 								#fieldpair -> value -> insert('value' = #_params -> find(#fieldpair -> value -> find('dbfield')) -> first -> value -> asCopy)
 							}
 						}
 					else(#source == 'form')
 						// load field values from form submission
-						iterate(#fields_samename, local('fieldpair_samename')) => {
+						#loopcount = 0
+						with fieldpair_samename in #fields_samename do => {
+							#loopcount += 1
 
 							if(#params_fieldname -> size == #fields_samename -> size) => {
 								// the number of submitted fields match the number of fields in the form
-								#fieldpair_samename -> value -> insert('value' = #params_fieldname -> get(loop_count) -> value -> asCopy)
+								#fieldpair_samename -> value -> insert('value' = #params_fieldname -> get(#loopcount) -> value -> ascopy)
 							else
 								if(#params_fieldname -> size > 1) => {
 									// multiple field values
 									local(valuearray = array)
-									iterate(#_params -> find(#fieldpair -> name), local('parampair')) => {
+									with parampair in #_params -> find(#fieldpair -> name) do => {
 										#parampair -> value != '' ? #valuearray -> insert(#parampair -> value)
 									}
 									#fieldpair_samename -> value -> insert('value' = #valuearray)
@@ -654,9 +652,7 @@ Overwrites all field values with values from either database, action_params or e
 		.loadfields('', '', '', #inlinename, '')
 	}
 
-	public loadfields(-params = '', -post = '', -get = '', -inlinename = '', -database = '') => {
-		.loadfields(#params, #post, #get, #inlinename, #database)
-	}
+	public loadfields(-params = '', -post = '', -get = '', -inlinename = '', -database = '') => .loadfields(#params, #post, #get, #inlinename, #database)
 
 /**!
 clearfields
@@ -664,12 +660,12 @@ Empties all form field values
 **/
 	public clearfields() => {
 
-		iterate(.'fields') => {
-			if(.'exceptionfieldtypes' !>> loop_value-> value -> find('type')) => {
+		with fieldvalue in .'fields' do => {
+			if(.'exceptionfieldtypes' !>> #fieldvalue -> value -> find('type')) => {
 				// && (map: 'legend', 'fieldset', 'html') !>> #fieldpair -> value -> (find: 'type')
 				// first remove value to break reference
-				loop_value -> value -> remove('value')
-				loop_value -> value -> insert('value' = '')
+				#fieldvalue -> value -> remove('value')
+				#fieldvalue -> value -> insert('value' = '')
 			}
 		}
 		if(.'database' -> isa(::knop_database)) => {
@@ -685,12 +681,12 @@ Resets all form field values to their initial values
 **/
 	public resetfields() => {
 
-		iterate(.'fields') => {
-			if(.'exceptionfieldtypes' !>> loop_value -> value ->find('type') ) => {
+		with fieldvalue in .'fields' do => {
+			if(.'exceptionfieldtypes' !>> #fieldvalue -> value ->find('type') ) => {
 				//&& (map: 'legend', 'fieldset', 'html') !>> #fieldpair -> value -> (find: 'type')
 				// first remove value to break reference
-				loop_value-> value -> remove('value')
-				loop_value-> value -> insert('value' = loop_value -> value -> find('defaultvalue'))
+				#fieldvalue-> value -> remove('value')
+				#fieldvalue-> value -> insert('value' = #fieldvalue -> value -> find('defaultvalue'))
 			}
 		}
 		if(.'database' -> isa(::knop_database)) => {
@@ -714,21 +710,22 @@ Performs validation and fills a transient array with field names that have input
 		if(.'errors' == null) => {
 			// initiate the errors array so we know validate has been performed
 			.'errors' = array
-			iterate(.'fields') => {
-				if( .'exceptionfieldtypes' !>> loop_value -> value -> find('type') ) => {
-					if(loop_value -> value -> find('required') && loop_value -> value -> find('value') == '') => {
-						.'errors' -> insert(loop_value-> value -> find('name') )
+
+			with fieldvalue in .'fields' do => {
+				if( .'exceptionfieldtypes' !>> #fieldvalue -> value -> find('type') ) => {
+					if(#fieldvalue -> value -> find('required') && #fieldvalue -> value -> find('value') == '') => {
+						.'errors' -> insert(#fieldvalue-> value -> find('name') )
 					}
-					if(loop_value -> value -> find('validate') -> isa('tag')) => {
+					if(#fieldvalue -> value -> find('validate') -> isa('tag')) => {
 						// perform validation expression on the field value
-						local(result = loop_value-> value -> find('validate') -> run(-params = loop_value -> value -> find('value')))
+						local(result = #fieldvalue -> value -> find('validate') -> run(-params = #fieldvalue -> value -> find('value')))
 						if(#result === true || #result === 0) => {
 							// validation was ok
 						else(#result != 0 || #result -> size)
 							// validation result was an error code or message
-							.'errors'-> insert(loop_value -> value -> find('name') = #result)
+							.'errors'-> insert(#fieldvalue -> value -> find('name') = #result)
 						else
-							.'errors' -> insert(loop_value -> value -> find('name') )
+							.'errors' -> insert(#fieldvalue -> value -> find('name') )
 						}
 					}
 				}
@@ -803,24 +800,24 @@ Returns a pair array with fieldname = value, or optionally SQL string to be used
 		local(output = array)
 		local(fieldvalue = null)
 
-		iterate(.'fields') => {
-			if(.'exceptionfieldtypes' !>> loop_value -> value -> find('type')
-						&& !(loop_value -> value ->find('name') -> beginswith('-'))
-						&& loop_value -> value -> find('dbfield') != '') => {
+		with fieldtmp in .'fields' do => {
+			if(.'exceptionfieldtypes' !>> #fieldtmp -> value -> find('type')
+						&& !(#fieldtmp -> value ->find('name') -> beginswith('-'))
+						&& #fieldtmp -> value -> find('dbfield') != '') => {
 
 				// don't use submit etc and exclude fields whose name begins with -
-				#fieldvalue = loop_value -> value -> find('value')
+				#fieldvalue = #fieldtmp -> value -> find('value')
 				if(!#fieldvalue -> isa(::array)) => {
 					// to support multiple values for one fieldname, like checkboxes
-					#fieldvalue = array(loop_value -> value -> find('value'))
+					#fieldvalue = array(#fieldtmp -> value -> find('value'))
 				}
 				if(#sql) => {
-					#output ->insert('`' + encode_sql(knop_stripbackticks(loop_value -> value -> find('dbfield') )) + '`'
+					#output ->insert('`' + encode_sql(knop_stripbackticks(#fieldtmp -> value -> find('dbfield') )) + '`'
 						+ ' = "' + encode_sql(#fieldvalue -> join(',')) + '"')
 				else
-					local(dbfield = loop_value -> value -> find('dbfield'))
-					iterate(#fieldvalue) => {
-						#output ->insert(#dbfield = loop_value )
+					local(dbfield = #fieldtmp -> value -> find('dbfield'))
+					loop(#fieldvalue -> size) => {
+						#output ->insert(#dbfield = #fieldvalue -> get(loop_count) )
 					}
 				}
 			}
@@ -863,8 +860,8 @@ Returns an array with fieldname = value, or optionally SQL string to be used in 
 		local(tmp_dbfieldbuild = null)
 
 		if(#params) => {
-			iterate(.'fields') => {
-				#_field = loop_value -> value
+			with fieldtmp in .'fields' do => {
+				#_field = #fieldtmp -> value
 				if(.'exceptionfieldtypes' !>> #_field -> find('type')
 							&& #_field -> find('dbfield') -> size > 0) => {
 					// don't use submit etc
@@ -873,16 +870,16 @@ Returns an array with fieldname = value, or optionally SQL string to be used in 
 						// to support multiple values for one fieldname, like checkboxes
 						#fieldvalue = array(#_field -> find('value'))
 					}
-					iterate(#fieldvalue) => {
-						if(loop_value -> size > 0) => {
-							#output ->insert(#_field -> find('name') = loop_value )
+					with valuetmp in #fieldvalue do => {
+						if(#valuetmp -> size > 0) => {
+							#output -> insert(#_field -> find('name') = #valuetmp)
 						}
 					}
 				}
 			}
 		else
-			iterate(.'fields') => {
-				#_field = loop_value -> value
+			with fieldtmp in .'fields' do => {
+				#_field = #fieldtmp -> value
 				if(.'exceptionfieldtypes' !>> #_field -> find('type')
 							&& !(#_field ->find('name') -> beginswith('-'))
 							&& #_field -> find('dbfield') -> size > 0) => {
@@ -907,50 +904,50 @@ Returns an array with fieldname = value, or optionally SQL string to be used in 
 							#1  -> replace(#1, .backtickthis(#1))
 							#1 -> replace('.', '`.`')
 						}
-						iterate(#fieldvalue) => {
-							if(loop_value -> size > 0) => {
+						with valuetmp in #fieldvalue do => {
+							if(#valuetmp -> size > 0) => {
 
-								#tmp_fieldvalue = loop_value
+								#tmp_fieldvalue = #valuetmp
 								#tmp_dbfieldbuild = array
 
-								iterate(#dbfield) => {
+								with fieldname in #dbfield do => {
 									match(#field_op) => {
 										case('ew')
-											#tmp_dbfieldbuild -> insert(loop_value +  ' LIKE "%' + knop_encodesql_full(#tmp_fieldvalue) + '"')
+											#tmp_dbfieldbuild -> insert(#fieldname +  ' LIKE "%' + knop_encodesql_full(#tmp_fieldvalue) + '"')
 
 										case('cn')
-											#tmp_dbfieldbuild -> insert(loop_value +  ' LIKE "%' + knop_encodesql_full(#tmp_fieldvalue) + '%"')
+											#tmp_dbfieldbuild -> insert(#fieldname +  ' LIKE "%' + knop_encodesql_full(#tmp_fieldvalue) + '%"')
 
 										case('lt')
-											#tmp_dbfieldbuild -> insert(loop_value +  ' < "' + encode_sql(#tmp_fieldvalue) + '"')
+											#tmp_dbfieldbuild -> insert(#fieldname +  ' < "' + encode_sql(#tmp_fieldvalue) + '"')
 
 										case('lte')
-											#tmp_dbfieldbuild -> insert(loop_value +  ' <= "' + encode_sql(#tmp_fieldvalue) + '"')
+											#tmp_dbfieldbuild -> insert(#fieldname +  ' <= "' + encode_sql(#tmp_fieldvalue) + '"')
 
 										case('gt')
-											#tmp_dbfieldbuild -> insert(loop_value +  ' > "' + encode_sql(#tmp_fieldvalue) + '"')
+											#tmp_dbfieldbuild -> insert(#fieldname +  ' > "' + encode_sql(#tmp_fieldvalue) + '"')
 
 										case('gte')
-											#tmp_dbfieldbuild -> insert(loop_value +  ' >= "' + encode_sql(#tmp_fieldvalue) + '"')
+											#tmp_dbfieldbuild -> insert(#fieldname +  ' >= "' + encode_sql(#tmp_fieldvalue) + '"')
 
 										case('eq')
-											#tmp_dbfieldbuild -> insert(loop_value +  ' = "' + encode_sql(#tmp_fieldvalue) + '"')
+											#tmp_dbfieldbuild -> insert(#fieldname +  ' = "' + encode_sql(#tmp_fieldvalue) + '"')
 
 										case('neq')
-											#tmp_dbfieldbuild -> insert(loop_value +  ' <> "' + encode_sql(#tmp_fieldvalue) + '"')
+											#tmp_dbfieldbuild -> insert(#fieldname +  ' <> "' + encode_sql(#tmp_fieldvalue) + '"')
 
 										case // bw
-											#tmp_dbfieldbuild -> insert(loop_value + ' LIKE "' + encode_sql(#tmp_fieldvalue) + '%"')
+											#tmp_dbfieldbuild -> insert(#fieldname + ' LIKE "' + encode_sql(#tmp_fieldvalue) + '%"')
 
 									} // match(#field_op)
-								} // iterate(#dbfield)
+								} // with(#dbfield)
 
 								#using_logicalop ?
 									#sql_field_tmp ->insert(' (' + #tmp_dbfieldbuild -> join(' OR ') + ') ')
 								|
 									#output ->insert(' (' + #tmp_dbfieldbuild -> join(' OR ') + ') ')
 							}
-						} // iterate(#fieldvalue)
+						} // with(#fieldvalue)
 
 						if(#using_logicalop) => {
 							#output ->insert('(' + #sql_field_tmp ->join(' ' + #logical_op + ' ') + ')')
@@ -961,14 +958,15 @@ Returns an array with fieldname = value, or optionally SQL string to be used in 
 							#output ->insert('-opbegin' = #logical_op)
 							#using_logicalop = true
 						}
-						iterate(#fieldvalue) => {
 
-							if(loop_value -> size > 0) => {
-								#tmp_fieldvalue = loop_value
+						with valuetmp in #fieldvalue do => {
+
+							if(#valuetmp -> size > 0) => {
+								#tmp_fieldvalue = #valuetmp
 								#dbfield -> size > 1 ? #output ->insert('-opbegin' = 'OR') // multiple fields to search on
-								iterate(#dbfield) => {
-									#output ->insert('-op' = #field_op)
-									#output ->insert(loop_value =  #tmp_fieldvalue)
+								with fieldname in #dbfield do => {
+									#output -> insert('-op' = #field_op)
+									#output -> insert(#fieldname =  #tmp_fieldvalue)
 								}
 								#dbfield -> size > 1 ? #output ->insert('-opend' = 'OR') // multiple fields to search on
 
@@ -1063,18 +1061,17 @@ Automatically handles a form submission and handles add, update, or delete.
 //			.'_debug_trace' -> insert(tag_name + ': cancelling ')
 			case('save')
 				.loadfields
-
 				if(.isvalid) => {
 					if(#user -> size > 0 && .lockvalue != '') => {
-						.database -> saverecord(-fields = .updatefields, -lockvalue = .lockvalue, -keyvalue = .keyvalue, -user = #user)
+						.'database' -> saverecord(-fields = .updatefields, -lockvalue = .lockvalue, -keyvalue = .keyvalue, -user = #user)
 					else
-						.database ->saverecord(-fields = .updatefields, -keyvalue = .keyvalue)
+						.'database' -> saverecord(-fields = .updatefields, -keyvalue = .keyvalue)
 					}
-					if(.database -> error_code != 0) => {
-						.'error_code' = .database -> error_code
-						.'error_msg' = ('Process: update record error ' + .database -> error_msg)
+					if(.'database' -> error_code != 0) => {
+						.'error_code' = .'database' -> error_code
+						.'error_msg' = ('Process: update record error ' + .'database' -> error_msg)
 					}
-	//				.'_debug_trace' -> insert(tag_name + ': updating record ' + .database -> error_msg + ' ' + .database -> error_code)
+	//				.'_debug_trace' -> insert(tag_name + ': updating record ' + .'database' -> error_msg + ' ' + .'database' -> error_code)
 				else
 					.'error_code' = 7101; // Process: update record did not pass form validation
 	//				.'_debug_trace' -> insert(tag_name + ': update record did not pass form validation')
@@ -1083,12 +1080,12 @@ Automatically handles a form submission and handles add, update, or delete.
 			case('add')
 				.loadfields
 				if(.isvalid) => {
-					.database -> addrecord(-fields = .updatefields, -keyvalue = .keyvalue)
-					if(.database -> error_code != 0) => {
-						.'error_code' = .database -> error_code
-						.'error_msg' = ('Process: add record error ' + .database -> error_msg)
+					.'database' -> addrecord(-fields = .updatefields, -keyvalue = .keyvalue)
+					if(.'database' -> error_code != 0) => {
+						.'error_code' = .'database' -> error_code
+						.'error_msg' = ('Process: add record error ' + .'database' -> error_msg)
 					}
-	//				.'_debug_trace'-> insert(tag_name + ': adding record ' + .database -> error_msg + ' ' + .database -> error_code)
+	//				.'_debug_trace'-> insert(tag_name + ': adding record ' + .'database' -> error_msg + ' ' + .'database' -> error_code)
 				else
 					.'error_code' = 7101; // Process: add record did not pass form validation
 	//				.'_debug_trace' -> insert(tag_name + ': add record did not pass form validation')
@@ -1100,22 +1097,22 @@ Automatically handles a form submission and handles add, update, or delete.
 	//			.'_debug_trace'-> insert(tag_name + ': will delete record with keyvalue ' + .keyvalue + ' lockvalue ' + .lockvalue)
 
 				if(#user -> size > 0 && .lockvalue != '') => {
-					.database -> deleterecord(-lockvalue = .lockvalue, -keyvalue = .keyvalue, -user = #user)
+					.'database' -> deleterecord(-lockvalue = .lockvalue, -keyvalue = .keyvalue, -user = #user)
 				else
-					.database -> deleterecord(-keyvalue = .keyvalue)
+					.'database' -> deleterecord(-keyvalue = .keyvalue)
 				}
-				if(.database -> error_code == 0) => {
+				if(.'database' -> error_code == 0) => {
 					.resetfields
 				else
-					.'error_code' = .database -> error_code
-					.'error_msg' = ('Process: delete record error ' + .database -> error_msg)
+					.'error_code' = .'database' -> error_code
+					.'error_msg' = ('Process: delete record error ' + .'database' -> error_msg)
 				}
-	//			.'_debug_trace' ->insert(tag_name + ': deleting record ' + .database -> error_msg + ' ' + .database -> error_code)
+	//			.'_debug_trace' ->insert(tag_name + ': deleting record ' + .'database' -> error_msg + ' ' + .'database' -> error_code)
 		}
 
 // 	} // end debug
 	}
-
+       
 /**!
 	Defines a html template for the form. \n\
 			Parameters:\n\
@@ -1178,7 +1175,7 @@ Automatically handles a form submission and handles add, update, or delete.
 		.'formid' = #formid
 
 		// render opening form tag
-		#output +='<form'
+		#output -> append('<form')
 		//.'_debug_trace'-> insert(tag_name + ': formaction = ' + .'formaction')
 		if(.'formaction' != null) => {
 			local(clientparams = .clientparams -> asarray)
@@ -1187,85 +1184,85 @@ Automatically handles a form submission and handles add, update, or delete.
 			#clientparams -> removeall('-action')
 			#clientparams -> removeall('-xhtml')
 
-			#output += (' action="' + .'formaction')
+			#output -> append(' action="' + .'formaction')
 			if(.'method' == 'post' && !.'noautoparams') => {
 				local(actionparams = array)
-				iterate(#clientparams) => {
-					if(loop_value -> isa(::pair)) => {
+				with cp_pair in #clientparams do => {
+					if(#cp_pair -> isa(::pair)) => {
 						// check if param name appears in form action
 						// turn param into [p][a][r][a][m] to avoid problems with most reserved regex characters like "."
-						if(loop_value -> name -> beginswith('-')
-							&& loop_value -> name != '-session'
-							&& .'fields' !>> loop_value -> name
-							&& string_findregexp( .'formaction', -find = ('[?;&][' + loop_value -> name -> split('') -> join('][') + ']([&=]|$)'), -ignorecase) -> size == 0) => {
-							#actionparams -> insert(loop_value -> name + '=' + encode_url(string(loop_value -> value)))
+						if(#cp_pair -> name -> beginswith('-')
+							&& #cp_pair -> name != '-session'
+							&& .'fields' !>> #cp_pair -> name
+							&& string_findregexp( .'formaction', -find = ('[?;&][' + #cp_pair -> name -> split('') -> join('][') + ']([&=]|$)'), -ignorecase) -> size == 0) => {
+							#actionparams -> insert(#cp_pair -> name + '=' + encode_url(string(#cp_pair -> value)))
 						}
 					// check if param appears in form action
 					// turn param into [p][a][r][a][m] to avoid problems with most reserved regex characters like "."
-					else(loop_value -> isa(::string)
-						&& loop_value -> beginswith('-')
-						&& .'fields' !>> loop_value
-						&& string_findregexp(.'formaction', -find = ('[?;&][' + loop_value -> split('') -> join('][') + ']([&=]|$)'), -ignorecase) -> size == 0)
-						#actionparams -> insert(loop_value)
+					else(#cp_pair -> isa(::string)
+						&& #cp_pair -> beginswith('-')
+						&& .'fields' !>> #cp_pair
+						&& string_findregexp(.'formaction', -find = ('[?;&][' + #cp_pair -> split('') -> join('][') + ']([&=]|$)'), -ignorecase) -> size == 0)
+						#actionparams -> insert(#cp_pair)
 					}
 				}
 				if(#actionparams -> size > 0) => {
-					#output += ((.'formaction' >> '?' ? '&amp;' | '?' ) + #actionparams -> join('&amp;'))
+					#output -> append((.'formaction' >> '?' ? '&amp;' | '?' ) + #actionparams -> join('&amp;'))
 				}
 			}
-			#output += '"'
+			#output -> append('"')
 		}
 
-		.'method' != null && .'method' != '' 	? #output += (' method="' + .'method' + '"')
-		.'name' != null && .'name' != ''		? #output += (' name="' + .'name' + '"')
-		#output += (' id="' + #formid + '"')
-		.'class' != null && .'class' != ''		? #output += (' class="' + .'class' + '"')
-		.'enctype' != null && .'enctype' != ''		? #output += (' enctype="' + .'enctype' + '"')
-		.'raw' != null && .'raw' != '' 		? #output += (' ' + .'raw')
-		!.'noscript' ? #output += (' onsubmit="return validateform(this)"')
-		(.'entersubmitblock' && !.'noscript')	? #output += (' onkeydown="return submitOk(event);" onfocus="submitBlock=true; return true;" onblur="submitBlock=false; return true;"')
-		#output += '>\n'
+		.'method' != null && .'method' != '' 	? #output -> append(' method="' + .'method' + '"')
+		.'name' != null && .'name' != ''		? #output -> append(' name="' + .'name' + '"')
+		#output -> append(' id="' + #formid + '"')
+		.'class' != null && .'class' != ''		? #output -> append(' class="' + .'class' + '"')
+		.'enctype' != null && .'enctype' != ''		? #output -> append(' enctype="' + .'enctype' + '"')
+		.'raw' != null && .'raw' != '' 		? #output -> append(' ' + .'raw')
+		!.'noscript' ? #output -> append(' onsubmit="return validateform(this)"')
+		(.'entersubmitblock' && !.'noscript')	? #output -> append(' onkeydown="return submitOk(event);" onfocus="submitBlock=true; return true;" onblur="submitBlock=false; return true;"')
+		#output -> append('>\n')
 
 		if(.'actionpath' != '' && !.'noautoparams' && .'fields' !>> '-action') => {
 			// auto-add -action unless there is already an -action field in the form
-			#output += ('<input type="hidden" name="-action" value="' + encode_html(.'actionpath') + '"' + #endslash + '>\n')
+			#output -> append('<input type="hidden" name="-action" value="' + encode_html(.'actionpath') + '"' + #endslash + '>\n')
 		}
 		if(.'fieldset') => {
-			#output += '<fieldset>\n'
-			#output += '<legend>' + .'legend' + '</legend>\n'
+			#output -> append('<fieldset>\n')
+			#output -> append('<legend>' + .'legend' + '</legend>\n')
 		}
 		if(.'method' == 'get' && !.'noautoparams') => {
-			iterate(#clientparams) => {
-				if(loop_value -> isa(::pair)) => {
+			with cp_pair in #clientparams do => {
+				if(#cp_pair -> isa(::pair)) => {
 					// check if param name appears in form action
 					// turn param into [p][a][r][a][m] to avoid problems with most reserved regex characters like .
-					if(loop_value-> name -> beginswith('-')
-						&& loop_value -> name != '-session'
-						&& .'fields' !>> loop_value -> name
-						&& string_findregexp(.'formaction', -find = ('[?;&][' + loop_value-> name -> split('') -> join('][') + ']([&=]|$)'), -ignorecase) -> size == 0) => {
-						#output += ('<input type="hidden" name="' + loop_value-> name + '" value="' + encode_html(loop_value-> value) + '"' + #endslash + '>\n')
+					if(#cp_pair-> name -> beginswith('-')
+						&& #cp_pair -> name != '-session'
+						&& .'fields' !>> #cp_pair -> name
+						&& string_findregexp(.'formaction', -find = ('[?;&][' + #cp_pair-> name -> split('') -> join('][') + ']([&=]|$)'), -ignorecase) -> size == 0) => {
+						#output -> append(('<input type="hidden" name="' + #cp_pair-> name + '" value="' + encode_html(#cp_pair-> value) + '"' + #endslash + '>\n'))
 					}
 				// check if param appears in form action
 				// turn param into [p][a][r][a][m] to avoid problems with most reserved regex characters like .
-				else(loop_value-> isa(::string)
-					&& loop_value -> beginswith('-')
-					&& .'fields' !>> loop_value
-					&& string_findregexp(.'formaction', -find = ('[?;&][' + loop_value -> split('') ->join('][') + ']([&=]|$)'), -ignorecase) -> size == 0)
-					#output += '<input type="hidden" name="' + loop_value + '"' + #endslash + '>\n'
+				else(#cp_pair-> isa(::string)
+					&& #cp_pair -> beginswith('-')
+					&& .'fields' !>> #cp_pair
+					&& string_findregexp(.'formaction', -find = ('[?;&][' + #cp_pair -> split('') ->join('][') + ']([&=]|$)'), -ignorecase) -> size == 0)
+					#output -> append('<input type="hidden" name="' + #cp_pair + '"' + #endslash + '>\n')
 				}
 			}
 		}
 
 		if(.'database' -> isa(::knop_database)) => {
 			if(string(.'database' -> lockfield) -> size > 0 && string(.'db_lockvalue') -> size > 0) => {
-				#output += ('<input type="hidden" name="-lockvalue" value="' + encode_html(.'db_lockvalue') + '"' + #endslash + '>\n')
+				#output -> append('<input type="hidden" name="-lockvalue" value="' + encode_html(.'db_lockvalue') + '"' + #endslash + '>\n')
 			else(.'database' -> keyfield != '' && .'db_keyvalue' != '' && .'db_keyvalue' != null)
-				#output += ('<input type="hidden" name="' + .'keyparamname' + '" value="' + encode_html(.'db_keyvalue') + '"' + #endslash + '>\n')
+				#output -> append('<input type="hidden" name="' + .'keyparamname' + '" value="' + encode_html(.'db_keyvalue') + '"' + #endslash + '>\n')
 			}
 		}
 
 		.'start_rendered' = true
-		return(#output)
+		return #output
 
 // 	} // end debug
 	}
@@ -1275,11 +1272,11 @@ Automatically handles a form submission and handles add, update, or delete.
 
 		local(output = string)
 		if(.'fieldset') => {
-			#output += '</fieldset>\n'
+			#output -> append('</fieldset>\n')
 		}
 
 		// render closing form tag
-		#output += '</form>'
+		#output -> append('</form>')
 
 		.'end_rendered' = true
 		return(#output)
@@ -1347,7 +1344,7 @@ Outputs HTML for the form fields, a specific field, a range of fields or all fie
 		#onlyformcontent ? .'start_rendered' = true
 
 		if(.'start_rendered' == false) => {
-			#output += .renderformstart
+			#output -> append(.renderformstart)
 		}
 
 		(string(#name) -> size > 0 && .'fields' !>> #name) 	? 	return('name failure')
@@ -1381,7 +1378,7 @@ Outputs HTML for the form fields, a specific field, a range of fields or all fie
 		// sanity check
 		#_from > #_to ? #_to = #_from
 
-		local(template = ( .'template' != '' ? .'template' | '#label# #field##required#<br' + #endslash + '>\n' ) )
+		local(template = ( .'template' != '' ? .'template' | '#label# #field##required#<br />\n' ) )
 
 		//local('buttontemplate'= ( .'buttontemplate' != '' ? .'buttontemplate' | (.'template' != '' ? .'template' | '#field#\n' )))
 		if(.'buttontemplate' -> size > 0) => {
@@ -1396,13 +1393,12 @@ Outputs HTML for the form fields, a specific field, a range of fields or all fie
 		local(errorclass = ( .'errorclass' != '' ? (' class="' + .'errorclass' + '"') | ' style="color: red;"'))
 		if(#legend -> size > 0) => {
 			.'render_fieldset2_open' = true
-			#output += ('<fieldset>\n' + '<legend>' + #legend + '</legend>\n')
+			#output -> append('<fieldset>\n' + '<legend>' + #legend + '</legend>\n')
 		}
 
-//			iterate(.'fields')
 		loop(-from = #_from, -to = #_to) => {
 
-			#onefield = .'fields' -> get(Loop_Count) -> value
+			#onefield = .'fields' -> get(loop_count) -> value
 			#fieldvalue = #onefield -> find('value')
 			#fieldvalue_array = #fieldvalue -> asCopy
 //log_critical('onefield: '+#onefield+' fieldvalue: '+#fieldvalue+' array: '+#fieldvalue_array)
@@ -1421,10 +1417,10 @@ Outputs HTML for the form fields, a specific field, a range of fields or all fie
 				#options = array
 
 				// convert types for pair
-				iterate(#onefield -> find('options')) => {
-					(!loop_value -> isa(::pair)) ?
-						#options -> insert(pair(loop_value -> asCopy = loop_value -> asCopy)) |
-						#options -> insert(loop_value -> asCopy)
+				with optionitem in #onefield -> find('options') do => {
+					(!#optionitem -> isa(::pair)) ?
+						#options -> insert(pair(#optionitem -> ascopy = #optionitem -> ascopy)) |
+						#options -> insert(#optionitem -> ascopy)
 				}
 				#onefield -> insert('options' = #options)
 
@@ -1496,160 +1492,159 @@ Outputs HTML for the form fields, a specific field, a range of fields or all fie
 					case('legend')
 						#renderrow = ''
 						if(.'render_fieldset_open') => {
-							#output += '</fieldset>\n'
+							#output -> append('</fieldset>\n')
 							.'render_fieldset_open' = false
 						}
-						#output += ('<fieldset'
+						#output -> append('<fieldset'
 							+ (#onefield >> 'class' ?  (' class="' + #onefield -> find('class') + '"')
 								| (#defaultclass != '' ? (' class="' + #defaultclass + '"') ))
 							+ (#onefield ->find('id') != '' ? (' id="' + #id + '"') )
 							+ '>\n')
 						.'render_fieldset_open' = true
-						#output += ('<legend>' + encode_html(#fieldvalue) + '</legend>\n')
+						#output -> append('<legend>' + encode_html(#fieldvalue) + '</legend>\n')
 					case('fieldset')
 						#renderrow = ''
 						if(.'render_fieldset_open') => {
-							#output += '</fieldset>\n'
+							#output -> append('</fieldset>\n')
 							.'render_fieldset_open' = false
 						}
 						if(#fieldvalue !== false) => {
 							.'render_fieldset_open' = true
-							#output += ('<fieldset'
+							#output -> append('<fieldset'
 							+ (#onefield >> 'class' ?  (' class="' + #onefield -> find('class') + '"')
 								| (#defaultclass != '' ? (' class="' + #defaultclass + '"')))
 							+ (#onefield ->find('id') != '' ? (' id="' + #id + '"') )
-							+ '>\n<legend>' + encode_html(#fieldvalue) + '</legend>\n'); // must contain a legend
+							+ '>\n<legend>' + encode_html(#fieldvalue) + '</legend>\n') // must contain a legend
 						}
 					case('hidden')
-						#renderfield += ('<input type="hidden"'
+						#renderfield -> append('<input type="hidden"'
 							+ #renderfield_base
-							+ ' value="' + encode_html(#fieldvalue) + '"')
-						#renderfield += (#endslash + '>')
+							+ ' value="' + encode_html(#fieldvalue) + '"' + #endslash + '>')
 						#renderrow = ''
-						#output += (#renderfield + '\n')
+						#output -> append((#renderfield + '\n'))
 					case('text')
-						#renderfield += ('<input type="text"'
+						#renderfield -> append('<input type="text"'
 							+ #renderfield_base
 							+ ' value="' + encode_html(#fieldvalue) + '"'
 							+ (#onefield >> 'size' 	? (' size="' + #onefield ->find('size') + '"' ))
 							+ (#onefield >> 'maxlength' ? (' maxlength="' + #onefield ->find('maxlength') + '"' )))
 						if(!.'noscript' && #onefield ->find('hint') != '') => {
-							#renderfield += (' onfocus="clearHint(this)" onblur="setHint(this, \''+#onefield ->find('hint')+'\')"')
+							#renderfield -> append(' onfocus="clearHint(this)" onblur="setHint(this, \''+#onefield ->find('hint')+'\')"')
 							#usehint ->insert(#onefield -> find('name') = #id)
 						}
 						if(!.'noscript' && !#nowarning) => {
-							#renderfield += (' onkeydown="dirtyvalue(this)" onkeyup="makedirty(this)"')
+							#renderfield -> append(' onkeydown="dirtyvalue(this)" onkeyup="makedirty(this)"')
 						}
-						#renderfield += (#endslash + '>')
+						#renderfield -> append(#endslash + '>')
 					case('search')
-						#renderfield += ('<input type="search"'
+						#renderfield -> append('<input type="search"'
 							+ #renderfield_base
 							+ ' value="' + encode_html(#fieldvalue) + '"'
 							+ (#onefield >> 'size' 	? (' size="' + #onefield ->find('size') + '"' )))
 						if(#onefield ->find('hint') != '') => {
-							#renderfield += (' placeholder="' + encode_html(#onefield ->find('hint')) + '"')
+							#renderfield -> append(' placeholder="' + encode_html(#onefield ->find('hint')) + '"')
 						}
 						if(!.'noscript' && !#nowarning) => {
-							#renderfield += (' onkeydown="dirtyvalue(this)" onkeyup="makedirty(this)"')
+							#renderfield -> append(' onkeydown="dirtyvalue(this)" onkeyup="makedirty(this)"')
 						}
-						#renderfield += (#endslash + '>')
+						#renderfield -> append(#endslash + '>')
 					case('password')
-						#renderfield += ('<input type="password"'
+						#renderfield -> append('<input type="password"'
 							+ #renderfield_base
 							+ ' value="' + encode_html(#fieldvalue) + '"'
 							+ (#onefield >> 'size' 	? (' size="' + #onefield ->find('size') + '"' )))
 						if(!.'noscript' && !#nowarning) => {
-							#renderfield += (' onkeydown="dirtyvalue(this)" onkeyup="makedirty(this)"')
+							#renderfield -> append(' onkeydown="dirtyvalue(this)" onkeyup="makedirty(this)"')
 						}
-						#renderfield += (#endslash + '>')
+						#renderfield -> append(#endslash + '>')
 					case('textarea')
-						#renderfield += ('<textarea'
+						#renderfield -> append('<textarea'
 							+ #renderfield_base
 							+ (#onefield >> 'cols' 	? (' cols="' + #onefield ->find('cols') + '"'))
 							+ (#onefield >> 'rows' 	? (' rows="' + #onefield ->find('rows') + '"')))
 						if(!.'noscript' && #onefield ->find('hint') != '') => {
-							#renderfield += (' onfocus="clearHint(this)" onblur="setHint(this, \''+#onefield ->find('hint')+ '\')"')
+							#renderfield -> append(' onfocus="clearHint(this)" onblur="setHint(this, \''+#onefield ->find('hint')+ '\')"')
 							#usehint ->insert(#onefield -> find('name') = #id)
 						}
 						if(!.'noscript' && !#nowarning) => {
-							#renderfield += ' onkeydown="dirtyvalue(this)" onkeyup="makedirty(this)"'
+							#renderfield -> append(' onkeydown="dirtyvalue(this)" onkeyup="makedirty(this)"')
 						}
-						#renderfield += ('>' + encode_html(#fieldvalue) + '</textarea>')
+						#renderfield -> append('>' + encode_html(#fieldvalue) + '</textarea>')
 					case('checkbox')
 						local(optioncount = integer)
-						#renderfield += ('<div class="inputgroup'
+						#renderfield -> append('<div class="inputgroup'
 							+ (#onefield -> find('class') -> size > 0 ?  ' ' + (#onefield -> find('class'))
 							| (#defaultclass != '' ? ' ' + #defaultclass) )
 							+ '" id="' + #id + '">\n')
-						iterate(#options) => {
+
+						with optionitem in #options do => {
 
 							#optioncount += 1
-							#renderfield += ( (#optioncount > 1 && #onefield -> find('linebreak')) ? ('<br' + #endslash + '>') + '\n')
-							if(loop_value -> name == '-optgroup') => {
-								#renderfield += ((!#onefield -> find('linebreak') && #optioncount > 1) ? ('\n<br' + #endslash + '>'))
-								if(loop_value -> value != '-optgroup') => {
-									#renderfield += (loop_value -> value
-										+ (!#onefield -> find('linebreak') ? ('<br' + #endslash + '>\n')))
+							#renderfield -> append( (#optioncount > 1 && #onefield -> find('linebreak')) ? ('<br />') + '\n')
+							if(#optionitem -> name == '-optgroup') => {
+								#renderfield -> append((!#onefield -> find('linebreak') && #optioncount > 1) ? ('\n<br />'))
+								if(#optionitem -> value != '-optgroup') => {
+									#renderfield -> append(#optionitem -> value
+										+ (!#onefield -> find('linebreak') ? ('<br />\n')))
 								}
 							else
-								#renderfield +=  ('<span><input type="checkbox"'
+								#renderfield -> append('<span><input type="checkbox"'
 									+ string_replaceregexp(#renderfield_base, -find = 'id="(.+?)"', -replace = ('id="\\1_' + #optioncount + '"'))
-									+ ' value="' + encode_html(loop_value -> name) + '"')
-								if(loop_value -> name != '' && #fieldvalue_array >> loop_value -> name) => {
-									#renderfield += (' checked="checked"')
+									+ ' value="' + encode_html(#optionitem -> name) + '"')
+								if(#optionitem -> name != '' && #fieldvalue_array >> #optionitem -> name) => {
+									#renderfield -> append(' checked="checked"')
 								}
 								if(!.'noscript' && !#nowarning) => {
-									#renderfield += (' onclick="makedirty();"')
+									#renderfield -> append(' onclick="makedirty();"')
 								}
-								#renderfield += (#endslash + '> <label for="' + #id + '_' + #optioncount
+								#renderfield -> append(#endslash + '> <label for="' + #id + '_' + #optioncount
 									+ '" id="' + #id + '_' + #optioncount + '_label"')
 								if(.'noscript' && !#nowarning) => {
-									#renderfield += (' onclick="makedirty();"')
+									#renderfield -> append(' onclick="makedirty();"')
 								}
-								#renderfield += ('>' + loop_value -> value + '</label></span>')
+								#renderfield -> append('>' + #optionitem -> value + '</label></span>')
 							}
 						}
-						#renderfield += ('</div>\n')
+						#renderfield -> append('</div>\n')
 
 					case('radio')
 						local(optioncount = integer)
-						#renderfield += ('<div class="inputgroup'
+						#renderfield -> append('<div class="inputgroup'
 							+ (#onefield -> find('class') -> size > 0 ?  ' ' + (#onefield -> find('class'))
-
 							| (#defaultclass != '' ? ' ' + #defaultclass) )
 							+ '" id="' + #id + '">\n')
 
-						iterate(#options) => {
+						with optionitem in #options do => {
 
 							#optioncount += 1
-							#renderfield += (((#optioncount > 1 && #onefield -> find('linebreak')) ? ('<br' + #endslash + '>') )+ '\n')
-							if(loop_value -> name == '-optgroup') => {
-								#renderfield += ((!#onefield -> find('linebreak') && #optioncount > 1) ? ('\n<br' + #endslash + '>'))
-								if(loop_value -> value != '-optgroup') => {
-									#renderfield += (loop_value -> value
-										+ (!#onefield -> find('linebreak') ? ('<br' + #endslash + '>\n')))
+							#renderfield -> append(((#optioncount > 1 && #onefield -> find('linebreak')) ? ('<br />') )+ '\n')
+							if(#optionitem -> name == '-optgroup') => {
+								#renderfield -> append((!#onefield -> find('linebreak') && #optioncount > 1) ? ('\n<br />'))
+								if(#optionitem -> value != '-optgroup') => {
+									#renderfield -> append(#optionitem -> value
+										+ (!#onefield -> find('linebreak') ? ('<br />\n')))
 								}
 							else
-								#renderfield += ('<input type="radio"'
+								#renderfield -> append('<input type="radio"'
 									+ string_replaceregexp(#renderfield_base, -find = 'id="(.+?)"', -replace = ('id="\\1_' + #optioncount + '"'))
-									+ ' value="' + encode_html(loop_value -> name) + '"')
-								if(loop_value-> name != '' && #fieldvalue_array >> loop_value -> name) => {
-									#renderfield += (' checked="checked"')
+									+ ' value="' + encode_html(#optionitem -> name) + '"')
+								if(#optionitem-> name != '' && #fieldvalue_array >> #optionitem -> name) => {
+									#renderfield -> append(' checked="checked"')
 								}
 								if(!.'noscript' && !#nowarning) => {
-									#renderfield += (' onclick="makedirty();"')
+									#renderfield -> append(' onclick="makedirty();"')
 								}
-								#renderfield += (#endslash + '> <label for="' + #id + '_' + #optioncount
+								#renderfield -> append(#endslash + '> <label for="' + #id + '_' + #optioncount
 									+ '" id="' + #id + '_' + #optioncount + '_label"')
 								if(!.'noscript' && !#nowarning) => {
-									#renderfield += (' onclick="makedirty();"')
+									#renderfield -> append(' onclick="makedirty();"')
 								}
-								#renderfield += ('>' + loop_value -> value + '</label> ')
+								#renderfield -> append('>' + #optionitem -> value + '</label> ')
 							}
 						}
-						#renderfield += ('</div>\n')
+						#renderfield -> append('</div>\n')
 					case('select')
-						#renderfield += ('<select '
+						#renderfield -> append('<select '
 							+ #renderfield_base
 							+ (#onefield -> find('multiple') ? ' multiple="true"')
 							+ (#onefield >> 'size' 	? (' size="' + #onefield ->find('size') + '"') ))
@@ -1657,48 +1652,44 @@ Outputs HTML for the form fields, a specific field, a range of fields or all fie
 							if(#renderfield >> 'onchange="') => {
 								#renderfield -> replace('onchange="', 'onchange="makedirty();')
 							else
-								#renderfield += (' onchange="makedirty()"')
+								#renderfield -> append(' onchange="makedirty()"')
 							}
 						}
-						#renderfield += ('>\n')
+						#renderfield -> append('>\n')
 						if(#onefield -> find('default') != '' && #onefield ->find('size') <= 1) => {
-							#renderfield += ('<option'
-								+ ' value="">' + encode_html(#onefield -> find('default')) + '</option>\n')
-							#renderfield += ('<option'
-								+ ' value=""></option>\n')
+							#renderfield -> append('<option value="">' + encode_html(#onefield -> find('default')) + '</option>\n<option value=""></option>\n')
 						}
 						local(optgroup_open = false)
-						iterate(#options) => {
-							if(loop_value -> name == '-optgroup') => {
+						with optionitem in #options do => {
+							if(#optionitem -> name == '-optgroup') => {
 								if(#optgroup_open) => {
-									#renderfield += ('</optgroup>\n')
+									#renderfield -> append('</optgroup>\n')
 								}
-								if(loop_value -> value != '-optgroup') => {
-									#renderfield += ('<optgroup label="' + loop_value -> value + '">\n')
+								if(#optionitem -> value != '-optgroup') => {
+									#renderfield -> append('<optgroup label="' + #optionitem -> value + '">\n')
 									#optgroup_open = true
 								}
 							else
-								#renderfield += ('<option'
-									+ ' value="' + encode_html(loop_value -> name) + '"')
-								if(loop_value -> name != '' && #fieldvalue_array >> loop_value -> name) => {
-									#renderfield += (' selected="selected"')
+								#renderfield -> append('<option value="' + encode_html(#optionitem -> name) + '"')
+								if(#optionitem -> name != '' && #fieldvalue_array >> #optionitem -> name) => {
+									#renderfield -> append(' selected="selected"')
 								}
-								#renderfield +=  ('>' + encode_html(loop_value -> value) + '</option>\n')
+								#renderfield -> append('>' + encode_html(#optionitem -> value) + '</option>\n')
 							}
 						}
 						if(#optgroup_open) => {
-							#renderfield += ('</optgroup>\n')
+							#renderfield -> append('</optgroup>\n')
 						}
-						#renderfield += ('</select>\n')
+						#renderfield -> append('</select>\n')
 					case('submit')
-						#renderfield += ('<input type="submit"'
+						#renderfield -> append('<input type="submit"'
 							+ #renderfield_base
 							+ ' value="' + encode_html(#fieldvalue) + '"')
 						if(.formmode == 'add'
 							&& !#onefield -> find('disabled') // already disabled
 							&& (#onefield -> find('originaltype') == 'savebutton' || #onefield -> find('originaltype') == 'deletebutton'
 							|| #onefield -> find('name') == 'button_save' || #onefield -> find('name') == 'button_delete')) => {
-							#renderfield += (' disabled="disabled"')
+							#renderfield -> append(' disabled="disabled"')
 						}
 						if(!.'noscript'
 							&& (#onefield ->find('name') == 'button_delete'
@@ -1708,11 +1699,11 @@ Outputs HTML for the form fields, a specific field, a range of fields or all fie
 								? #onefield -> find('confirmmessage') | 'Really delete?'))
 							#confirmmessage ->replace('"', '&quot;')
 							#confirmmessage ->replace('\'', '\\\'')
-							#renderfield += (' onclick="return confirm(\'' + #confirmmessage +  '\')"')
+							#renderfield -> append(' onclick="return confirm(\'' + #confirmmessage +  '\')"')
 						}
-						#renderfield += (#endslash + '>')
+						#renderfield -> append(#endslash + '>')
 					case('reset')
-						#renderfield += ('<input type="reset"'
+						#renderfield -> append('<input type="reset"'
 							+ #renderfield_base
 							+ ' value="' + encode_html(#fieldvalue) + '"')
 
@@ -1720,19 +1711,19 @@ Outputs HTML for the form fields, a specific field, a range of fields or all fie
 							local(confirmmessage = #onefield ->find('confirmmessage'))
 							#confirmmessage ->replace('"', '&quot;')
 							#confirmmessage ->replace('\'', '\\\'')
-							#renderfield += (' onclick="if(confirm(\'' + #confirmmessage +  '\')){makeundirty();return true}else{return false};"')
+							#renderfield -> append(' onclick="if(confirm(\'' + #confirmmessage +  '\')){makeundirty();return true}else{return false};"')
 						else(!.'noscript')
-							#renderfield += (' onclick="makeundirty();"')
+							#renderfield -> append(' onclick="makeundirty();"')
 						}
-						#renderfield += (#endslash + '>')
+						#renderfield -> append(#endslash + '>')
 					case('image')
-						#renderfield += ('<input type="image"'
+						#renderfield -> append('<input type="image"'
 							+ #renderfield_base
 							+ ' value="' + encode_html(#fieldvalue) + '"')
 						if(.formmode == 'add' &&
 							(#onefield -> find('originaltype') == 'savebutton' || #onefield ->find('originaltype') == 'deletebutton'
 							|| #onefield ->find('name') == 'button_save' || #onefield ->find('name') == 'button_delete')) => {
-							#renderfield += (' disabled="disabled"')
+							#renderfield -> append(' disabled="disabled"')
 						}
 						if(!.'noscript'
 							&& (#onefield ->find('name') == 'button_delete'
@@ -1742,23 +1733,23 @@ Outputs HTML for the form fields, a specific field, a range of fields or all fie
 								? #onefield ->find('confirmmessage') | 'Really delete?'))
 							#confirmmessage ->replace('"', '&quot;')
 							#confirmmessage ->replace('\'', '\\\'')
-							#renderfield += (' onclick="return confirm(\'' + #confirmmessage +  '\')"')
+							#renderfield -> append(' onclick="return confirm(\'' + #confirmmessage +  '\')"')
 						}
-						#renderfield += (#endslash + '>')
+						#renderfield -> append(#endslash + '>')
 					case('file')
-						#renderfield += ('<input type="file"' + #renderfield_base)
+						#renderfield -> append('<input type="file"' + #renderfield_base)
 						if(!.'noscript' && !#nowarning) => {
 							if(#renderfield >> 'onchange="') => {
 								#renderfield ->replace('onchange="', 'onchange="makedirty();')
 							else
-								#renderfield += (' onchange="makedirty()"')
+								#renderfield -> append(' onchange="makedirty()"')
 							}
 						}
-						#renderfield += (#endslash + '>')
+						#renderfield -> append(#endslash + '>')
 				}
 
 				#renderrow ->replace('#field#', #renderfield)
-				#output += #renderrow
+				#output -> append(#renderrow)
 			}
 		}
 
@@ -2045,10 +2036,10 @@ Outputs HTML for the form fields, a specific field, a range of fields or all fie
 		if(!.'noscript' && #usehint -> size > 0) => {
 			local(hintscript = string)
 			// #usehint is a pair array with name = id
-			iterate(#usehint) => {
-				if(.'fields' >> loop_value -> name) => {
-					#onefield = .'fields' -> find(loop_value -> name) -> first -> value
-					#hintscript += ('setHint(document.getElementById(\'' + encode_html(loop_value -> value) + '\'), \''
+			with hintitem in #usehint do => {
+				if(.'fields' >> #hintitem -> name) => {
+					#onefield = .'fields' -> find(#hintitem -> name) -> first -> value
+					#hintscript -> append('setHint(document.getElementById(\'' + encode_html(#hintitem -> value) + '\'), \''
 						+ #onefield -> find('hint') + '\');\n')
 				}
 			}
@@ -2063,17 +2054,17 @@ Outputs HTML for the form fields, a specific field, a range of fields or all fie
 		if(.'render_fieldset_open' && (params -> size == 0 || local_defined('end'))) => {
 			// inner fieldset is open
 			.'render_fieldset_open' = false
-			#output += ('</fieldset>\n')
+			#output -> append('</fieldset>\n')
 		}
 		if(.'render_fieldset2_open' && #legend -> size > 0) => {
 			// inner fieldset is open
 			.'render_fieldset2_open' = false
-			#output += ('</fieldset>\n')
+			#output -> append('</fieldset>\n')
 		}
 
 		// check if it's relevant to close the form. Should only happen if renderform is called with no params
 		if(.'end_rendered' == false && .'formaction' != null && #name == '' && #from == 0 && #to == 0 && #type -> size == 0 && #excludetype -> size == 0) => {
-			#output += .renderformend
+			#output -> append(.renderformend)
 		}
 
 		return(#output)
@@ -2134,6 +2125,7 @@ Outputs form data as plain HTML, a specific field, a range of fields or all fiel
 		local(fieldvalue_array = array)
 		local(options = array)
 		local(usehint = array)
+		local(loopcount = 0)
 
 		// local var that adjust tag endings if rendered for XHTML
 		local(endslash = (.xhtml(params) ? ' /' | ''))
@@ -2166,17 +2158,15 @@ Outputs form data as plain HTML, a specific field, a range of fields or all fiel
 		//Sanity check
 		#from > #to ? #to = #from
 
-		local(template = (.'template' != '' ? .'template' | ('#label#: #field#<br' + #endslash + '>\n' )))
+		local(template = (.'template' != '' ? .'template' | ('#label#: #field#<br />\n' )))
 		local(buttontemplate = (.'buttontemplate' != '' ? .'buttontemplate' | (.'template' != '' ? .'template' | '#field#\n') ))
 		local(defaultclass = (.'class' != '' ? .'class' | ''))
 		if(#legend -> size > 0) => {
-			#output += ('<fieldset>\n' + '<legend>' + #legend + '</legend>\n')
+			#output -> append('<fieldset>\n' + '<legend>' + #legend + '</legend>\n')
 			.'render_fieldset2_open' = true
 		}
 
 		loop(-from = #from, -to = #to) => {
-//		iterate(.'fields', local('fieldpair'))
-//			#onefield = #fieldpair -> value
 
 			#onefield = .'fields' -> get(loop_count) -> value
 
@@ -2194,12 +2184,12 @@ Outputs form data as plain HTML, a specific field, a range of fields or all fiel
 			if(#onefield >> 'options') => {
 				#options = #onefield -> find('options')
 				// convert types for pair
-				iterate(#options, local('option')) => {
-					if(!#option -> isa(::pair)) => {
-						#option = pair(#option = #option)
+				with optionitem in #options do => {
+					if(!#optionitem -> isa(::pair)) => {
+						#optionitem = pair(#optionitem = #optionitem)
 					}
-					// name must be string to make sure comparsions work
-					#option =  pair(string(#option -> name) = #option -> value)
+					// name must be string to make sure comparisons work
+					#optionitem =  pair(string(#optionitem -> name) = #optionitem -> value)
 //					#option -> name = string(#option -> name)
 				}
 			}
@@ -2226,16 +2216,18 @@ Outputs form data as plain HTML, a specific field, a range of fields or all fiel
 				}
 				if(map('radio', 'checkbox', 'select') >> #onefield ->find('type')) => {
 					#renderfield = string
-					iterate(#fieldvalue_array, local('onefieldvalue')) => {
-						if(loop_count > 1) => {
-							#renderfield += ( #onefield -> find('linebreak') ? ('<br' + #endslash + '>\n') | ', ')
+					#loopcount = 0
+					with onefieldvalue in #fieldvalue_array do => {
+						#loopcount += 1
+						if(#loopcount > 1) => {
+							#renderfield -> append(#onefield -> find('linebreak') ? ('<br />\n') | ', ')
 						}
 						if(#options >> #onefieldvalue) => {
 							// show the display text for a selected option
-							#renderfield += encode_break(#options ->find(#onefieldvalue) -> first -> value)
+							#renderfield -> append(encode_break(#options ->find(#onefieldvalue) -> first -> value))
 						else
 							// show the option value itself
-							#renderfield += encode_break(#onefieldvalue)
+							#renderfield -> append(encode_break(#onefieldvalue))
 						}
 					}
 				else(#onefield -> find('type') == 'html')
@@ -2246,34 +2238,34 @@ Outputs form data as plain HTML, a specific field, a range of fields or all fiel
 				else(#onefield -> find('type') == 'legend')
 					#renderrow = ''
 					if(.'render_fieldset_open') => {
-						#output += 'checking_first</fieldset>\n'
+						#output -> append('checking_first</fieldset>\n')
 						.'render_fieldset_open' = false
 					}
-					#output += '<fieldset>\n'
-					#output += ('<legend>checking_aha' + encode_html(#fieldvalue) + '</legend>')
+					#output -> append('<fieldset>\n')
+					#output -> append('<legend>checking_aha' + encode_html(#fieldvalue) + '</legend>')
 					.'render_fieldset_open' = true
 				else(#onefield -> find('type') == 'fieldset')
 					#renderrow = ''
 					if(.'render_fieldset_open') => {
-						#output += 'checking_second</fieldset>\n'
+						#output -> append('checking_second</fieldset>\n')
 						.'render_fieldset_open' = false
 					}
 					if(#fieldvalue != false) => {
-						#output += '<fieldset>\n<legend>checking_what is this</legend>'; // must contain a legend
+						#output -> append('<fieldset>\n<legend></legend>') // must contain a legend
 						.'render_fieldset_open' = true
 					}
 				else
 					#renderfield = encode_break(string(#fieldvalue))
 				}
 				#renderrow -> replace('#field#', #renderfield)
-				#output += #renderrow
+				#output -> append(#renderrow)
 			}
 //		}
 		}
 		if(#legend!='' && .'render_fieldset2_open') => {
 			// inner fieldset is open
 			.'render_fieldset2_open' = false
-			#output += 'checking_third</fieldset>\n'
+			#output -> append('checking_third</fieldset>\n')
 		}
 		return(#output)
 
@@ -2420,7 +2412,7 @@ Returns an array of all field names
 // debug => {
 
 		local(output = array)
-		iterate(.'fields', local('fieldpair')) => {
+		with fieldpair in .'fields' do => {
 			#output -> insert(#fieldpair -> name)
 		}
 
@@ -2504,7 +2496,7 @@ Internal member tag. Adds needed javascripts through an atend handler that will 
 					if(content_body >> '</body>') => {
 						content_body -> replace('</body>', (#scriptdata + '</body>'))
 					else
-						content_body += #scriptdata
+						content_body -> append(#scriptdata)
 					}
 				}
 			})
@@ -2532,5 +2524,5 @@ Internal member tag. Adds needed javascripts through an atend handler that will 
 	}
 
 }
-log_critical('load form.inc end')
+log_critical('loading knop_form done')
 ?>
