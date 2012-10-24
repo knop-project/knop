@@ -5,7 +5,10 @@
 
 	// build search params
 	// first set some basic search parameters
-	var('searchparams'=array(-maxrecords=$maxrecords, -skiprecords=$skiprecords, -uselimit));
+	var('searchparams'=array(-maxrecords=$maxrecords, -skiprecords=$skiprecords));
+
+    // use -uselimit only for non-filemaker data sources
+    !$d->'isfilemaker' ? $searchparams->insert(-uselimit);
 
 	// then add sort parameters, if any
 	$searchparams -> merge($list -> sortparams);
