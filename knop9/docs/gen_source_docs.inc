@@ -76,13 +76,6 @@ define process_doccomment(comment::string, indent_lvl::integer=0) => {
     Known Issues:
         - Currently doesn't process traits for documentation.
         
-        - Need to figure out best way to handle thread object type.
-        
-            Currently, lasso shows a thread object type as two types: one that has the name
-            it was given and one that has the name with "_thread$" tagged on to the end.
-            While the member methods are all under the given name, the doccomment is stored
-            in the one that adds "_thread$" to it. It would be nice to handle this.
-        
         - If a member method is added to a trait or type outside the type declaration and
         in a different file than the type declaration, then it will not be processed.
         
@@ -115,22 +108,30 @@ with lib in #core_libs do {
     where #type->asString->beginsWith(`knop`)
     do {
         #types->insert(#type->asString)
-        #doc->writeBytes(bytes('.. class:: ' + #type + '\n\n'))
-        local(comment) = process_doccomment(#type->doccomment, 1)
-        #comment->size > 0
-            ? #doc->writeBytes(bytes(#comment))
-    
-        // Get member methods defined specifically for the type
-        with method in #type->getType->listMethods
-        where #method->typeName == #type
-        where `'` != #method->methodName->asString->get(1)
-        let output = (#method->asString->remove(1, #type->asString->size + 2)&)
-        let comment = process_doccomment(#method->doccomment, 2)
-        order by #output
-        do {
-            #doc->writeBytes(bytes(indentor + '.. method:: ' + #output + '\n\n'))
+        
+        // Deal with thread types having an extra type with "_thread$" tacked on to the end
+        // (It should come before the actual type object, so we can steal the doccment for it)
+        if(#type->asString->endsWith(`_thread$`)) => {
+            local(thread_type = #type->asString->removeTrailing('_thread$')&)
+            tag(#thread_type)->docComment = #type->docComment
+        else
+            #doc->writeBytes(bytes('.. class:: ' + #type + '\n\n'))
+            local(comment) = process_doccomment(#type->doccomment, 1)
             #comment->size > 0
                 ? #doc->writeBytes(bytes(#comment))
+    
+            // Get member methods defined specifically for the type
+            with method in #type->getType->listMethods
+            where #method->typeName == #type
+            where `'` != #method->methodName->asString->get(1)
+            let output = (#method->asString->remove(1, #type->asString->size + 2)&)
+            let comment = process_doccomment(#method->doccomment, 2)
+            order by #output
+            do {
+                #doc->writeBytes(bytes(indentor + '.. method:: ' + #output + '\n\n'))
+                #comment->size > 0
+                    ? #doc->writeBytes(bytes(#comment))
+            }
         }
     }
 
