@@ -1,15 +1,18 @@
 ﻿<?LassoScript
 log_critical('loading knop_base from LassoApp')
-/**!All Knop custom types should have this type as parent type. This is to be able to identify all registered knop types.
-	*/
+/**!
+    All Knop custom types should have this type as parent type. 
+    This is to be able to identify all registered knop types.
+*/
 define knop_knoptype => type {
 
 	data public isknoptype = true
 }
-	/**!
-		Base data type for Knop framework. Contains common member tags. Used as boilerplate when creating the other types. \
-							All member tags and instance variables in this type are available in the other knop types as well.
-	*/
+/**!
+    Base data type for Knop framework. Contains common member tags. Used as 
+    boilerplate when creating the other types. All member tags and instance 
+    variables in this type are available in the other knop types as well.
+*/
 define knop_base => type {
 
 	/*

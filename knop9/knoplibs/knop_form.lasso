@@ -100,29 +100,77 @@ define knop_form => type {
 	data public clientparams::staticarray
 
 /**!
-	onCreate
-		Parameters:\n\
-			-formaction (optional) The action attribute in the form html tag\n\
-			-method (optional) Defaults to post\n\
-			-name (optional)\n\
-			-id (optional)\n\
-			-raw (optional) Anything in this parameter will be put in the opening form tag\n\
-			-actionpath (optional) Knop action path\n\
-			-fieldset (optional)\n\
-			-legend (optional string) legend for the entire form - if specified, a fieldset will also be wrapped around the form\n\
-			-entersubmitblock (optional)\n\
-			-noautoparams (optional)\n\
-			-template (optional string) html template, defaults to #label# #field##required#<br>\n\
-			-buttontemplate (optional string) html template for buttons, defaults to #field# but uses -template if specified\n\
-			-required (optional string) character(s) to display for required fields (used for #required#), defaults to *\n\
-			-class (optional string) css class name that will be used for the form element, default none\n\
-			-errorclass (optional string) css class name that will be used for the label to highlight input errors, if not defined style="color: red" will be used\n\
-			-unsavedmarker (optional string) id for html element that should be used to indicate when the form becomes dirty. \n\
-			-unsavedmarkerclass (optional string) class name to use for the html element. Defaults to "unsaved". \n\
-			-unsavedwarning (optional string)\n\
-			-keyparamname (optional)\n\
-			-noscript (optional flag) if specified, don\'t inject any javascript in the form. This will disable all client side functionality such as hints, focus and unsaved warnings. \n\
-			-database (optional database) Optional database object that the form object will interact with
+	Parameters:\n\
+		- formaction (optional)
+
+			The action attribute in the form html tag
+
+		- method (optional)
+
+			Defaults to post
+
+		- name (optional)
+
+		- id (optional)
+
+		- raw (optional)
+
+			Anything in this parameter will be put in the opening form tag
+
+		- actionpath (optional)
+
+			Knop action path
+
+		- fieldset (optional)
+
+		- legend (optional string)
+
+			Legend for the entire form - if specified, a fieldset will also be wrapped around the form
+
+		- entersubmitblock (optional)
+
+		- noautoparams (optional)
+
+		- template (optional string)
+
+			Html template, defaults to #label# #field##required#<br>
+
+		- buttontemplate (optional string)
+
+			Html template for buttons, defaults to #field# but uses -template if specified
+
+		- required (optional string)
+
+			Character(s) to display for required fields (used for #required#), defaults to *
+
+		- class (optional string)
+
+			CSS class name that will be used for the form element, default none
+
+		- errorclass (optional string)
+
+			CSS class name that will be used for the label to highlight input errors, if not defined style="color: red" will be used
+
+		- unsavedmarker (optional string)
+
+			ID for html element that should be used to indicate when the form becomes dirty.
+
+		- unsavedmarkerclass (optional string)
+
+			Class name to use for the html element. Defaults to "unsaved".
+
+		- unsavedwarning (optional string)
+
+		- keyparamname (optional)
+
+		- noscript (optional flag)
+
+			If specified, don't inject any javascript in the form. This will disable all client side functionality such as hints, focus and unsaved warnings.
+
+		- database (optional database)
+
+			Optional database object that the form object will interact with
+
 **/
 	public oncreate(formaction = null, method = '', name = '', id = '', raw = '',actionpath = '', fieldset::boolean = false, legend = '', entersubmitblock = false, noautoparams = false, template::string = '', buttontemplate::string = '', required::string = '*', class::string = '', errorclass::string = '', unsavedmarker::string = '', unsavedmarkerclass::string = 'unsaved', unsavedwarning::string = '', keyparamname::string = '-keyvalue', noscript = true, database::any = '')
 		=> {
@@ -168,7 +216,6 @@ define knop_form => type {
 	public oncreate(-formaction = null, -method = '', -name = '', -id = '', -raw = '', -actionpath = '', -fieldset::boolean = false, -legend = '', -entersubmitblock = false, -noautoparams = false, -template::string = '', -buttontemplate::string = '', -required::string = '*', -class::string = '', -errorclass::string = '', -unsavedmarker::string = '', -unsavedmarkerclass::string = 'unsaved', -unsavedwarning::string = '', -keyparamname::string = '-keyvalue', -noscript = true, -database::any = '') => .oncreate(#formaction, #method, #name, #id, #raw, #actionpath, #fieldset, #legend, #entersubmitblock, #noautoparams, #template, #buttontemplate, #required, #class, #errorclass, #unsavedmarker, #unsavedmarkerclass, #unsavedwarning, #keyparamname, #noscript, #database)
 
 /**!
-onconvert
 Outputs the form data in very basic form, just to see what it contains
 **/
 	public onconvert() => {
@@ -203,36 +250,128 @@ Shortcut to getvalue
 
 
 	/**!
-	addfield
-	Inserts a form element in the form. \n\
+	Inserts a form element in the form.
 
-			Parameters:\n\
-			-type (required) Supported types are listed in form -> \'validfieldtypes\'. Also custom field types addbuton, savebutton or deletebutton are supported (translated to submit buttons with predefined names). \
-			For the field types html, fieldset and legend use -value to specify the data to display for these fields. A legend field automatically creates a fieldset (closes any previously open fieldsets). Use fieldset with -value = false to close a fieldset without opening a new one. \n\
-			-name (optional) Required for all input types except addbuton, savebutton, deletebutton, fieldset, legend and html\n\
-			-id (optional) id for the html object, will be autogenerated if not specified\n\
-			-dbfield (optional) Corresponding database field name (name is used if dbfield is not specified), or null/emtpy string if ignore this field for database\n\
-			-value (optional) Initial value for the field\n\
-			-hint (optional) Optional gray hint text to show in empty text field\n\
-			-options (optional) For select, checkbox and radio, must be array or set. For select, the array can contain -optgroup = label to create an optiongroup. \n\
-			-multiple (optional flag) Used for select\n\
-			-linebreak (optional flag) Put linebreaks between checkbox and radio values\n\
-			-default (optional) Default text to display in a popup menu, will be selected (with empty value) if no current value is set. Is followed by an empty option. \n\
-			-label (optional) Text label for the field\n\
-			-size (optional) Used for text and select\n\
-			-maxlength (optional) Used for text\n\
-			-rows (optional) Used for textarea\n\
-			-cols (optional) Used for textarea\n\
-			-focus (optional flag) The first text field with this parameter specified will get focus when page loads\n\
-			-class (optional)\n\
-			-disabled (optional flag) The form field will be rendered as disabled\n\
-			-raw (optional) Raw attributes that will be put in the html tag\n\
-			-confirmmessage (optional) Message to show in submit/reset confirm dialog (delete button always shows confirm dialog)\n\
-			-required (optional flag) If specified then the field must not be empty (very basic validation)\n\
-			-validate (optional) Compound expression to validate the field input. The input can be accessed as params inside the expression which should either return true for valid input or false for invalid, or return 0 for valid input or a non-zero error code or error message string for invalid input. \n\
-			-filter (optional) Compound expression to filter the input before it is loaded into the form by ->loadfields. The field value can be accessed as params inside the expression which should return the filtered field value. -filter is applied before validation. \n\
-			-nowarning (optional flag) If specified then changing the field will not trigger an unsaved warning\n\
-			-after (optional) Numeric index or name of field to insert after
+	Parameters:
+		- type (required)
+
+			Supported types are listed in form -> 'validfieldtypes'. Also
+			custom field types addbuton, savebutton or deletebutton are
+			supported (translated to submit buttons with predefined names).
+
+			For the field types html, fieldset and legend use -value to specify
+			the data to display for these fields. A legend field automatically
+			creates a fieldset (closes any previously open fieldsets). Use
+			fieldset with -value = false to close a fieldset without opening a
+			new one.
+
+		- name (optional)
+
+			Required for all input types except addbuton, savebutton,
+			deletebutton, fieldset, legend and html
+
+		- id (optional)
+
+			id for the html object, will be autogenerated if not specified
+
+		- dbfield (optional)
+
+			Corresponding database field name (name is used if dbfield is not
+			specified), or null/emtpy string if ignore this field for database
+
+		- value (optional)
+
+			Initial value for the field
+
+		- hint (optional)
+
+			Optional gray hint text to show in empty text field
+
+		- options (optional)
+
+			For select, checkbox and radio, must be array or set. For select,
+			the array can contain -optgroup = label to create an optiongroup.
+
+		- multiple (optional flag)
+
+			Used for select
+
+		- linebreak (optional flag)
+
+			Put linebreaks between checkbox and radio values
+
+		- default (optional)
+
+			Default text to display in a popup menu, will be selected (with
+			empty value) if no current value is set. Is followed by an empty
+			option.
+
+		- label (optional)
+
+			Text label for the field
+
+		- size (optional)
+
+			Used for text and select
+
+		- maxlength (optional)
+
+			Used for text
+
+		- rows (optional)
+
+			Used for textarea
+
+		- cols (optional)
+
+			Used for textarea
+
+		- focus (optional flag)
+
+			The first text field with this parameter specified will get focus
+			when page loads
+
+		- class (optional)
+
+		- disabled (optional flag)
+
+			The form field will be rendered as disabled
+
+		- raw (optional)
+
+			Raw attributes that will be put in the html tag
+
+		- confirmmessage (optional)
+
+			Message to show in submit/reset confirm dialog (delete button always
+			shows confirm dialog)
+
+		- required (optional flag)
+
+			If specified then the field must not be empty (very basic validation)
+
+		- validate (optional)
+
+			Compound expression to validate the field input. The input can be
+			accessed as params inside the expression which should either return
+			true for valid input or false for invalid, or return 0 for valid
+			input or a non-zero error code or error message string for invalid
+			input. 
+
+		- filter (optional)
+
+			Compound expression to filter the input before it is loaded into the
+			form by ->loadfields. The field value can be accessed as params
+			inside the expression which should return the filtered field value.
+			-filter is applied before validation. 
+
+		- nowarning (optional flag)
+
+			If specified then changing the field will not trigger an unsaved warning
+
+		- after (optional)
+
+			Numeric index or name of field to insert after
 	**/
 	public addfield(
 		type::string,
@@ -386,7 +525,6 @@ Shortcut to getvalue
 	}
 */
 /**!
-copyfield
 Copies a form field to a new name.
 **/
 	public copyfield(name, newname) => {
@@ -403,9 +541,8 @@ Copies a form field to a new name.
 	}
 
 /**!
-init
-Initiates form to grab keyvalue and set formmode if we have a database connected to the form. \
-	Does nothing if no database is specified.
+Initiates form to grab keyvalue and set formmode if we have a database connected
+to the form. Does nothing if no database is specified.
 **/
 	public init(get = '', post = '', keyvalue = '') => debug => {
 		// Initiates form to grab keyvalue and set formmode if we have a database connected to the form.
@@ -470,16 +607,34 @@ Initiates form to grab keyvalue and set formmode if we have a database connected
 	public init(-get = '', -post = '', -keyvalue = '') => .init(#get, #post, #keyvalue)
 
 /**!
-loadfields
-Overwrites all field values with values from either database, action_params or explicit -params. \
-				Auto-detects based on current lasso_currentaction.\n\
-			Parameters:\n\
-				-params (optional) Array or map to take field values from instead of database or submit (using dbnames)\n\
-				-get (optional flag) Only getparams will be used\n\
-				-post (optional flag) Only postparams will be used\n\
-				-inlinename (optional) The first record in the result from the specified inline will be used as field values\n\
-				-database (optional) If a database object is specified, the first record from the latest search result of the database object will be used. \
-					If -database is specified as flag (no value) and the form object has a database object attached to it, that database object will be used.
+Overwrites all field values with values from either database, action_params or explicit -params.
+Auto-detects based on current lasso_currentaction.
+
+Parameters:\n\
+	-params (optional)
+
+		Array or map to take field values from instead of database or submit
+		(using dbnames)
+
+	-get (optional flag)
+
+		Only getparams will be used
+
+	-post (optional flag)
+
+		Only postparams will be used
+
+	-inlinename (optional)
+
+		The first record in the result from the specified inline will be used as
+		field values
+
+	-database (optional)
+
+		If a database object is specified, the first record from the latest
+		search result of the database object will be used. If -database is
+		specified as flag (no value) and the form object has a database object
+		attached to it, that database object will be used.
 **/
 	public loadfields(params = '', post = '', get = '', inlinename = '', database = '') => {
 
@@ -655,7 +810,6 @@ Overwrites all field values with values from either database, action_params or e
 	public loadfields(-params = '', -post = '', -get = '', -inlinename = '', -database = '') => .loadfields(#params, #post, #get, #inlinename, #database)
 
 /**!
-clearfields
 Empties all form field values
 **/
 	public clearfields() => {
@@ -676,7 +830,6 @@ Empties all form field values
 	}
 
 /**!
-resetfields
 Resets all form field values to their initial values
 **/
 	public resetfields() => {
@@ -697,9 +850,8 @@ Resets all form field values to their initial values
 	}
 
 /**!
-validate
-Performs validation and fills a transient array with field names that have input errors. \
-	form -> loadfields must be called first.
+Performs validation and fills a transient array with field names that have input
+errors. form -> loadfields must be called first.
 **/
 	public validate() => {
 // debug => {
@@ -737,8 +889,8 @@ Performs validation and fills a transient array with field names that have input
 	}
 
 /**!
-isvalid
-Returns the result of form -> validate (true/false) without performing the validation again (unless it hasn\'t been performed already)
+Returns the result of form -> validate (true/false) without performing the
+validation again (unless it hasn\'t been performed already)
 **/
 	public isvalid() => {
 // debug => {
@@ -753,9 +905,8 @@ Returns the result of form -> validate (true/false) without performing the valid
 	}
 
 /**!
-adderror
-Adds the name for a field that has validation error, used for custom field validation. \
-				calls form -> validate first if needed
+Adds the name for a field that has validation error, used for custom field
+validation. calls form -> validate first if needed
 **/
 	public adderror(fieldname) => {
 
@@ -767,7 +918,6 @@ Adds the name for a field that has validation error, used for custom field valid
 	}
 
 /**!
-reseterrors
 Empties the error array as if no errors was found
 **/
 	public reseterrors() => {
@@ -775,7 +925,6 @@ Empties the error array as if no errors was found
 	}
 
 /**!
-errors
 Returns an array with fields that have input errors, or empty array if no errors or form has not been validated
 **/
 	public errors() => {
@@ -788,9 +937,8 @@ Returns an array with fields that have input errors, or empty array if no errors
 	}
 
 /**!
-updatefields
 Returns a pair array with fieldname = value, or optionally SQL string to be used in an update inline.
-	form -> loadfields must be called first.
+form -> loadfields must be called first.
 **/
 	public updatefields(sql::boolean = false) => {
 // debug => {
@@ -832,7 +980,6 @@ Returns a pair array with fieldname = value, or optionally SQL string to be used
 	}
 
 /**!
-backtickthis
 Internal method used by searchfields to prep db field names
 **/
 	private backtickthis(n) => {
@@ -840,9 +987,8 @@ Internal method used by searchfields to prep db field names
 	}
 
 /**!
-searchfields
 Returns an array with fieldname = value, or optionally SQL string to be used in a search inline.
-	form -> loadfields must be called first.
+form -> loadfields must be called first.
 **/
 	public searchfields(sql::boolean = false, params::boolean = false) => {
 
@@ -996,7 +1142,7 @@ Returns an array with fieldname = value, or optionally SQL string to be used in 
 
 /**!
 Returns what button was clicked on the form on the previous page. Assumes that submit buttons are named button_add etc.
-	Returns add, update, delete, cancel or any custom submit button name that begins with button_.
+Returns add, update, delete, cancel or any custom submit button name that begins with button\_.
 **/
 	public getbutton() => {
 // debug => {
@@ -1043,9 +1189,8 @@ Returns what button was clicked on the form on the previous page. Assumes that s
 	}
 
 /**!
-process
 Automatically handles a form submission and handles add, update, or delete.
-	Requires that a database object is specified for the form
+Requires that a database object is specified for the form
 **/
 	public process(user = '', lock = '', keyvalue = '') => {
 // debug => {
@@ -1114,17 +1259,39 @@ Automatically handles a form submission and handles add, update, or delete.
 	}
        
 /**!
-	Defines a html template for the form. \n\
-			Parameters:\n\
-			-template (optional string) html template, defaults to #label# #field##required#<br>\n\
-			-buttontemplate (optional string) html template for buttons, defaults to #field#\n\
-			-required (optional string) character(s) to display for required fields (used for #required#), defaults to *\n\
-			-legend (optional string) legend for the entire form - if specified, a fieldset will also be wrapped around the form\n\
-			-class (optional string) css class name that will be used for the form element, default none\n\
-			-errorclass (optional string) css class name that will be used for the label to highlight input errors, if not defined style="color: red" will be used\n\
-			-unsavedmarker (optional string) \n\
-			-unsavedmarkerclass (optional string) \n\
-			-unsavedwarning (optional string)
+	Defines a html template for the form. 
+	
+	Parameters:
+	
+		-template (optional string)
+
+			Html template, defaults to #label# #field##required#<br>
+	
+		-buttontemplate (optional string)
+
+			Html template for buttons, defaults to #field#
+	
+		-required (optional string)
+
+			Character(s) to display for required fields (used for #required#), defaults to *
+	
+		-legend (optional string)
+
+			Legend for the entire form - if specified, a fieldset will also be wrapped around the form
+	
+		-class (optional string)
+
+			CSS class name that will be used for the form element, default none
+	
+		-errorclass (optional string)
+
+			CSS class name that will be used for the label to highlight input errors, if not defined style="color: red" will be used
+	
+		-unsavedmarker (optional string) 
+	
+		-unsavedmarkerclass (optional string) 
+	
+		-unsavedwarning (optional string)
 	**/
 	public setformat(template::string = .'template', buttontemplate::string = .'buttontemplate', required::string = .'required', legend::string = .'legend', class::string = .'class', errorclass::string = .'errorclass', unsavedmarker::string = .'unsavedmarker', unsavedmarkerclass::string = .'unsavedmarkerclass', unsavedwarning::string = .'unsavedwarning') => {
 // debug => {
@@ -1285,19 +1452,47 @@ Automatically handles a form submission and handles add, update, or delete.
 	}
 
 /**!
-Outputs HTML for the form fields, a specific field, a range of fields or all fields of a specific type. \
-			Also inserts all needed javascripts into the page. \
-			Use form -> setformat first to specify the html format, otherwise default format #label# #field##required#<br> is used. \n\
-			Parameters:\n\
-			-name (optional) Render only the specified field\n\
-			-from (optional) Render form fields from the specified number index or field name. Negative number count from the last field.\n\
-			-to (optional) Render form fields to the specified number index or field name. Negative number count from the last field.\n\
-			-type (optional) Only render fields of this or these types (string or array)\n\
-			-excludetype (optional) Render fields except of this or these types (string or array)\n\
-			-legend (optional) Groups the rendered fields in a fieldset and outputs a legend for the fieldset\n\
-			-start (optional) Only render the starting <form> tag\n\
-			-end (optional) Only render the ending </form> tag\n\
-			-xhtml (optional flag) XHTML valid output
+Outputs HTML for the form fields, a specific field, a range of fields or all
+fields of a specific type. Also inserts all needed javascripts into the page.
+Use form -> setformat first to specify the html format, otherwise default
+format #label# #field##required#<br> is used.
+
+Parameters:
+	- name (optional)
+
+		Render only the specified field
+
+	- from (optional)
+
+		Render form fields from the specified number index or field name. Negative number count from the last field.
+
+	- to (optional)
+
+		Render form fields to the specified number index or field name. Negative number count from the last field.
+
+	- type (optional)
+
+		Only render fields of this or these types (string or array)
+
+	- excludetype (optional)
+
+		Render fields except of this or these types (string or array)
+
+	- legend (optional)
+
+		Groups the rendered fields in a fieldset and outputs a legend for the fieldset
+
+	- start (optional)
+
+		Only render the starting <form> tag
+
+	- end (optional)
+
+		Only render the ending </form> tag
+
+	- xhtml (optional flag)
+
+		XHTML valid output
 **/
 	public renderform(name::string = '', from = 0, to = 0, type = '', excludetype = '', legend::string = '', xhtml::boolean = false, onlyformcontent::boolean = false ) => {
 // debug => {
@@ -2093,18 +2288,38 @@ Outputs HTML for the form fields, a specific field, a range of fields or all fie
 	}
 
 /**!
-renderhtml
 Outputs form data as plain HTML, a specific field, a range of fields or all fields of a specific type.
-	Some form field types are excluded, such as submit, reset, file etc.
-	Use form -> setformat first to specify the html format, otherwise default format #label#: #field#<br> is used.
-	Parameters:
-		-name (optional) Render only the specified field\n\
-		-from (optional) Render fields from the specified number index or field name\n\
-		-to (optional) Render fields to the specified number index or field name\n\
-		-type (optional) Only render fields of this or these types (string or array)\n\
-		-excludetype (optional) Render fields except of this or these types (string or array)\n\
-		-legend (optional) Groups the rendered fields in a fieldset and outputs a legend for the fieldset\n\
-		-xhtml (optional flag) XHTML valid output
+Some form field types are excluded, such as submit, reset, file etc.
+Use form -> setformat first to specify the html format, otherwise default format #label#: #field#<br> is used.
+
+Parameters:
+	- name (optional)
+
+		Render only the specified field
+
+	- from (optional)
+
+		Render fields from the specified number index or field name
+
+	- to (optional)
+
+		Render fields to the specified number index or field name
+
+	- type (optional)
+
+		Only render fields of this or these types (string or array)
+
+	- excludetype (optional)
+
+		Render fields except of this or these types (string or array)
+
+	- legend (optional)
+
+		Groups the rendered fields in a fieldset and outputs a legend for the fieldset
+
+	- xhtml (optional flag)
+
+		XHTML valid output
 **/
 	public renderhtml(name::string = '',	// field name
 			from = 0, 	// number index or field name
@@ -2282,7 +2497,6 @@ Outputs form data as plain HTML, a specific field, a range of fields or all fiel
 			) => .renderhtml(#name, #from, #to, #type, #excludetype, #legend, #xhtml)
 
 /**!
-getvalue
 Returns the current value of a form field. Returns an array for repeated form fields.
 **/
 	public getvalue(name::string, index::integer = 0) => {
@@ -2301,7 +2515,6 @@ Returns the current value of a form field. Returns an array for repeated form fi
 	public getvalue(name::string, -index::integer = 0) => .getvalue(#name, #index)
 
 /**!
-getlabel
 Returns the label for a form field.
 **/
 	public getlabel(name::string) => {
@@ -2312,9 +2525,8 @@ Returns the label for a form field.
 	}
 
 /**!
-setvalue
 Sets the value for a form field.
-	Either form -> (setvalue: fieldname = newvalue) or form -> (setvalue: -name = fieldname, -value = newvalue)
+Either ``form -> (setvalue: fieldname = newvalue)`` or ``form -> (setvalue: -name = fieldname, -value = newvalue)``
 **/
 	public setvalue(name, value = '', index::integer = 0) => {
 // debug => {
@@ -2391,7 +2603,6 @@ Sets the param content for a form field.
 	public setparam(-name::string, -param::string, -value::any, -index::integer = 0) => .setparam(#name, #param, #value, #index)
 
 /**!
-removefield
 Removes all form elements with the specified name from the form
 **/
 	public removefield(name::string) => {
@@ -2405,7 +2616,6 @@ Removes all form elements with the specified name from the form
 	public removefield(-name::string) => .removefield(#name)
 
 /**!
-keys
 Returns an array of all field names
 **/
 	public keys() => {
@@ -2435,7 +2645,6 @@ Returns an array of all field names
 	public database() => { return(.'database') }
 
 /**!
-formmode
 Returns add or edit after form -> init has been called
 **/
 	public formmode() => {
@@ -2464,11 +2673,16 @@ Returns add or edit after form -> init has been called
 	}
 
 /**!
-afterhandler
 Internal member tag. Adds needed javascripts through an atend handler that will be processed when the entire page is done.
-			Parameters:
-			-headscript (optional) A single script, will be placed before </head>  (or at top of page if </head> is missing)
-			-endscript (optional) Multiple scripts (no duplicates), will be placed before </body> (or at end of page if </body> is missing)
+
+Parameters:
+	- headscript (optional)
+
+		A single script, will be placed before </head>  (or at top of page if </head> is missing)
+	
+	- endscript (optional)
+
+		Multiple scripts (no duplicates), will be placed before </body> (or at end of page if </body> is missing)
 **/
 	public afterhandler(headscript::string = '', endscript::string = '') => {
 // debug => {
