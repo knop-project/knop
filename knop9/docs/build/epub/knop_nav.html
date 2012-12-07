@@ -1,0 +1,830 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>knop_nav</title>
+    
+    <link rel="stylesheet" href="_static/epub.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="knop_user.html" title="knop_user"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="knop_lang.html" title="knop_lang"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Knop knop9 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+          <div class="body">
+            
+  <div class="section" id="knop-nav">
+<h1>knop_nav</h1>
+<dl class="class">
+<dt id="knop_nav">
+<em class="property">class </em><tt class="descname">knop_nav</tt></dt>
+<dd><p>Experimental new leaner version of custom type to handle site navigation menu</p>
+<dl class="method">
+<dt id="knop_nav.acceptDeserializedElement">
+<tt class="descname">acceptDeserializedElement</tt><big>(</big><em>d::serialization_element</em><big>)</big></dt>
+<dd><p>Called when a knop_user object is retrieved from a session</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_nav.actionconfigfile">
+<tt class="descname">actionconfigfile</tt><big>(</big><big>)</big></dt>
+<dd><p>Shortcut to filename: actcfg.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_nav.actionconfigfile_didrun">
+<tt class="descname">actionconfigfile_didrun</tt><big>(</big><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">actionconfigfile_didrun=(actionconfigfile_didrun::string)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_nav.actionfile">
+<tt class="descname">actionfile</tt><big>(</big><big>)</big></dt>
+<dd><p>Shortcut to filename: act.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_nav.actionpath">
+<tt class="descname">actionpath</tt><big>(</big><big>)</big></dt>
+<dd><p>Returns current path as array.</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">actionpath=(actionpath::string)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_nav.addchildren">
+<tt class="descname">addchildren</tt><big>(</big><em>-path::string</em>, <em>-children::knop_nav</em><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">addchildren</tt><big>(</big><em>path::string</em>, <em>children::knop_nav</em><big>)</big></dt>
+<dd><p>Add nav object as children to specified key path, replacing the current children if any.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_nav.children">
+<tt class="descname">children</tt><big>(</big><em>-path</em><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">children</tt><big>(</big><em>path =?</em><big>)</big></dt>
+<dd><p>Return reference to the children of the current navigation object map, or for the specified path</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_nav.class">
+<tt class="descname">class</tt><big>(</big><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">class=(class::string)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_nav.configfile">
+<tt class="descname">configfile</tt><big>(</big><big>)</big></dt>
+<dd><p>Shortcut to filename: cfg.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_nav.contentfile">
+<tt class="descname">contentfile</tt><big>(</big><big>)</big></dt>
+<dd><p>Shortcut to filename: cnt.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_nav.currentclass">
+<tt class="descname">currentclass</tt><big>(</big><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">currentclass=(currentclass::string)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_nav.currentmarker">
+<tt class="descname">currentmarker</tt><big>(</big><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">currentmarker=(currentmarker::string)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_nav.data">
+<tt class="descname">data</tt><big>(</big><em>-path::string =?</em>, <em>-type::string =?</em><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">data</tt><big>(</big><em>path::string =?</em>, <em>type::string =?</em><big>)</big></dt>
+<dd><p>Returns data object that can be stored for the current nav location (or specified nav location).</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd><ul class="first last">
+<li><p class="first">path (optional)</p>
+</li>
+<li><p class="first">type (optional string)</p>
+<blockquote>
+<div><p>Force a certain return type. If the stored object doesn´t match the specified
+type, an empty instance of the type is returned. That way the data can be
+filtered by type without having to use conditionals to check the type before.</p>
+</div></blockquote>
+</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_nav.default">
+<tt class="descname">default</tt><big>(</big><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">default=(default::string)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_nav.directorytree">
+<tt class="descname">directorytree</tt><big>(</big><em>basepath::string =?</em>, <em>firstrun::boolean =?</em><big>)</big></dt>
+<dd><p>Returns a map of all existing knop file paths.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_nav.directorytreemap">
+<tt class="descname">directorytreemap</tt><big>(</big><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">directorytreemap=(directorytreemap::map)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_nav.dotrace">
+<tt class="descname">dotrace</tt><big>(</big><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">dotrace=(dotrace::boolean)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_nav.error_lang">
+<tt class="descname">error_lang</tt><big>(</big><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">error_lang=(error_lang::knop_lang)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_nav.filename">
+<tt class="descname">filename</tt><big>(</big><em>-type::string</em>, <em>-path::string =?</em><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">filename</tt><big>(</big><em>type::string</em>, <em>-path::string =?</em><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">filename</tt><big>(</big><em>type::string</em>, <em>path::string =?</em><big>)</big></dt>
+<dd><p>Returns the full path to the specified type of precissing file for the current navigation.</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd><p class="first">-type (required)</p>
+<blockquote class="last">
+<div>lib, act, cnt, cfg, actcfg</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_nav.filenaming">
+<tt class="descname">filenaming</tt><big>(</big><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">filenaming=(filenaming::string)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_nav.fileroot">
+<tt class="descname">fileroot</tt><big>(</big><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">fileroot=(fileroot::string)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_nav.findnav">
+<tt class="descname">findnav</tt><big>(</big><em>path::array</em>, <em>navitems::array</em><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_nav.getargs">
+<tt class="descname">getargs</tt><big>(</big><em>-index::integer</em><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">getargs</tt><big>(</big><em>index::integer =?</em><big>)</big></dt>
+<dd><p>Path arguments = the leftover when we found a matching path, to be used for keyvalue for example.</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd><ul class="first last">
+<li><p class="first">index (optional integer)</p>
+<blockquote>
+<div><p>Specifies which leftover path item to return, defaults to all path items as a string</p>
+</div></blockquote>
+</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_nav.getlocation">
+<tt class="descname">getlocation</tt><big>(</big><em>-setpath::string</em>, <em>-refresh::boolean =?</em><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">getlocation</tt><big>(</big><em>setpath::string =?</em>, <em>refresh::boolean =?</em><big>)</big></dt>
+<dd><p>Grabs path and actionpath from params or urlhandler, translates from url to path
+if needed. This must be called before using the nav object.</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd><ul class="first last">
+<li><p class="first">setpath (optional)</p>
+<blockquote>
+<div><p>forces a new path</p>
+</div></blockquote>
+</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_nav.getlocation_didrun">
+<tt class="descname">getlocation_didrun</tt><big>(</big><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">getlocation_didrun=(getlocation_didrun::boolean)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_nav.getnav">
+<tt class="descname">getnav</tt><big>(</big><em>-path</em><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">getnav</tt><big>(</big><em>path =?</em><big>)</big></dt>
+<dd><p>Return reference to the current navigation object map, or for the specified path.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_nav.haschildren">
+<tt class="descname">haschildren</tt><big>(</big><em>-navitem::map</em><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">haschildren</tt><big>(</big><em>navitem::map</em><big>)</big></dt>
+<dd><p>Returns true if nav object has children that are not all -hide.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_nav.include">
+<tt class="descname">include</tt><big>(</big><em>-file::string</em>, <em>-path::string =?</em><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">include</tt><big>(</big><em>file::string</em>, <em>path::string =?</em><big>)</big></dt>
+<dd><p>Includes any of the files for the current path, fails silently if file does not exist.</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd><p class="first">-file (required)</p>
+<blockquote class="last">
+<div>lib, act, cnt, cfg, actcfg or library, action, config, actionconfig,
+content, or any arbitrary filename</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_nav.insert">
+<tt class="descname">insert</tt><big>(</big><em>-key::string</em>, <em>-label =?</em>, <em>-default =?</em>, <em>-url =?</em>, <em>-title =?</em>, <em>-id =?</em>, <em>-template =?</em>, <em>-children =?</em>, <em>-param =?</em>, <em>-class =?</em>, <em>-filename =?</em>, <em>-disabled::boolean =?</em>, <em>-after =?</em>, <em>-target =?</em>, <em>-data =?</em>, <em>-hide::boolean =?</em><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">insert</tt><big>(</big><em>key::string</em>, <em>label =?</em>, <em>default =?</em>, <em>url =?</em>, <em>title =?</em>, <em>id =?</em>, <em>template =?</em>, <em>children =?</em>, <em>param =?</em>, <em>class =?</em>, <em>filename =?</em>, <em>disabled::boolean =?</em>, <em>after =?</em>, <em>target =?</em>, <em>data =?</em>, <em>hide::boolean =?</em><big>)</big></dt>
+<dd><p>Inserts a nav item into the nav array</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_nav.label">
+<tt class="descname">label</tt><big>(</big><em>-path::string</em><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">label</tt><big>(</big><em>path::string =?</em><big>)</big></dt>
+<dd><p>Returns the name of the current (or specified) nav location</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd>-path (optional)</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_nav.library">
+<tt class="descname">library</tt><big>(</big><em>-file::string</em>, <em>-path =?</em><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">library</tt><big>(</big><em>file::string</em>, <em>path =?</em><big>)</big></dt>
+<dd><p>includes file just as -&gt;include, but returns no output.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_nav.libraryfile">
+<tt class="descname">libraryfile</tt><big>(</big><big>)</big></dt>
+<dd><p>Shortcut to filename: lib.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_nav.linkparams">
+<tt class="descname">linkparams</tt><big>(</big><em>-navitem::map</em><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">linkparams</tt><big>(</big><em>navitem::map</em><big>)</big></dt>
+<dd><p>Returns an array for all parameters that should be sent along with nav links</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_nav.navitems">
+<tt class="descname">navitems</tt><big>(</big><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">navitems=(navitems::array)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_nav.navmethod">
+<tt class="descname">navmethod</tt><big>(</big><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">navmethod=(navmethod::string)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_nav.onconvert">
+<tt class="descname">onconvert</tt><big>(</big><big>)</big></dt>
+<dd><p>Shortcut to renderhtml</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_nav.oncreate">
+<tt class="descname">oncreate</tt><big>(</big><em>-template::string =?</em>, <em>-class::string =?</em>, <em>-currentclass::string =?</em>, <em>-currentmarker::string =?</em>, <em>-default::string =?</em>, <em>-root::string =?</em>, <em>-fileroot::string =?</em>, <em>-navmethod::string =?</em>, <em>-filenaming::string =?</em>, <em>-trace::boolean =?</em><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">oncreate</tt><big>(</big><em>template::string =?</em>, <em>class::string =?</em>, <em>currentclass::string =?</em>, <em>currentmarker::string =?</em>, <em>default::string =?</em>, <em>root::string =?</em>, <em>fileroot::string =?</em>, <em>navmethod::string =?</em>, <em>filenaming::string =?</em>, <em>trace::boolean =?</em><big>)</big></dt>
+<dd><dl class="docutils">
+<dt>Parameters:</dt>
+<dd><ul class="first last">
+<li><p class="first">default (optional)</p>
+<blockquote>
+<div><p>Key of default navigation item</p>
+</div></blockquote>
+</li>
+<li><p class="first">root (optional)</p>
+<blockquote>
+<div><p>The root path for the site section that this nav object is used for</p>
+</div></blockquote>
+</li>
+<li><p class="first">fileroot (optional)</p>
+<blockquote>
+<div><p>The root for include files, to be able to use a different root for physical
+files than the logical root of the site. Defaults to the value of -root.</p>
+</div></blockquote>
+</li>
+<li><p class="first">navmethod (optional)</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>path or param. Path for &#8220;URL designed&#8221; URLs, otherwise a -path parameter</dt>
+<dd><p class="first last">will be used for the navigation.</p>
+</dd>
+</dl>
+</div></blockquote>
+</li>
+<li><p class="first">filenaming (optional)</p>
+<blockquote>
+<div><p>prefix (default), suffix or extension, specifies how include files are named</p>
+</div></blockquote>
+</li>
+<li><p class="first">trace (optional flag)</p>
+<blockquote>
+<div><p>If specified debug_trace will be used. Defaults to disabled for performance reasons.</p>
+</div></blockquote>
+</li>
+<li><p class="first">template (optional)</p>
+<blockquote>
+<div><p>html template used to render the navigation menu</p>
+</div></blockquote>
+</li>
+<li><p class="first">class (optional)</p>
+<blockquote>
+<div><p>default class for all navigation links</p>
+</div></blockquote>
+</li>
+<li><p class="first">currentclass (optional)</p>
+<blockquote>
+<div><p>class added for the currently active link</p>
+</div></blockquote>
+</li>
+<li><p class="first">currentmarker (optional)</p>
+<blockquote>
+<div><p>character(s) show to the right link of current nav (typically &amp;raquo;)</p>
+</div></blockquote>
+</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_nav.path">
+<tt class="descname">path</tt><big>(</big><em>-path::string</em><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">path</tt><big>(</big><em>path::string =?</em><big>)</big></dt>
+<dd><p>Returns url or key path for the current or specified location</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd><ul class="first last simple">
+<li>path (optional)</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">path=(path::string)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_nav.pathargs">
+<tt class="descname">pathargs</tt><big>(</big><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">pathargs=(pathargs::string)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_nav.patharray">
+<tt class="descname">patharray</tt><big>(</big><big>)</big></dt>
+<dd><p>Returns current path as array.</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">patharray=(patharray::array)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_nav.pathmap">
+<tt class="descname">pathmap</tt><big>(</big><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">pathmap=(pathmap::map)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_nav.renderbreadcrumb">
+<tt class="descname">renderbreadcrumb</tt><big>(</big><em>-delimiter::string =?</em>, <em>-home::boolean =?</em>, <em>-skipcurrent::boolean =?</em>, <em>-plain::boolean =?</em><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">renderbreadcrumb</tt><big>(</big><em>delimiter::string =?</em>, <em>home::boolean =?</em>, <em>skipcurrent::boolean =?</em>, <em>plain::boolean =?</em><big>)</big></dt>
+<dd><p>Shows the current navigation as breadcrumb trail.</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd><ul class="first last">
+<li><p class="first">delimiter (optional)</p>
+<blockquote>
+<div><p>Specifies the delimiter to use between nav levels, defaults to &#8221; &gt; &#8221; if not specified</p>
+</div></blockquote>
+</li>
+<li><p class="first">home (optional flag)</p>
+<blockquote>
+<div><p>Show the default navigation item (i.e. &#8220;home&#8221;) first in the breadcrumb (unless already there).</p>
+</div></blockquote>
+</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_nav.renderhtml">
+<tt class="descname">renderhtml</tt><big>(</big><em>-items::array =?</em>, <em>-keyval::array =?</em>, <em>-flat::boolean =?</em>, <em>-toplevel::boolean =?</em>, <em>-xhtml::boolean =?</em>, <em>-patharray =?</em>, <em>-levelcount::integer =?</em><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">renderhtml</tt><big>(</big><em>items::array =?</em>, <em>keyval::array =?</em>, <em>flat::boolean =?</em>, <em>toplevel::boolean =?</em>, <em>xhtml::boolean =?</em>, <em>patharray =?</em>, <em>levelcount::integer =?</em><big>)</big></dt>
+<dd><p>Render hierarchial nav structure.</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd><ul class="first last">
+<li><p class="first">renderpath (optional)</p>
+<blockquote>
+<div><p>Only render the children of the specified path (and below)</p>
+</div></blockquote>
+</li>
+<li><p class="first">flat (optional flag)</p>
+<blockquote>
+<div><p>Only render one level</p>
+</div></blockquote>
+</li>
+<li><p class="first">expand (optional flag)</p>
+<blockquote>
+<div><p>Render the entire expanded nav tree and not just the currently active branch</p>
+</div></blockquote>
+</li>
+<li><p class="first">xhtml (optional)</p>
+<blockquote>
+<div><p>XHTML valid output</p>
+</div></blockquote>
+</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_nav.renderhtml_levels">
+<tt class="descname">renderhtml_levels</tt><big>(</big><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">renderhtml_levels=(renderhtml_levels::integer)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_nav.rendernav">
+<tt class="descname">rendernav</tt><big>(</big><em>-active::string =?</em><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_nav.root">
+<tt class="descname">root</tt><big>(</big><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">root=(root::string)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_nav.sanitycheck">
+<tt class="descname">sanitycheck</tt><big>(</big><big>)</big></dt>
+<dd><p>Outputs the navigation object in a very basic form, just to see what it contains</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_nav.scrubKeywords">
+<tt class="descname">scrubKeywords</tt><big>(</big><em>input</em><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">scrubKeywords</tt><big>(</big><em>input::trait_queriable</em><big>)</big></dt>
+<dd><p>Pinched from Kyles inline definitions. Needed to have keywords, like -path act like regular pairs</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_nav.serializationElements">
+<tt class="descname">serializationElements</tt><big>(</big><big>)</big></dt>
+<dd><p>Called when a knop_user object is stored in a session</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_nav.setformat">
+<tt class="descname">setformat</tt><big>(</big><em>-template::string =?</em>, <em>-class::string =?</em>, <em>-currentclass::string =?</em>, <em>-currentmarker::string =?</em><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">setformat</tt><big>(</big><em>template::string =?</em>, <em>class::string =?</em>, <em>currentclass::string =?</em>, <em>currentmarker::string =?</em><big>)</big></dt>
+<dd><p>Sets html template for the nav object, use #items# #item# #/items# or more
+elaborate #items# #link##label##current##/link##children# #/items# as
+placeholders.</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd><ul class="first last">
+<li><p class="first">template (optional string)</p>
+<blockquote>
+<div><p>Html template, defaults to &lt;ul&gt;#items#&lt;li&gt;#item#&lt;/li&gt;#/items#&lt;/ul&gt;</p>
+</div></blockquote>
+</li>
+<li><p class="first">class (optional string)</p>
+<blockquote>
+<div><p>Css class name that will be used for every navigation link</p>
+</div></blockquote>
+</li>
+<li><p class="first">currentclass (optional string)</p>
+<blockquote>
+<div><p>Css class name that will be added to the currently active navigation link (defaults to crnt)</p>
+</div></blockquote>
+</li>
+<li><p class="first">currentmarker (optional string)</p>
+<blockquote>
+<div><p>String that will be appended to menu text of currently active navigation link</p>
+</div></blockquote>
+</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_nav.setlocation">
+<tt class="descname">setlocation</tt><big>(</big><em>-path::string</em><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">setlocation</tt><big>(</big><em>path::string</em><big>)</big></dt>
+<dd><p>Sets the current location to a specific nav path or url</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_nav.template">
+<tt class="descname">template</tt><big>(</big><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">template=(template::string)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_nav.url">
+<tt class="descname">url</tt><big>(</big><em>-path::string =?</em>, <em>-params =?</em>, <em>-urlargs::string =?</em>, <em>-getargs::boolean =?</em>, <em>-except =?</em>, <em>-topself::knop_nav =?</em>, <em>-autoparams::boolean =?</em>, <em>...</em><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">url</tt><big>(</big><em>path::string =?</em>, <em>params =?</em>, <em>urlargs::string =?</em>, <em>getargs::boolean =?</em>, <em>except =?</em>, <em>topself::knop_nav =?</em>, <em>autoparams::boolean =?</em>, <em>...</em><big>)</big></dt>
+<dd><p>Returns full url for current path or specified path. Path parameters can be provided and overridden by passing them to this tag.</p>
+<dl class="docutils">
+<dt>Parameters:n</dt>
+<dd><ul class="first">
+<li><p class="first">path (optional)</p>
+</li>
+<li><p class="first">params (optional)</p>
+<blockquote>
+<div><p>Pair array to be used in url instead of plain parameters sent to this tag</p>
+</div></blockquote>
+</li>
+<li><p class="first">urlargs (optional)</p>
+<blockquote>
+<div><p>Raw string with url parameters to append at end of url and -params</p>
+</div></blockquote>
+</li>
+<li><p class="first">getargs (optional flag)</p>
+<blockquote>
+<div><p>Add the getargs (leftover path parts) to the url</p>
+</div></blockquote>
+</li>
+<li><p class="first">except (optional)</p>
+<blockquote>
+<div><p>Array of parameter names to exclude (or single parameter name as string)</p>
+</div></blockquote>
+</li>
+<li><p class="first">topself (optional nav)</p>
+<blockquote>
+<div><p>Internal, needed to call url from renderhtml when rendering sublevels</p>
+</div></blockquote>
+</li>
+</ul>
+<p>-autoparams (optional flag)</p>
+<blockquote class="last">
+<div>Enables the automatic passing of action_params that begin with &#8220;-&#8220;</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_nav.urlmap">
+<tt class="descname">urlmap</tt><big>(</big><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">urlmap=(urlmap::map)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_nav.urlparams">
+<tt class="descname">urlparams</tt><big>(</big><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">urlparams=(urlparams::array)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_nav.version">
+<tt class="descname">version</tt><big>(</big><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">version=(version)</tt></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Knop Project.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>
