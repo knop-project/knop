@@ -1,0 +1,191 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>knop_base</title>
+    
+    <link rel="stylesheet" href="_static/epub.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="knop_cache.html" title="knop_cache"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Welcome to Knop’s documentation!"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Knop knop9 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+          <div class="body">
+            
+  <div class="section" id="knop-base">
+<h1>knop_base</h1>
+<dl class="class">
+<dt id="knop_knoptype">
+<em class="property">class </em><tt class="descname">knop_knoptype</tt></dt>
+<dd><p>All Knop custom types should have this type as parent type.
+This is to be able to identify all registered knop types.</p>
+<dl class="method">
+<dt id="knop_knoptype.isknoptype">
+<tt class="descname">isknoptype</tt><big>(</big><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">isknoptype=(isknoptype)</tt></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="knop_base">
+<em class="property">class </em><tt class="descname">knop_base</tt></dt>
+<dd><p>Base data type for Knop framework. Contains common member tags. Used as
+boilerplate when creating the other types. All member tags and instance
+variables in this type are available in the other knop types as well.</p>
+<dl class="method">
+<dt id="knop_base._debug_trace">
+<tt class="descname">_debug_trace</tt><big>(</big><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">_debug_trace=(_debug_trace::array)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_base.debug_trace">
+<tt class="descname">debug_trace</tt><big>(</big><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">debug_trace=(debug_trace::array)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_base.error_code">
+<tt class="descname">error_code</tt><big>(</big><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">error_code=(error_code)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_base.error_lang">
+<tt class="descname">error_lang</tt><big>(</big><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">error_lang=(error_lang)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_base.error_msg">
+<tt class="descname">error_msg</tt><big>(</big><em>error_code::integer =?</em><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">error_msg=(error_msg)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_base.help">
+<tt class="descname">help</tt><big>(</big><em>html::boolean =?</em>, <em>xhtml::boolean =?</em><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_base.instance_unique">
+<tt class="descname">instance_unique</tt><big>(</big><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">instance_unique=(instance_unique)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_base.instance_varname">
+<tt class="descname">instance_varname</tt><big>(</big><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">instance_varname=(instance_varname)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_base.tagtime">
+<tt class="descname">tagtime</tt><big>(</big><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">tagtime=(tagtime::integer)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_base.tagtime_tagname">
+<tt class="descname">tagtime_tagname</tt><big>(</big><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">tagtime_tagname=(tagtime_tagname::tag)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_base.varname">
+<tt class="descname">varname</tt><big>(</big><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_base.version">
+<tt class="descname">version</tt><big>(</big><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">version=(version)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_base.xhtml">
+<tt class="descname">xhtml</tt><big>(</big><em>params =?</em><big>)</big></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Knop Project.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>
