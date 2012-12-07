@@ -1,0 +1,1180 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>knop_form &mdash; Knop knop9 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     'knop9',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Knop knop9 documentation" href="index.html" />
+    <link rel="next" title="knop_grid" href="knop_grid.html" />
+    <link rel="prev" title="knop_database" href="knop_database.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="knop_grid.html" title="knop_grid"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="knop_database.html" title="knop_database"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Knop knop9 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="knop-form">
+<h1>knop_form<a class="headerlink" href="#knop-form" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="knop_form">
+<em class="property">class </em><tt class="descname">knop_form</tt><a class="headerlink" href="#knop_form" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="knop_form._unknowntag">
+<tt class="descname">_unknowntag</tt><big>(</big><em>index::integer =?</em><big>)</big><a class="headerlink" href="#knop_form._unknowntag" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_form.actionpath">
+<tt class="descname">actionpath</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_form.actionpath" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">actionpath=(actionpath)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_form.adderror">
+<tt class="descname">adderror</tt><big>(</big><em>fieldname</em><big>)</big><a class="headerlink" href="#knop_form.adderror" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds the name for a field that has validation error, used for custom field
+validation. calls form -&gt; validate first if needed</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_form.addfield">
+<tt class="descname">addfield</tt><big>(</big><em>-type</em>, <em>-name =?</em>, <em>-label =?</em>, <em>-value =?</em>, <em>-id =?</em>, <em>-dbfield =?</em>, <em>-hint =?</em>, <em>-options =?</em>, <em>-multiple =?</em>, <em>-linebreak =?</em>, <em>-default =?</em>, <em>-size::integer =?</em>, <em>-maxlength::integer =?</em>, <em>-rows::integer =?</em>, <em>-cols::integer =?</em>, <em>-focus =?</em>, <em>-class =?</em>, <em>-labelclass =?</em>, <em>-disabled =?</em>, <em>-raw =?</em>, <em>-confirmmessage =?</em>, <em>-required =?</em>, <em>-validate =?</em>, <em>-filter =?</em>, <em>-nowarning =?</em>, <em>-op::string =?</em>, <em>-logical_op::string =?</em>, <em>-after =?</em><big>)</big><a class="headerlink" href="#knop_form.addfield" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">addfield</tt><big>(</big><em>type::string</em>, <em>name::string =?</em>, <em>label =?</em>, <em>value =?</em>, <em>id =?</em>, <em>dbfield =?</em>, <em>hint =?</em>, <em>options =?</em>, <em>default =?</em>, <em>size =?</em>, <em>maxlength =?</em>, <em>rows =?</em>, <em>cols =?</em>, <em>class =?</em>, <em>labelclass =?</em>, <em>raw =?</em>, <em>confirmmessage =?</em>, <em>validate =?</em>, <em>filter =?</em>, <em>after =?</em>, <em>required =?</em>, <em>nowarning =?</em>, <em>op::string =?</em>, <em>logical_op::string =?</em>, <em>multiple =?</em>, <em>linebreak =?</em>, <em>focus =?</em>, <em>disabled =?</em><big>)</big></dt>
+<dd><p>Inserts a form element in the form.</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd><ul class="first last">
+<li><p class="first">type (required)</p>
+<blockquote>
+<div><p>Supported types are listed in form -&gt; &#8216;validfieldtypes&#8217;. Also
+custom field types addbuton, savebutton or deletebutton are
+supported (translated to submit buttons with predefined names).</p>
+<p>For the field types html, fieldset and legend use -value to specify
+the data to display for these fields. A legend field automatically
+creates a fieldset (closes any previously open fieldsets). Use
+fieldset with -value = false to close a fieldset without opening a
+new one.</p>
+</div></blockquote>
+</li>
+<li><p class="first">name (optional)</p>
+<blockquote>
+<div><p>Required for all input types except addbuton, savebutton,
+deletebutton, fieldset, legend and html</p>
+</div></blockquote>
+</li>
+<li><p class="first">id (optional)</p>
+<blockquote>
+<div><p>id for the html object, will be autogenerated if not specified</p>
+</div></blockquote>
+</li>
+<li><p class="first">dbfield (optional)</p>
+<blockquote>
+<div><p>Corresponding database field name (name is used if dbfield is not
+specified), or null/emtpy string if ignore this field for database</p>
+</div></blockquote>
+</li>
+<li><p class="first">value (optional)</p>
+<blockquote>
+<div><p>Initial value for the field</p>
+</div></blockquote>
+</li>
+<li><p class="first">hint (optional)</p>
+<blockquote>
+<div><p>Optional gray hint text to show in empty text field</p>
+</div></blockquote>
+</li>
+<li><p class="first">options (optional)</p>
+<blockquote>
+<div><p>For select, checkbox and radio, must be array or set. For select,
+the array can contain -optgroup = label to create an optiongroup.</p>
+</div></blockquote>
+</li>
+<li><p class="first">multiple (optional flag)</p>
+<blockquote>
+<div><p>Used for select</p>
+</div></blockquote>
+</li>
+<li><p class="first">linebreak (optional flag)</p>
+<blockquote>
+<div><p>Put linebreaks between checkbox and radio values</p>
+</div></blockquote>
+</li>
+<li><p class="first">default (optional)</p>
+<blockquote>
+<div><p>Default text to display in a popup menu, will be selected (with
+empty value) if no current value is set. Is followed by an empty
+option.</p>
+</div></blockquote>
+</li>
+<li><p class="first">label (optional)</p>
+<blockquote>
+<div><p>Text label for the field</p>
+</div></blockquote>
+</li>
+<li><p class="first">size (optional)</p>
+<blockquote>
+<div><p>Used for text and select</p>
+</div></blockquote>
+</li>
+<li><p class="first">maxlength (optional)</p>
+<blockquote>
+<div><p>Used for text</p>
+</div></blockquote>
+</li>
+<li><p class="first">rows (optional)</p>
+<blockquote>
+<div><p>Used for textarea</p>
+</div></blockquote>
+</li>
+<li><p class="first">cols (optional)</p>
+<blockquote>
+<div><p>Used for textarea</p>
+</div></blockquote>
+</li>
+<li><p class="first">focus (optional flag)</p>
+<blockquote>
+<div><p>The first text field with this parameter specified will get focus
+when page loads</p>
+</div></blockquote>
+</li>
+<li><p class="first">class (optional)</p>
+</li>
+<li><p class="first">disabled (optional flag)</p>
+<blockquote>
+<div><p>The form field will be rendered as disabled</p>
+</div></blockquote>
+</li>
+<li><p class="first">raw (optional)</p>
+<blockquote>
+<div><p>Raw attributes that will be put in the html tag</p>
+</div></blockquote>
+</li>
+<li><p class="first">confirmmessage (optional)</p>
+<blockquote>
+<div><p>Message to show in submit/reset confirm dialog (delete button always
+shows confirm dialog)</p>
+</div></blockquote>
+</li>
+<li><p class="first">required (optional flag)</p>
+<blockquote>
+<div><p>If specified then the field must not be empty (very basic validation)</p>
+</div></blockquote>
+</li>
+<li><p class="first">validate (optional)</p>
+<blockquote>
+<div><p>Compound expression to validate the field input. The input can be
+accessed as params inside the expression which should either return
+true for valid input or false for invalid, or return 0 for valid
+input or a non-zero error code or error message string for invalid
+input.</p>
+</div></blockquote>
+</li>
+<li><p class="first">filter (optional)</p>
+<blockquote>
+<div><p>Compound expression to filter the input before it is loaded into the
+form by -&gt;loadfields. The field value can be accessed as params
+inside the expression which should return the filtered field value.
+-filter is applied before validation.</p>
+</div></blockquote>
+</li>
+<li><p class="first">nowarning (optional flag)</p>
+<blockquote>
+<div><p>If specified then changing the field will not trigger an unsaved warning</p>
+</div></blockquote>
+</li>
+<li><p class="first">after (optional)</p>
+<blockquote>
+<div><p>Numeric index or name of field to insert after</p>
+</div></blockquote>
+</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_form.afterhandler">
+<tt class="descname">afterhandler</tt><big>(</big><em>headscript::string =?</em>, <em>endscript::string =?</em><big>)</big><a class="headerlink" href="#knop_form.afterhandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Internal member tag. Adds needed javascripts through an atend handler that will be processed when the entire page is done.</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd><ul class="first last">
+<li><p class="first">headscript (optional)</p>
+<blockquote>
+<div><p>A single script, will be placed before &lt;/head&gt;  (or at top of page if &lt;/head&gt; is missing)</p>
+</div></blockquote>
+</li>
+<li><p class="first">endscript (optional)</p>
+<blockquote>
+<div><p>Multiple scripts (no duplicates), will be placed before &lt;/body&gt; (or at end of page if &lt;/body&gt; is missing)</p>
+</div></blockquote>
+</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_form.backtickthis">
+<tt class="descname">backtickthis</tt><big>(</big><em>n</em><big>)</big><a class="headerlink" href="#knop_form.backtickthis" title="Permalink to this definition">¶</a></dt>
+<dd><p>Internal method used by searchfields to prep db field names</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_form.buttontemplate">
+<tt class="descname">buttontemplate</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_form.buttontemplate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">buttontemplate=(buttontemplate::string)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_form.class">
+<tt class="descname">class</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_form.class" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">class=(class::string)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_form.clearfields">
+<tt class="descname">clearfields</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_form.clearfields" title="Permalink to this definition">¶</a></dt>
+<dd><p>Empties all form field values</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_form.clientparams">
+<tt class="descname">clientparams</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_form.clientparams" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">clientparams=(clientparams::staticarray)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_form.copyfield">
+<tt class="descname">copyfield</tt><big>(</big><em>name</em>, <em>newname</em><big>)</big><a class="headerlink" href="#knop_form.copyfield" title="Permalink to this definition">¶</a></dt>
+<dd><p>Copies a form field to a new name.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_form.database">
+<tt class="descname">database</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_form.database" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">database=(database)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_form.db_keyvalue">
+<tt class="descname">db_keyvalue</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_form.db_keyvalue" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">db_keyvalue=(db_keyvalue)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_form.db_lockvalue">
+<tt class="descname">db_lockvalue</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_form.db_lockvalue" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">db_lockvalue=(db_lockvalue)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_form.enctype">
+<tt class="descname">enctype</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_form.enctype" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">enctype=(enctype)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_form.end_rendered">
+<tt class="descname">end_rendered</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_form.end_rendered" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">end_rendered=(end_rendered)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_form.entersubmitblock">
+<tt class="descname">entersubmitblock</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_form.entersubmitblock" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">entersubmitblock=(entersubmitblock)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_form.error_code">
+<tt class="descname">error_code</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_form.error_code" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_form.error_lang">
+<tt class="descname">error_lang</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_form.error_lang" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">error_lang=(error_lang)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_form.errorclass">
+<tt class="descname">errorclass</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_form.errorclass" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">errorclass=(errorclass::string)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_form.errors">
+<tt class="descname">errors</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_form.errors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns an array with fields that have input errors, or empty array if no errors or form has not been validated</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">errors=(errors)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_form.exceptionfieldtypes">
+<tt class="descname">exceptionfieldtypes</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_form.exceptionfieldtypes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">exceptionfieldtypes=(exceptionfieldtypes::map)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_form.fields">
+<tt class="descname">fields</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_form.fields" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">fields=(fields::array)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_form.fieldset">
+<tt class="descname">fieldset</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_form.fieldset" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">fieldset=(fieldset)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_form.fieldsource">
+<tt class="descname">fieldsource</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_form.fieldsource" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">fieldsource=(fieldsource)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_form.formaction">
+<tt class="descname">formaction</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_form.formaction" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">formaction=(formaction)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_form.formbutton">
+<tt class="descname">formbutton</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_form.formbutton" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">formbutton=(formbutton)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_form.formid">
+<tt class="descname">formid</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_form.formid" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">formid=(formid)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_form.formmode">
+<tt class="descname">formmode</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_form.formmode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns add or edit after form -&gt; init has been called</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">formmode=(formmode)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_form.getbutton">
+<tt class="descname">getbutton</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_form.getbutton" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns what button was clicked on the form on the previous page. Assumes that submit buttons are named button_add etc.
+Returns add, update, delete, cancel or any custom submit button name that begins with button_.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_form.getlabel">
+<tt class="descname">getlabel</tt><big>(</big><em>name::string</em><big>)</big><a class="headerlink" href="#knop_form.getlabel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the label for a form field.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_form.getvalue">
+<tt class="descname">getvalue</tt><big>(</big><em>name::string</em>, <em>-index::integer =?</em><big>)</big><a class="headerlink" href="#knop_form.getvalue" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">getvalue</tt><big>(</big><em>name::string</em>, <em>index::integer =?</em><big>)</big></dt>
+<dd><p>Returns the current value of a form field. Returns an array for repeated form fields.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_form.id">
+<tt class="descname">id</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_form.id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">id=(id)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_form.init">
+<tt class="descname">init</tt><big>(</big><em>-get =?</em>, <em>-post =?</em>, <em>-keyvalue =?</em><big>)</big><a class="headerlink" href="#knop_form.init" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">init</tt><big>(</big><em>get =?</em>, <em>post =?</em>, <em>keyvalue =?</em><big>)</big></dt>
+<dd><p>Initiates form to grab keyvalue and set formmode if we have a database connected
+to the form. Does nothing if no database is specified.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_form.isvalid">
+<tt class="descname">isvalid</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_form.isvalid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the result of form -&gt; validate (true/false) without performing the
+validation again (unless it hasn&#8217;t been performed already)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_form.keyparamname">
+<tt class="descname">keyparamname</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_form.keyparamname" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">keyparamname=(keyparamname::string)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_form.keys">
+<tt class="descname">keys</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_form.keys" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns an array of all field names</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_form.keyvalue">
+<tt class="descname">keyvalue</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_form.keyvalue" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_form.legend">
+<tt class="descname">legend</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_form.legend" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">legend=(legend)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_form.loadfields">
+<tt class="descname">loadfields</tt><big>(</big><em>-params =?</em>, <em>-post =?</em>, <em>-get =?</em>, <em>-inlinename =?</em>, <em>-database =?</em><big>)</big><a class="headerlink" href="#knop_form.loadfields" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">loadfields</tt><big>(</big><em>params =?</em>, <em>post =?</em>, <em>get =?</em>, <em>inlinename =?</em>, <em>database =?</em><big>)</big></dt>
+<dd><p>Overwrites all field values with values from either database, action_params or explicit -params.
+Auto-detects based on current lasso_currentaction.</p>
+<dl class="docutils">
+<dt>Parameters:n</dt>
+<dd><p class="first">-params (optional)</p>
+<blockquote>
+<div>Array or map to take field values from instead of database or submit
+(using dbnames)</div></blockquote>
+<p>-get (optional flag)</p>
+<blockquote>
+<div>Only getparams will be used</div></blockquote>
+<p>-post (optional flag)</p>
+<blockquote>
+<div>Only postparams will be used</div></blockquote>
+<p>-inlinename (optional)</p>
+<blockquote>
+<div>The first record in the result from the specified inline will be used as
+field values</div></blockquote>
+<p>-database (optional)</p>
+<blockquote class="last">
+<div>If a database object is specified, the first record from the latest
+search result of the database object will be used. If -database is
+specified as flag (no value) and the form object has a database object
+attached to it, that database object will be used.</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_form.lockvalue">
+<tt class="descname">lockvalue</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_form.lockvalue" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_form.lockvalue_decrypted">
+<tt class="descname">lockvalue_decrypted</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_form.lockvalue_decrypted" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_form.method">
+<tt class="descname">method</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_form.method" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">method=(method)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_form.name">
+<tt class="descname">name</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_form.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">name=(name)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_form.noautoparams">
+<tt class="descname">noautoparams</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_form.noautoparams" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">noautoparams=(noautoparams)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_form.noscript">
+<tt class="descname">noscript</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_form.noscript" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">noscript=(noscript)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_form.onconvert">
+<tt class="descname">onconvert</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_form.onconvert" title="Permalink to this definition">¶</a></dt>
+<dd><p>Outputs the form data in very basic form, just to see what it contains</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_form.oncreate">
+<tt class="descname">oncreate</tt><big>(</big><em>-formaction =?</em>, <em>-method =?</em>, <em>-name =?</em>, <em>-id =?</em>, <em>-raw =?</em>, <em>-actionpath =?</em>, <em>-fieldset::boolean =?</em>, <em>-legend =?</em>, <em>-entersubmitblock =?</em>, <em>-noautoparams =?</em>, <em>-template::string =?</em>, <em>-buttontemplate::string =?</em>, <em>-required::string =?</em>, <em>-class::string =?</em>, <em>-errorclass::string =?</em>, <em>-unsavedmarker::string =?</em>, <em>-unsavedmarkerclass::string =?</em>, <em>-unsavedwarning::string =?</em>, <em>-keyparamname::string =?</em>, <em>-noscript =?</em>, <em>-database =?</em><big>)</big><a class="headerlink" href="#knop_form.oncreate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">oncreate</tt><big>(</big><em>formaction =?</em>, <em>method =?</em>, <em>name =?</em>, <em>id =?</em>, <em>raw =?</em>, <em>actionpath =?</em>, <em>fieldset::boolean =?</em>, <em>legend =?</em>, <em>entersubmitblock =?</em>, <em>noautoparams =?</em>, <em>template::string =?</em>, <em>buttontemplate::string =?</em>, <em>required::string =?</em>, <em>class::string =?</em>, <em>errorclass::string =?</em>, <em>unsavedmarker::string =?</em>, <em>unsavedmarkerclass::string =?</em>, <em>unsavedwarning::string =?</em>, <em>keyparamname::string =?</em>, <em>noscript =?</em>, <em>database =?</em><big>)</big></dt>
+<dd><dl class="docutils">
+<dt>Parameters:n</dt>
+<dd><ul class="first last">
+<li><p class="first">formaction (optional)</p>
+<blockquote>
+<div><p>The action attribute in the form html tag</p>
+</div></blockquote>
+</li>
+<li><p class="first">method (optional)</p>
+<blockquote>
+<div><p>Defaults to post</p>
+</div></blockquote>
+</li>
+<li><p class="first">name (optional)</p>
+</li>
+<li><p class="first">id (optional)</p>
+</li>
+<li><p class="first">raw (optional)</p>
+<blockquote>
+<div><p>Anything in this parameter will be put in the opening form tag</p>
+</div></blockquote>
+</li>
+<li><p class="first">actionpath (optional)</p>
+<blockquote>
+<div><p>Knop action path</p>
+</div></blockquote>
+</li>
+<li><p class="first">fieldset (optional)</p>
+</li>
+<li><p class="first">legend (optional string)</p>
+<blockquote>
+<div><p>Legend for the entire form - if specified, a fieldset will also be wrapped around the form</p>
+</div></blockquote>
+</li>
+<li><p class="first">entersubmitblock (optional)</p>
+</li>
+<li><p class="first">noautoparams (optional)</p>
+</li>
+<li><p class="first">template (optional string)</p>
+<blockquote>
+<div><p>Html template, defaults to #label# #field##required#&lt;br&gt;</p>
+</div></blockquote>
+</li>
+<li><p class="first">buttontemplate (optional string)</p>
+<blockquote>
+<div><p>Html template for buttons, defaults to #field# but uses -template if specified</p>
+</div></blockquote>
+</li>
+<li><p class="first">required (optional string)</p>
+<blockquote>
+<div><p>Character(s) to display for required fields (used for #required#), defaults to *</p>
+</div></blockquote>
+</li>
+<li><p class="first">class (optional string)</p>
+<blockquote>
+<div><p>CSS class name that will be used for the form element, default none</p>
+</div></blockquote>
+</li>
+<li><p class="first">errorclass (optional string)</p>
+<blockquote>
+<div><p>CSS class name that will be used for the label to highlight input errors, if not defined style=&#8221;color: red&#8221; will be used</p>
+</div></blockquote>
+</li>
+<li><p class="first">unsavedmarker (optional string)</p>
+<blockquote>
+<div><p>ID for html element that should be used to indicate when the form becomes dirty.</p>
+</div></blockquote>
+</li>
+<li><p class="first">unsavedmarkerclass (optional string)</p>
+<blockquote>
+<div><p>Class name to use for the html element. Defaults to &#8220;unsaved&#8221;.</p>
+</div></blockquote>
+</li>
+<li><p class="first">unsavedwarning (optional string)</p>
+</li>
+<li><p class="first">keyparamname (optional)</p>
+</li>
+<li><p class="first">noscript (optional flag)</p>
+<blockquote>
+<div><p>If specified, don&#8217;t inject any javascript in the form. This will disable all client side functionality such as hints, focus and unsaved warnings.</p>
+</div></blockquote>
+</li>
+<li><p class="first">database (optional database)</p>
+<blockquote>
+<div><p>Optional database object that the form object will interact with</p>
+</div></blockquote>
+</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_form.process">
+<tt class="descname">process</tt><big>(</big><em>user =?</em>, <em>lock =?</em>, <em>keyvalue =?</em><big>)</big><a class="headerlink" href="#knop_form.process" title="Permalink to this definition">¶</a></dt>
+<dd><p>Automatically handles a form submission and handles add, update, or delete.
+Requires that a database object is specified for the form</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_form.raw">
+<tt class="descname">raw</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_form.raw" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">raw=(raw)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_form.removeField">
+<tt class="descname">removeField</tt><big>(</big><em>-name::string</em><big>)</big><a class="headerlink" href="#knop_form.removeField" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">removeField</tt><big>(</big><em>name::string</em><big>)</big></dt>
+<dd><p>Removes all form elements with the specified name from the form</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_form.render_fieldset2_open">
+<tt class="descname">render_fieldset2_open</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_form.render_fieldset2_open" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">render_fieldset2_open=(render_fieldset2_open)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_form.render_fieldset_open">
+<tt class="descname">render_fieldset_open</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_form.render_fieldset_open" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">render_fieldset_open=(render_fieldset_open)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_form.renderform">
+<tt class="descname">renderform</tt><big>(</big><em>-name::string =?</em>, <em>-from =?</em>, <em>-to =?</em>, <em>-type =?</em>, <em>-excludetype =?</em>, <em>-legend::string =?</em>, <em>-start::boolean =?</em>, <em>-end::boolean =?</em>, <em>-onlyformcontent::boolean =?</em>, <em>-xhtml::boolean =?</em><big>)</big><a class="headerlink" href="#knop_form.renderform" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">renderform</tt><big>(</big><em>name::string =?</em>, <em>from =?</em>, <em>to =?</em>, <em>type =?</em>, <em>excludetype =?</em>, <em>legend::string =?</em>, <em>xhtml::boolean =?</em>, <em>onlyformcontent::boolean =?</em><big>)</big></dt>
+<dd><p>Outputs HTML for the form fields, a specific field, a range of fields or all
+fields of a specific type. Also inserts all needed javascripts into the page.
+Use form -&gt; setformat first to specify the html format, otherwise default
+format #label# #field##required#&lt;br&gt; is used.</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd><ul class="first last">
+<li><p class="first">name (optional)</p>
+<blockquote>
+<div><p>Render only the specified field</p>
+</div></blockquote>
+</li>
+<li><p class="first">from (optional)</p>
+<blockquote>
+<div><p>Render form fields from the specified number index or field name. Negative number count from the last field.</p>
+</div></blockquote>
+</li>
+<li><p class="first">to (optional)</p>
+<blockquote>
+<div><p>Render form fields to the specified number index or field name. Negative number count from the last field.</p>
+</div></blockquote>
+</li>
+<li><p class="first">type (optional)</p>
+<blockquote>
+<div><p>Only render fields of this or these types (string or array)</p>
+</div></blockquote>
+</li>
+<li><p class="first">excludetype (optional)</p>
+<blockquote>
+<div><p>Render fields except of this or these types (string or array)</p>
+</div></blockquote>
+</li>
+<li><p class="first">legend (optional)</p>
+<blockquote>
+<div><p>Groups the rendered fields in a fieldset and outputs a legend for the fieldset</p>
+</div></blockquote>
+</li>
+<li><p class="first">start (optional)</p>
+<blockquote>
+<div><p>Only render the starting &lt;form&gt; tag</p>
+</div></blockquote>
+</li>
+<li><p class="first">end (optional)</p>
+<blockquote>
+<div><p>Only render the ending &lt;/form&gt; tag</p>
+</div></blockquote>
+</li>
+<li><p class="first">xhtml (optional flag)</p>
+<blockquote>
+<div><p>XHTML valid output</p>
+</div></blockquote>
+</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_form.renderformend">
+<tt class="descname">renderformend</tt><big>(</big><em>xhtml::boolean =?</em><big>)</big><a class="headerlink" href="#knop_form.renderformend" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_form.renderformstart">
+<tt class="descname">renderformstart</tt><big>(</big><em>xhtml::boolean =?</em><big>)</big><a class="headerlink" href="#knop_form.renderformstart" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_form.renderhtml">
+<tt class="descname">renderhtml</tt><big>(</big><em>-name =?</em>, <em>-from =?</em>, <em>-to =?</em>, <em>-type =?</em>, <em>-excludetype =?</em>, <em>-legend::string =?</em>, <em>-xhtml::boolean =?</em><big>)</big><a class="headerlink" href="#knop_form.renderhtml" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">renderhtml</tt><big>(</big><em>name::string =?</em>, <em>from =?</em>, <em>to =?</em>, <em>type =?</em>, <em>excludetype =?</em>, <em>legend::string =?</em>, <em>xhtml::boolean =?</em><big>)</big></dt>
+<dd><p>Outputs form data as plain HTML, a specific field, a range of fields or all fields of a specific type.
+Some form field types are excluded, such as submit, reset, file etc.
+Use form -&gt; setformat first to specify the html format, otherwise default format #label#: #field#&lt;br&gt; is used.</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd><ul class="first last">
+<li><p class="first">name (optional)</p>
+<blockquote>
+<div><p>Render only the specified field</p>
+</div></blockquote>
+</li>
+<li><p class="first">from (optional)</p>
+<blockquote>
+<div><p>Render fields from the specified number index or field name</p>
+</div></blockquote>
+</li>
+<li><p class="first">to (optional)</p>
+<blockquote>
+<div><p>Render fields to the specified number index or field name</p>
+</div></blockquote>
+</li>
+<li><p class="first">type (optional)</p>
+<blockquote>
+<div><p>Only render fields of this or these types (string or array)</p>
+</div></blockquote>
+</li>
+<li><p class="first">excludetype (optional)</p>
+<blockquote>
+<div><p>Render fields except of this or these types (string or array)</p>
+</div></blockquote>
+</li>
+<li><p class="first">legend (optional)</p>
+<blockquote>
+<div><p>Groups the rendered fields in a fieldset and outputs a legend for the fieldset</p>
+</div></blockquote>
+</li>
+<li><p class="first">xhtml (optional flag)</p>
+<blockquote>
+<div><p>XHTML valid output</p>
+</div></blockquote>
+</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_form.required">
+<tt class="descname">required</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_form.required" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">required=(required::string)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_form.reseterrors">
+<tt class="descname">reseterrors</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_form.reseterrors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Empties the error array as if no errors was found</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_form.resetfields">
+<tt class="descname">resetfields</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_form.resetfields" title="Permalink to this definition">¶</a></dt>
+<dd><p>Resets all form field values to their initial values</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_form.search_type">
+<tt class="descname">search_type</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_form.search_type" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">search_type=(search_type)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_form.searchfields">
+<tt class="descname">searchfields</tt><big>(</big><em>-sql::boolean =?</em>, <em>-params::boolean =?</em><big>)</big><a class="headerlink" href="#knop_form.searchfields" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">searchfields</tt><big>(</big><em>sql::boolean =?</em>, <em>params::boolean =?</em><big>)</big></dt>
+<dd><p>Returns an array with fieldname = value, or optionally SQL string to be used in a search inline.
+form -&gt; loadfields must be called first.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_form.setformat">
+<tt class="descname">setformat</tt><big>(</big><em>-template::string =?</em>, <em>-buttontemplate::string =?</em>, <em>-required::string =?</em>, <em>-legend::string =?</em>, <em>-class::string =?</em>, <em>-errorclass::string =?</em>, <em>-unsavedmarker::string =?</em>, <em>-unsavedmarkerclass::string =?</em>, <em>-unsavedwarning::string =?</em><big>)</big><a class="headerlink" href="#knop_form.setformat" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">setformat</tt><big>(</big><em>template::string =?</em>, <em>buttontemplate::string =?</em>, <em>required::string =?</em>, <em>legend::string =?</em>, <em>class::string =?</em>, <em>errorclass::string =?</em>, <em>unsavedmarker::string =?</em>, <em>unsavedmarkerclass::string =?</em>, <em>unsavedwarning::string =?</em><big>)</big></dt>
+<dd><p>Defines a html template for the form.</p>
+<p>Parameters:</p>
+<blockquote>
+<div><p>-template (optional string)</p>
+<blockquote>
+<div>Html template, defaults to #label# #field##required#&lt;br&gt;</div></blockquote>
+<p>-buttontemplate (optional string)</p>
+<blockquote>
+<div>Html template for buttons, defaults to #field#</div></blockquote>
+<p>-required (optional string)</p>
+<blockquote>
+<div>Character(s) to display for required fields (used for #required#), defaults to *</div></blockquote>
+<p>-legend (optional string)</p>
+<blockquote>
+<div>Legend for the entire form - if specified, a fieldset will also be wrapped around the form</div></blockquote>
+<p>-class (optional string)</p>
+<blockquote>
+<div>CSS class name that will be used for the form element, default none</div></blockquote>
+<p>-errorclass (optional string)</p>
+<blockquote>
+<div>CSS class name that will be used for the label to highlight input errors, if not defined style=&#8221;color: red&#8221; will be used</div></blockquote>
+<p>-unsavedmarker (optional string)</p>
+<p>-unsavedmarkerclass (optional string)</p>
+<p>-unsavedwarning (optional string)</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_form.setparam">
+<tt class="descname">setparam</tt><big>(</big><em>-name::string</em>, <em>-param::string</em>, <em>-value</em>, <em>-index::integer =?</em><big>)</big><a class="headerlink" href="#knop_form.setparam" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">setparam</tt><big>(</big><em>name::string</em>, <em>param::string</em>, <em>value</em>, <em>index::integer =?</em><big>)</big></dt>
+<dd><p>Sets the param content for a form field.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_form.setvalue">
+<tt class="descname">setvalue</tt><big>(</big><em>name</em>, <em>value =?</em>, <em>index::integer =?</em><big>)</big><a class="headerlink" href="#knop_form.setvalue" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the value for a form field.
+Either <tt class="docutils literal"><span class="pre">form</span> <span class="pre">-&gt;</span> <span class="pre">(setvalue:</span> <span class="pre">fieldname</span> <span class="pre">=</span> <span class="pre">newvalue)</span></tt> or <tt class="docutils literal"><span class="pre">form</span> <span class="pre">-&gt;</span> <span class="pre">(setvalue:</span> <span class="pre">-name</span> <span class="pre">=</span> <span class="pre">fieldname,</span> <span class="pre">-value</span> <span class="pre">=</span> <span class="pre">newvalue)</span></tt></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_form.start_rendered">
+<tt class="descname">start_rendered</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_form.start_rendered" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">start_rendered=(start_rendered)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_form.template">
+<tt class="descname">template</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_form.template" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">template=(template::string)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_form.unsavedmarker">
+<tt class="descname">unsavedmarker</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_form.unsavedmarker" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">unsavedmarker=(unsavedmarker)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_form.unsavedmarkerclass">
+<tt class="descname">unsavedmarkerclass</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_form.unsavedmarkerclass" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">unsavedmarkerclass=(unsavedmarkerclass)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_form.unsavedwarning">
+<tt class="descname">unsavedwarning</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_form.unsavedwarning" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">unsavedwarning=(unsavedwarning::string)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_form.updatefields">
+<tt class="descname">updatefields</tt><big>(</big><em>sql::boolean =?</em><big>)</big><a class="headerlink" href="#knop_form.updatefields" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a pair array with fieldname = value, or optionally SQL string to be used in an update inline.
+form -&gt; loadfields must be called first.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_form.validate">
+<tt class="descname">validate</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_form.validate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs validation and fills a transient array with field names that have input
+errors. form -&gt; loadfields must be called first.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_form.validfieldtypes">
+<tt class="descname">validfieldtypes</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_form.validfieldtypes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">validfieldtypes=(validfieldtypes::map)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_form.version">
+<tt class="descname">version</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_form.version" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">version=(version)</tt></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="knop_database.html"
+                        title="previous chapter">knop_database</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="knop_grid.html"
+                        title="next chapter">knop_grid</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/knop_form.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="knop_grid.html" title="knop_grid"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="knop_database.html" title="knop_database"
+             >previous</a> |</li>
+        <li><a href="index.html">Knop knop9 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Johan Sölve, Jolle Carlestam, Tim Taplin, and Steve Piercy.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>
