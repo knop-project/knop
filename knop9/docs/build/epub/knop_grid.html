@@ -1,0 +1,582 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>knop_grid</title>
+    
+    <link rel="stylesheet" href="_static/epub.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="knop_lang.html" title="knop_lang"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="knop_form.html" title="knop_form"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Knop knop9 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+          <div class="body">
+            
+  <div class="section" id="knop-grid">
+<h1>knop_grid</h1>
+<dl class="class">
+<dt id="knop_grid">
+<em class="property">class </em><tt class="descname">knop_grid</tt></dt>
+<dd><p>Custom type to handle data grids (record listings).</p>
+<dl class="method">
+<dt id="knop_grid.addfield">
+<tt class="descname">addfield</tt><big>(</big><em>-name::string =?</em>, <em>-label::string =?</em>, <em>-dbfield::string =?</em>, <em>-width::integer =?</em>, <em>-class::string =?</em>, <em>-raw =?</em>, <em>-url::string =?</em>, <em>-keyparamname::string =?</em>, <em>-defaultsort =?</em>, <em>-nosort::boolean =?</em>, <em>-template =?</em>, <em>-quicksearch =?</em><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">addfield</tt><big>(</big><em>name::string =?</em>, <em>label::string =?</em>, <em>dbfield::string =?</em>, <em>width::integer =?</em>, <em>class =?</em>, <em>raw =?</em>, <em>url =?</em>, <em>keyparamname::string =?</em>, <em>defaultsort =?</em>, <em>nosort::boolean =?</em>, <em>template =?</em>, <em>quicksearch =?</em><big>)</big></dt>
+<dd><p>deprecated use insert instead</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_grid.addurlarg">
+<tt class="descname">addurlarg</tt><big>(</big><em>field::string</em>, <em>value =?</em><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_grid.class">
+<tt class="descname">class</tt><big>(</big><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">class=(class::string)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_grid.database">
+<tt class="descname">database</tt><big>(</big><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">database=(database)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_grid.dbfieldmap">
+<tt class="descname">dbfieldmap</tt><big>(</big><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">dbfieldmap=(dbfieldmap::map)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_grid.defaultsort">
+<tt class="descname">defaultsort</tt><big>(</big><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">defaultsort=(defaultsort::string)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_grid.error_lang">
+<tt class="descname">error_lang</tt><big>(</big><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">error_lang=(error_lang)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_grid.fields">
+<tt class="descname">fields</tt><big>(</big><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">fields=(fields::array)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_grid.footer">
+<tt class="descname">footer</tt><big>(</big><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">footer=(footer::string)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_grid.insert">
+<tt class="descname">insert</tt><big>(</big><em>-name::string =?</em>, <em>-label::string =?</em>, <em>-dbfield::string =?</em>, <em>-width::integer =?</em>, <em>-class::string =?</em>, <em>-raw =?</em>, <em>-url::string =?</em>, <em>-keyparamname::string =?</em>, <em>-defaultsort =?</em>, <em>-nosort::boolean =?</em>, <em>-template =?</em>, <em>-quicksearch =?</em><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">insert</tt><big>(</big><em>name::string =?</em>, <em>label::string =?</em>, <em>dbfield::string =?</em>, <em>width::integer =?</em>, <em>class =?</em>, <em>raw =?</em>, <em>url =?</em>, <em>keyparamname::string =?</em>, <em>defaultsort =?</em>, <em>nosort::boolean =?</em>, <em>template =?</em>, <em>quicksearch =?</em><big>)</big></dt>
+<dd><p>Adds a column to the record listing.</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd><ul class="first last">
+<li><p class="first">name (optional)
+Name of the field. If not specified, the field will be omitted from the grid.
+Useful to be able to quicksearch in fields not shown in the grid.
+In that case -dbfield must be specified.</p>
+</li>
+<li><p class="first">label (optional)
+Column heading</p>
+</li>
+<li><p class="first">dbfield (optional)
+Corresponding database field name (name is used if dbfield is not specified)</p>
+</li>
+<li><p class="first">width (optional)
+Pixels (CSS width)</p>
+</li>
+<li><p class="first">url (optional)
+Columns will be linked with this url as base. Can contain #value# for example to create clickable email links.</p>
+</li>
+<li><p class="first">keyparamname (optional)
+Param name to use instead of the default -keyvalue for edit links</p>
+</li>
+<li><p class="first">defaultsort (optional flag)
+This field will be the default sort field</p>
+</li>
+<li><p class="first">nosort (optional flag)
+The field header should not be clickable for sort</p>
+</li>
+<li><p class="first">template (optional)
+Either string to format values, compound expression or map containing templates to display individual values in different ways, use -default to display unknown values, use #value# to insert the actual field value in the template.</p>
+<blockquote>
+<div><p>If a compound expression is specified, the field value is passed as param to the expression and can be accessed as params.
+Example expressions:</p>
+<div class="highlight-python"><pre>{return: params} to return just the field value as is
+{return: (date: (field: "moddate")) -&gt; (format: "%-d/%-m")} to return a specific field as formatted date</pre>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">quicksearch (optional flag)
+If specified, the field will be used for search with quicksearch. If not a boolean the value will be used as the searchfield name</p>
+</li>
+</ul>
+</dd>
+</dl>
+<p><em>(Previously called addfield)</em></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_grid.lang">
+<tt class="descname">lang</tt><big>(</big><big>)</big></dt>
+<dd><p>Returns a reference to the language object</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">lang=(lang)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_grid.lastpage">
+<tt class="descname">lastpage</tt><big>(</big><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_grid.nav">
+<tt class="descname">nav</tt><big>(</big><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">nav=(nav)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_grid.nosort">
+<tt class="descname">nosort</tt><big>(</big><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">nosort=(nosort)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_grid.numbered">
+<tt class="descname">numbered</tt><big>(</big><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">numbered=(numbered)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_grid.onassign">
+<tt class="descname">onassign</tt><big>(</big><em>value</em><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_grid.oncreate">
+<tt class="descname">oncreate</tt><big>(</big><em>-database::knop_database</em>, <em>-nav =?</em>, <em>-quicksearch =?</em>, <em>-rawheader::string =?</em>, <em>-class::string =?</em>, <em>-id::string =?</em>, <em>-nosort =?</em>, <em>-language::string =?</em>, <em>-numbered =?</em>, <em>-rowsorting::boolean =?</em><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">oncreate</tt><big>(</big><em>database::knop_database</em>, <em>nav =?</em>, <em>quicksearch =?</em>, <em>rawheader::string =?</em>, <em>class::string =?</em>, <em>id::string =?</em>, <em>nosort =?</em>, <em>language::string =?</em>, <em>numbered =?</em>, <em>rowsorting::boolean =?</em><big>)</big></dt>
+<dd><dl class="docutils">
+<dt>Parameters:</dt>
+<dd><ul class="first last simple">
+<li>database (required database)
+Database object that the grid object will interact with</li>
+<li>nav (optional nav)
+Navigation object to interact with</li>
+<li>quicksearch (optional)
+Label text for the quick search field</li>
+<li>rawheader (optional)
+Extra html to be inserted in the grid header</li>
+<li>class (optional)
+Extra classes to be inserted in the grid header. The standard class &#8220;grid&#8221; is always inserted</li>
+<li>id (optional)
+Creates a custom id used for table, quicksearch and quicksearch_reset</li>
+<li>nosort (optional flag)
+Global setting for the entire grid (overrides column specific sort options)</li>
+<li>language (optional)
+Language to use for the grid, defaults to the browser&#8217;s preferred language</li>
+<li>numbered (optional flag or integer)
+If specified, pagination links will be shown as page numbers instead of regular prev/next links.
+Defaults to 6 links, specify another number (minimum 6) if more numbers are wanted. Can be specified in -&gt;renderhtml as well.</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_grid.page">
+<tt class="descname">page</tt><big>(</big><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">page=(page::integer)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_grid.page_skiprecords">
+<tt class="descname">page_skiprecords</tt><big>(</big><em>maxrecords::integer</em><big>)</big></dt>
+<dd><p>Converts current page value to a skiprecords value to use in a search.</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd><ul class="first last simple">
+<li>maxrecords (required integer)
+Needed to be able to do the calculation. Maxrecords_value can not be taken
+from the database object since that value is not available until after
+performing the search</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_grid.qs_id">
+<tt class="descname">qs_id</tt><big>(</big><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">qs_id=(qs_id::string)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_grid.qsr_id">
+<tt class="descname">qsr_id</tt><big>(</big><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">qsr_id=(qsr_id::string)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_grid.quicksearch">
+<tt class="descname">quicksearch</tt><big>(</big><em>-sql::boolean =?</em>, <em>-contains::boolean =?</em>, <em>-value::boolean =?</em>, <em>-removedotbackticks::boolean =?</em><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">quicksearch</tt><big>(</big><em>sql::boolean =?</em>, <em>contains::boolean =?</em>, <em>value::boolean =?</em>, <em>removedotbackticks::boolean =?</em><big>)</big></dt>
+<dd><p>Returns a pair array with fieldname = value to use in a search inline. If you
+specify several fields in the grid as -quicksearch (visible or not), they will
+be treated as if they were one single concatenated field. Quicksearch will take
+each word entered in the search field and search for them in the combined set of
+quicksearch fields, performing a &#8220;word begins with&#8221; match (unless you specify
+-contains when calling -&gt; quicksearch).</p>
+<p>So if you enter dev joh it will find records with
+firstname = Johan, occupation = Developer.</p>
+<p>If you&#8217;re familiar with how FileMaker performs text searches, this is the way
+quicksearch tries to behave.</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd><ul class="first last simple">
+<li>sql (optional flag)
+Return an SQL string for the search parameters instead.</li>
+<li>contains (optional flag)
+Perform a simple contains search instead of emulating &#8220;word begins with&#8221; search</li>
+<li>value (optional flag)
+Output just the search value of the quicksearch field instead of a pair array or SQL string</li>
+<li>removedotbackticks (optional flag)
+Use with -sql for backward compatibility for fields that contain periods. If you use periods in a fieldname then you cannot use a JOIN in Knop.</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">quicksearch=(quicksearch::string)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_grid.quicksearch_fields">
+<tt class="descname">quicksearch_fields</tt><big>(</big><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">quicksearch_fields=(quicksearch_fields::array)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_grid.quicksearch_form">
+<tt class="descname">quicksearch_form</tt><big>(</big><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">quicksearch_form=(quicksearch_form)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_grid.quicksearch_form_reset">
+<tt class="descname">quicksearch_form_reset</tt><big>(</big><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">quicksearch_form_reset=(quicksearch_form_reset)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_grid.rawheader">
+<tt class="descname">rawheader</tt><big>(</big><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">rawheader=(rawheader::string)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_grid.renderfooter">
+<tt class="descname">renderfooter</tt><big>(</big><em>-end::boolean =?</em>, <em>-numbered =?</em>, <em>-xhtml::boolean =?</em><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">renderfooter</tt><big>(</big><em>end::boolean =?</em>, <em>numbered =?</em>, <em>xhtml::boolean =?</em><big>)</big></dt>
+<dd><p>Outputs the footer of the grid with the prev/next links and information about
+found count. Automatically included by -&gt;renderhtml</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd><ul class="first last simple">
+<li>end (optional flag)
+Also output closing &lt;/table&gt; tagn</li>
+<li>numbered (optional flag or integer)
+If specified, pagination links will be shown as page numbers instead of
+regular prev/next links. Defaults to 6 links, specify another number
+(minimum 6) if more numbers are wanted.</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_grid.renderheader">
+<tt class="descname">renderheader</tt><big>(</big><em>-start::boolean =?</em>, <em>-xhtml::boolean =?</em>, <em>-startwithfooter::boolean =?</em><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">renderheader</tt><big>(</big><em>start::boolean =?</em>, <em>xhtml::boolean =?</em>, <em>startwithfooter::boolean =?</em><big>)</big></dt>
+<dd><p>Outputs the header of the grid with the column headings.
+Automatically included by -&gt;renderhtml.</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd><ul class="first last simple">
+<li>start (optional flag)
+Also output opening &lt;table&gt; tag</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_grid.renderhtml">
+<tt class="descname">renderhtml</tt><big>(</big><em>-inlinename =?</em>, <em>-xhtml::boolean =?</em>, <em>-numbered =?</em>, <em>-startwithfooter::boolean =?</em><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">renderhtml</tt><big>(</big><em>inlinename =?</em>, <em>xhtml::boolean =?</em>, <em>numbered =?</em>, <em>startwithfooter::boolean =?</em><big>)</big></dt>
+<dd><p>Outputs the complete record listing. Calls renderheader, renderlisting and renderfooter as well.
+If 10 records or more are shown, renderfooter is added also just below the header.</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd><ul class="first last simple">
+<li>inlinename (optional)
+If not specified, inlinename from the connected database object is used</li>
+<li>numbered (optional flag or integer)
+If specified, pagination links will be shown as page numbers instead of
+regular prev/next links. Defaults to 6 links, specify another number
+(minimum 6) if more numbers are wanted.</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_grid.renderlisting">
+<tt class="descname">renderlisting</tt><big>(</big><em>inlinename =?</em>, <em>xhtml::boolean =?</em><big>)</big></dt>
+<dd><p>Outputs just the actual record listing. Is called by renderhtml.</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd><ul class="first last simple">
+<li>inlinename (optional)
+If not specified, inlinename from the connected database object is used</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_grid.rowsorting">
+<tt class="descname">rowsorting</tt><big>(</big><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">rowsorting=(rowsorting)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_grid.sortdescending">
+<tt class="descname">sortdescending</tt><big>(</big><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">sortdescending=(sortdescending)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_grid.sortfield">
+<tt class="descname">sortfield</tt><big>(</big><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">sortfield=(sortfield::string)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_grid.sortparams">
+<tt class="descname">sortparams</tt><big>(</big><em>-sql::boolean =?</em>, <em>-removedotbackticks::boolean =?</em><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">sortparams</tt><big>(</big><em>sql::boolean =?</em>, <em>removedotbackticks::boolean =?</em><big>)</big></dt>
+<dd><p>Returns a Lasso-style pair array with sort parameters to use in the search inline.</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd><ul class="first last simple">
+<li>sql (optional)</li>
+<li>removedotbackticks (optional flag)
+Use with -sql for backward compatibility for fields that contain periods.
+If you use periods in a fieldname then you cannot use a JOIN in Knop.</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_grid.tbl_id">
+<tt class="descname">tbl_id</tt><big>(</big><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">tbl_id=(tbl_id::string)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_grid.urlargs">
+<tt class="descname">urlargs</tt><big>(</big><em>except =?</em>, <em>prefix =?</em>, <em>suffix =?</em><big>)</big></dt>
+<dd><p>Returns all get params that begin with - as a query string, for internal use in links in the grid.</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd><ul class="first last simple">
+<li>except (optional)
+Exclude these parameters (string or array)</li>
+<li>prefix (optional)
+For example ? or &amp;amp; to include at the beginning of the querystring</li>
+<li>suffix (optional)
+For example &amp;amp; to include at the end of the querystring</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_grid.version">
+<tt class="descname">version</tt><big>(</big><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">version=(version)</tt></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Knop Project.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>
