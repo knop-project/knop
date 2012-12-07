@@ -25,7 +25,7 @@ import sys, os
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = []
+extensions = ['sphinx.ext.autodoc', 'sphinx.ext.todo']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -41,7 +41,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'Knop'
-copyright = u'2012, Johan Sölve, Jolle Carlestam, Tim Taplin, and Steve Piercy'
+copyright = u'2012, Knop Project'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -184,7 +184,7 @@ latex_elements = {
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
   ('index', 'Knop.tex', u'Knop Documentation',
-   u'Johan Sölve, Jolle Carlestam, Tim Taplin, and Steve Piercy', 'manual'),
+   u'Knop Project', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -214,7 +214,7 @@ latex_documents = [
 # (source start file, name, description, authors, manual section).
 man_pages = [
     ('index', 'knop', u'Knop Documentation',
-     [u'Johan Sölve, Jolle Carlestam, Tim Taplin, and Steve Piercy'], 1)
+     [u'Knop Project'], 1)
 ]
 
 # If true, show URL addresses after external links.
@@ -228,7 +228,7 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
   ('index', 'Knop', u'Knop Documentation',
-   u'Johan Sölve, Jolle Carlestam, Tim Taplin, and Steve Piercy', 'Knop', 'One line description of project.',
+   u'Knop Project', 'Knop', 'One line description of project.',
    'Miscellaneous'),
 ]
 
@@ -246,9 +246,9 @@ texinfo_documents = [
 
 # Bibliographic Dublin Core info.
 epub_title = u'Knop'
-epub_author = u'Johan Sölve, Jolle Carlestam, Tim Taplin, and Steve Piercy'
-epub_publisher = u'Johan Sölve, Jolle Carlestam, Tim Taplin, and Steve Piercy'
-epub_copyright = u'2012, Johan Sölve, Jolle Carlestam, Tim Taplin, and Steve Piercy'
+epub_author = u'Knop Project'
+epub_publisher = u'Knop Project'
+epub_copyright = u'2012, Knop Project'
 
 # The language of the text. It defaults to the language option
 # or en if the language is not set.
