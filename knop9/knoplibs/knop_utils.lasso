@@ -61,13 +61,11 @@ if(!tag_exists('knop_debug')) => {
 */
 
 /**!
-knop_response_filepath
 Safer than using Lasso 9 response_filepath when dealing wit hone file systems on Apache
 **/
 define knop_response_filepath => web_request->fcgiReq->requestParams->find(::REQUEST_URI)->asString -> split('?') -> first
 
 /**!
-knop_affected_count
 Adding a affected_count method pending a native implementation in Lasso 9
 Used in sql updates, deletes etc returning number of rows affected by the change
 **/
@@ -76,7 +74,6 @@ define knop_affected_count => var_defined('__updated_count__') ? integer($__upda
 
 
 /**!
-knop_stripbackticks
 Remove backticks (`) from a string to make it safe for MySQL object names
 **/
 define knop_stripbackticks(input::string) => #input -> split('`') -> first
@@ -84,7 +81,6 @@ define knop_stripbackticks(input::bytes) => #input -> split('`') -> first
 define knop_stripbackticks(input::any) => knop_stripbackticks(string(#input))
 
 /**!
-knop_unique
 Original version
 Returns a very unique but still rather short random string. Can in most cases be replaced by the Lasso 9 version of lasso_unique since it's safer than the pre 9 version.
 **/
@@ -209,7 +205,6 @@ define knop_foundrows => { // Originally from http://tagswap.net/found_rows
 }
 
 /**!
-knop_IDcrypt
 Encrypts or Decrypts integer values
 **/
 define knop_IDcrypt(
@@ -304,15 +299,16 @@ seed::string = ''
 }
 
 /**!
-knop_timer
 Utility type to provide a simple timer
-Usage:
-Initialise  var(timer = knop_timer)
-Read        $timer
-Math        100 + $timer or $timer + 100
-		  100 - $timer or $timer - 100
+Usage::
+
+	Initialise  var(timer = knop_timer)
+	Read        $timer
+	Math        100 + $timer or $timer + 100
+		  		100 - $timer or $timer - 100
+
 For other integer handling wrap it in integer first
-		  integer($timer)
+``integer($timer)``
 **/
 define knop_timer => type {
 
@@ -363,14 +359,15 @@ define integer -> +(rhs::knop_timer) => self + #rhs -> time
 define integer -> -(rhs::knop_timer) => self - #rhs -> time
 define integer(f::knop_timer) => #f -> time
 
-/**
-knop_client_params
+/**!
 Returns a static array of GET/POST parameters passed from the client.
 An optional param "method" can direct it to return only post or get params
-Example usage:
-knop_client_params;
-knop_client_params('post');
-knop_client_params(-method = 'get');
+
+Example usage::
+
+	knop_client_params;
+	knop_client_params('post');
+	knop_client_params(-method = 'get');
 
 Based on same code as action_params but without the inline sensing parts.
 */
@@ -385,17 +382,17 @@ define knop_client_params(-method::string = '') => knop_client_params(#method)
 
 
 
-/**
-knop_client_param
+/**!
 Returns the value of a client GET/POST parameter
 
-Example usage
-knop_client_param('my');
-knop_client_param('my', 2);
-knop_client_param('my', 'get');
-knop_client_param('my', 2, 'post');
-knop_client_param('my', -count);
-knop_client_param('my', 'get', -count);
+Example usage::
+
+	knop_client_param('my');
+	knop_client_param('my', 2);
+	knop_client_param('my', 'get');
+	knop_client_param('my', 2, 'post');
+	knop_client_param('my', -count);
+	knop_client_param('my', 'get', -count);
 
 Inspired by Bil Corrys lp_client_param
 Lasso 9 version by Jolle Carlestam
@@ -458,10 +455,6 @@ define knop_encrypt(
 	) => knop_encrypt(#data, #salt, #cipher)
 
 
-/**!
-knop_crypthash
-
-**/
 define knop_crypthash(
 	string::string, // text to hash, or check hash against
 	cost::integer = 20, // default is 20, can be any number between 1 and 2000
@@ -549,10 +542,7 @@ define knop_crypthash(
 	-map::boolean = false
 	) => knop_crypthash(#string, #cost, #saltLength, #hash, #salt, #cipher, #map)
 
-/**!
-knop_blowfish
 
-**/
 define knop_blowfish(
 	string::string,
 	mode::string,
@@ -616,7 +606,6 @@ define knop_blowfish(
 
 
 /**!
-knop_math_hexToDec
 Returns a base10 integer given a base16 string.
 **/
 define knop_math_hexToDec(
@@ -645,7 +634,6 @@ define knop_math_hexToDec(
 }
 
 /**!
-knop_math_decToHex
 Returns a base16 string given a base10 integer.
 **/
 define knop_math_decToHex(
@@ -677,7 +665,6 @@ define string -> knop_trim(trim::string) => {
 }
 
 /**!
-knop_encodesql_full
 Alternative to encode_sql that also deals with escaping % and _ so that the resulting string can be safely used when creating sql queries with LIKE sections.
 See Bil Corrys talk from LDC Chicago 2008
 

@@ -2,7 +2,6 @@
 log_critical('loading knop_grid')
 
 /**!
-knop_grid
 Custom type to handle data grids (record listings).
 **/
 define knop_grid => type {
@@ -67,17 +66,34 @@ Move templates to a member tag to be make it easier to subclass
 	data public rowsorting
 
 /**!
-oncreate
-Parameters:\n\
-			-database (required database) Database object that the grid object will interact with\n\
-			-nav (optional nav) Navigation object to interact with\n\
-			-quicksearch (optional) Label text for the quick search field\n\
-			-rawheader (optional) Extra html to be inserted in the grid header\n\
-			-class (optional) Extra classes to be inserted in the grid header. The standard class "grid" is always inserted\n\
-			-id (optional) Creates a custom id used for table, quicksearch and quicksearch_reset\n\
-			-nosort (optional flag) Global setting for the entire grid (overrides column specific sort options)\n\
-			-language (optional) Language to use for the grid, defaults to the browser\'s preferred language\n\
-			-numbered (optional flag or integer) If specified, pagination links will be shown as page numbers instead of regular prev/next links. Defaults to 6 links, specify another number (minimum 6) if more numbers are wanted. Can be specified in ->renderhtml as well.
+Parameters:
+	- database (required database)
+	  Database object that the grid object will interact with
+
+	- nav (optional nav)
+	  Navigation object to interact with
+
+	- quicksearch (optional)
+	  Label text for the quick search field
+
+	- rawheader (optional)
+	  Extra html to be inserted in the grid header
+
+	- class (optional)
+	  Extra classes to be inserted in the grid header. The standard class "grid" is always inserted
+
+	- id (optional)
+	  Creates a custom id used for table, quicksearch and quicksearch_reset
+
+	- nosort (optional flag)
+	  Global setting for the entire grid (overrides column specific sort options)
+
+	- language (optional)
+	  Language to use for the grid, defaults to the browser's preferred language
+
+	- numbered (optional flag or integer)
+	  If specified, pagination links will be shown as page numbers instead of regular prev/next links. 
+	  Defaults to 6 links, specify another number (minimum 6) if more numbers are wanted. Can be specified in ->renderhtml as well.
 **/
 	public oncreate(
 		database::knop_database,
@@ -229,33 +245,54 @@ Parameters:\n\
 	}
 
 /**!
-lang
 Returns a reference to the language object
 **/
 	public lang => .'lang'
 
 /**!
-insert
-Adds a column to the record listing. \n\
-			Parameters:\n\
-			-name (optional) Name of the field. If not specified, the field will be omitted from the grid. \
-				Useful to be able to quicksearch in fields not shown in the grid. \
-				In that case -dbfield must be specified. \n\
-			-label (optional) Column heading\n\
-			-dbfield (optional) Corresponding database field name (name is used if dbfield is not specified)\n\
-			-width (optional) Pixels (CSS width)\n\
-			-url (optional) Columns will be linked with this url as base. Can contain #value# for example to create clickable email links. \n\
-			-keyparamname (optional) Param name to use instead of the default -keyvalue for edit links\n\
-			-defaultsort (optional flag) This field will be the default sort field\n\
-			-nosort (optional flag) The field header should not be clickable for sort\n\
-			-template (optional) Either string to format values, compound expression or map containing templates to display individual values in different ways, use -default to display unknown values, use #value# to insert the actual field value in the template. \n\t\
-				If a compound expression is specified, the field value is passed as param to the expression and can be accessed as params. \n\t\
-				Example expressions: \n\t\
-				{return: params} to return just the field value as is\n\t\
-				{return: (date: (field: "moddate")) -> (format: "%-d/%-m")} to return a specific field as formatted date\n\
-			-quicksearch (optional flag) If specified, the field will be used for search with quicksearch. If not a boolean the value will be used as the searchfield name
-Previously called addfield
-**/
+Adds a column to the record listing.
+
+Parameters:
+	- name (optional)
+	  Name of the field. If not specified, the field will be omitted from the grid.
+	  Useful to be able to quicksearch in fields not shown in the grid.
+	  In that case -dbfield must be specified.
+
+	- label (optional)
+	  Column heading
+	
+	- dbfield (optional)
+	  Corresponding database field name (name is used if dbfield is not specified)
+
+	- width (optional)
+	  Pixels (CSS width)
+
+	- url (optional)
+	  Columns will be linked with this url as base. Can contain #value# for example to create clickable email links.
+
+	- keyparamname (optional)
+	  Param name to use instead of the default -keyvalue for edit links
+
+	- defaultsort (optional flag)
+	  This field will be the default sort field
+
+	- nosort (optional flag)
+	  The field header should not be clickable for sort
+
+	- template (optional)
+	  Either string to format values, compound expression or map containing templates to display individual values in different ways, use -default to display unknown values, use #value# to insert the actual field value in the template.
+
+	  	If a compound expression is specified, the field value is passed as param to the expression and can be accessed as params.
+	  	Example expressions::
+	  	
+	  		{return: params} to return just the field value as is
+	  		{return: (date: (field: "moddate")) -> (format: "%-d/%-m")} to return a specific field as formatted date
+
+	- quicksearch (optional flag)
+	  If specified, the field will be used for search with quicksearch. If not a boolean the value will be used as the searchfield name
+
+*(Previously called addfield)*
+*/
 	public insert(
 			name::string = '',
 			label::string = #name,
@@ -330,7 +367,6 @@ Previously called addfield
 		) => .insert(#name, #label, #dbfield, #width, #class, #raw, #url, #keyparamname, #defaultsort, #nosort, #template, #quicksearch)
 
 /**!
-addfield
 deprecated use insert instead
 **/
 	public addfield(
@@ -364,11 +400,13 @@ deprecated use insert instead
 		) => .insert(#name, #label, #dbfield, #width, #class, #raw, #url, #keyparamname, #defaultsort, #nosort, #template, #quicksearch)
 
 /**!
-sortparams
 Returns a Lasso-style pair array with sort parameters to use in the search inline.
+
 Parameters:
-	-sql (optional)
-	-removedotbackticks (optional flag) Use with -sql for backward compatibility for fields that contain periods.  If you use periods in a fieldname then you cannot use a JOIN in Knop.
+	- sql (optional)
+	- removedotbackticks (optional flag)
+	  Use with -sql for backward compatibility for fields that contain periods.
+	  If you use periods in a fieldname then you cannot use a JOIN in Knop.
 **/
 	public sortparams(sql::boolean = false, removedotbackticks::boolean = false) => {
 
@@ -403,15 +441,31 @@ Parameters:
 	public sortparams(-sql::boolean = false, -removedotbackticks::boolean = false) => .sortparams(#sql, #removedotbackticks)
 
 /**!
-quicksearch
-Returns a pair array with fieldname = value to use in a search inline. If you specify several fields in the grid as -quicksearch (visible or not), they will be treated as if they were one single concatenated field. Quicksearch will take each word entered in the search field and search for them in the combined set of quicksearch fields, performing a "word begins with" match (unless you specify -contains when calling -> quicksearch).\n\
-			So if you enter dev joh it will find records with firstname = Johan, occupation = Developer.\n\
-			If you\'re familiar with how FileMaker performs text searches, this is the way quicksearch tries to behave.\n\
-			Parameters:\n\
-			-sql (optional flag) Return an SQL string for the search parameters instead.\n\
-			-contains (optional flag) Perform a simple contains search instead of emulating "word begins with" search\n\
-			-value (optional flag) Output just the search value of the quicksearch field instead of a pair array or SQL string\n\
-			-removedotbackticks (optional flag) Use with -sql for backward compatibility for fields that contain periods.  If you use periods in a fieldname then you cannot use a JOIN in Knop.
+Returns a pair array with fieldname = value to use in a search inline. If you
+specify several fields in the grid as -quicksearch (visible or not), they will
+be treated as if they were one single concatenated field. Quicksearch will take
+each word entered in the search field and search for them in the combined set of
+quicksearch fields, performing a "word begins with" match (unless you specify
+-contains when calling -> quicksearch).
+
+So if you enter dev joh it will find records with 
+firstname = Johan, occupation = Developer.
+
+If you're familiar with how FileMaker performs text searches, this is the way
+quicksearch tries to behave.
+
+Parameters:
+	- sql (optional flag)
+	  Return an SQL string for the search parameters instead.
+
+	- contains (optional flag)
+	  Perform a simple contains search instead of emulating "word begins with" search
+
+	- value (optional flag)
+	  Output just the search value of the quicksearch field instead of a pair array or SQL string
+
+	- removedotbackticks (optional flag)
+	  Use with -sql for backward compatibility for fields that contain periods. If you use periods in a fieldname then you cannot use a JOIN in Knop.
 **/
 	public quicksearch(sql::boolean = false, contains::boolean = false, value::boolean = false, removedotbackticks::boolean = false) => {
 
@@ -531,12 +585,17 @@ Returns a pair array with fieldname = value to use in a search inline. If you sp
 	public quicksearch(-sql::boolean = false, -contains::boolean = false, -value::boolean = false, -removedotbackticks::boolean = false) => .quicksearch(#sql, #contains, #value, #removedotbackticks)
 
 /**!
-urlargs
 Returns all get params that begin with - as a query string, for internal use in links in the grid.
-			Parameters:
-			-except (optional) Exclude these parameters (string or array)
-			-prefix (optional) For example ? or &amp; to include at the beginning of the querystring
-			-suffix (optional) For example &amp; to include at the end of the querystring
+
+Parameters:
+	- except (optional)
+	  Exclude these parameters (string or array)
+
+	- prefix (optional)
+	  For example ? or &amp; to include at the beginning of the querystring
+
+	- suffix (optional)
+	  For example &amp; to include at the end of the querystring
 **/
 	public urlargs(except = '', prefix = '', suffix = '') => {
 
@@ -588,12 +647,17 @@ Returns all get params that begin with - as a query string, for internal use in 
 	}
 
 /**!
-renderhtml
-Outputs the complete record listing. Calls renderheader, renderlisting and renderfooter as well. \
-			If 10 records or more are shown, renderfooter is added also just below the header.\n\
-			Parameters:\n\
-			-inlinename (optional) If not specified, inlinename from the connected database object is used\n\
-			-numbered (optional flag or integer) If specified, pagination links will be shown as page numbers instead of regular prev/next links. Defaults to 6 links, specify another number (minimum 6) if more numbers are wanted.
+Outputs the complete record listing. Calls renderheader, renderlisting and renderfooter as well.
+If 10 records or more are shown, renderfooter is added also just below the header.
+
+Parameters:
+	- inlinename (optional)
+	  If not specified, inlinename from the connected database object is used
+
+	- numbered (optional flag or integer)
+	  If specified, pagination links will be shown as page numbers instead of
+	  regular prev/next links. Defaults to 6 links, specify another number
+	  (minimum 6) if more numbers are wanted.
 **/
 	public renderhtml(inlinename = '', xhtml::boolean = false, numbered::any = false, startwithfooter::boolean = false) => {
 
@@ -622,10 +686,11 @@ Outputs the complete record listing. Calls renderheader, renderlisting and rende
 	public renderhtml(-inlinename = '', -xhtml::boolean = false, -numbered::any = false, -startwithfooter::boolean = false) => .renderhtml(#inlinename, #xhtml, #numbered, #startwithfooter)
 
 /**!
-renderlisting
-Outputs just the actual record listing. Is called by renderhtml. \
-			Parameters:\n\
-			-inlinename (optional) If not specified, inlinename from the connected database object is used
+Outputs just the actual record listing. Is called by renderhtml.
+
+Parameters:
+	- inlinename (optional)
+	  If not specified, inlinename from the connected database object is used
 **/
 	public renderlisting(inlinename = '', xhtml::boolean = false) => {
 
@@ -747,11 +812,12 @@ stdoutnl('grid field url ' + #field -> find('url_cached'))
 	}
 
 /**!
-renderheader
-Outputs the header of the grid with the column headings. \
-			Automatically included by ->renderhtml. \n\
-			Parameters:\n\
-			-start (optional flag) Also output opening <table> tag
+Outputs the header of the grid with the column headings.
+Automatically included by ->renderhtml.
+
+Parameters:
+	- start (optional flag)
+	  Also output opening <table> tag
 **/
 	public renderheader(start::boolean = false, xhtml::boolean = false, startwithfooter::boolean = false) => {
 
@@ -850,12 +916,17 @@ Outputs the header of the grid with the column headings. \
 	public renderheader(-start::boolean = false, -xhtml::boolean = false, -startwithfooter::boolean = false) => .renderheader(#start, #xhtml, #startwithfooter)
 
 /**!
-renderfooter
-Outputs the footer of the grid with the prev/next links and information about found count. \
-			Automatically included by ->renderhtml\n\
-			Parameters:\n\
-			-end (optional flag) Also output closing </table> tag\n\
-			-numbered (optional flag or integer) If specified, pagination links will be shown as page numbers instead of regular prev/next links. Defaults to 6 links, specify another number (minimum 6) if more numbers are wanted.
+Outputs the footer of the grid with the prev/next links and information about
+found count. Automatically included by ->renderhtml
+
+Parameters:
+	- end (optional flag)
+	  Also output closing </table> tag\n\
+
+	- numbered (optional flag or integer)
+	  If specified, pagination links will be shown as page numbers instead of
+	  regular prev/next links. Defaults to 6 links, specify another number
+	  (minimum 6) if more numbers are wanted.
 **/
 	public renderfooter(end::boolean = false, numbered::any = false, xhtml::boolean = false) => {
 
@@ -1090,10 +1161,13 @@ Outputs the footer of the grid with the prev/next links and information about fo
 	}
 
 /**!
-page_skiprecords
-Converts current page value to a skiprecords value to use in a search. \n\
-			Parameters:\n\
-			-maxrecords (required integer) Needed to be able to do the calculation. Maxrecords_value can not be taken from the database object since taht value is not available until aftetr performing the search
+Converts current page value to a skiprecords value to use in a search.
+
+Parameters:
+	- maxrecords (required integer)
+	  Needed to be able to do the calculation. Maxrecords_value can not be taken
+	  from the database object since that value is not available until after
+	  performing the search
 **/
 	public page_skiprecords(maxrecords::integer) => {
 		// TODO: maxrecords_value can be taken from the database object so should not be required

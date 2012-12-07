@@ -2,10 +2,9 @@
 log_critical('loading knop_database from LassoApp')
 
 /**!
-knop_database
 Custom type to interact with databases. Supports both MySQL and FileMaker datasources
 Lasso 9 version
-**/
+*/
 define knop_database => type {
 	/*
 
@@ -96,9 +95,7 @@ define knop_database => type {
 	// these vars doesn't have directly corresponding Lasso tags but should have...
 	data public affected_count::integer = 0
 
-/**!
 
-**/
 	public oncreate(
 		database::string,
 		table::string,
@@ -251,7 +248,6 @@ define knop_database => type {
 
 
 /**!
-sethost
 Creates or changes the DB inline host setting.
 **/
 	public sethost(
@@ -270,8 +266,11 @@ Creates or changes the DB inline host setting.
 
 
 /**!
-settable
-Changes the current table for a database object. Useful to be able to create database objects faster by copying an existing object and just change the table name. This is a little bit faster than creating a new instance from scratch, but no table validation is performed. Only do this to add database objects for tables within the same database as the original database object.
+Changes the current table for a database object. Useful to be able to create
+database objects faster by copying an existing object and just change the table
+name. This is a little bit faster than creating a new instance from scratch, but
+no table validation is performed. Only do this to add database objects for 
+tables within the same database as the original database object.
 **/
 	public settable(
 		table::string
@@ -291,15 +290,30 @@ Changes the current table for a database object. Useful to be able to create dat
 	} // END settable
 
 /**!
-select
 perform database query, either Lasso-style pair array or SQL statement.
-->recorddata returns a map with all the fields for the first found record. If multiple records are returned, the records can be accessed either through ->inlinename or ->records_array.
+->recorddata returns a map with all the fields for the first found record. If
+multiple records are returned, the records can be accessed either through 
+->inlinename or ->records_array.
+
 Parameters:
-	-search (optional array) Lasso-style search parameters in pair array
-	-sql (optional string) Raw sql query
-	-keyfield (optional) Overrides default keyfield, if any
-	-keyvalue (optional)
-	-inlinename (optional) Defaults to autocreated inlinename
+	- search (optional array)
+	
+		Lasso-style search parameters in pair array
+
+	- sql (optional string)
+	
+		Raw sql query
+
+	- keyfield (optional)
+	 
+	 	Overrides default keyfield, if any
+
+	- keyvalue (optional)
+
+	- inlinename (optional)
+
+		Defaults to autocreated inlinename
+
 **/
 	public select(
 		search::array = array,
@@ -411,11 +425,22 @@ Parameters:
 
 
 /**!
-Add a new record to the database. A random string keyvalue will be generated unless a -keyvalue is specified.
+Add a new record to the database. A random string keyvalue will be generated
+unless a -keyvalue is specified.
+
 Parameters:
-	-fields (required array) Lasso-style field values in pair array
-	-keyvalue (optional) If -keyvalue is specified, it must not already exist in the database. Specify -keyvalue = false to prevent generating a keyvalue.
-	-inlinename (optional) Defaults to autocreated inlinename.
+	- fields (required array)
+
+		Lasso-style field values in pair array
+
+	- keyvalue (optional)
+
+		If -keyvalue is specified, it must not already exist in the database. Specify -keyvalue = false to prevent generating a keyvalue.
+
+	- inlinename (optional)
+
+		Defaults to autocreated inlinename.
+
 **/
 	public addrecord(
 		fields::array,
@@ -500,15 +525,34 @@ Parameters:
 
 
 /**!
-getrecord Returns a single specific record from the database, optionally locking the record.
-If the keyvalue matches multiple records, an error is returned.
+Returns a single specific record from the database, optionally locking the 
+record. If the keyvalue matches multiple records, an error is returned.
+
 Parameters:
-	-keyvalue (optional) Uses a previously set keyvalue if not specified. If no keyvalue is available, an error is returned unless -sql is used.
-	-keyfield (optional) Temporarily override of keyfield specified at oncreate
-	-inlinename (optional) Defaults to autocreated inlinename
-	-lock (optional flag) If flag is specified, a record lock will be set
-	-user (optional) The user who is locking the record (required if using lock)
-	-sql (optional) SQL statement to use instead of keyvalue. Must include the keyfield (and lockfield if locking is used).
+	- keyvalue (optional)
+
+		Uses a previously set keyvalue if not specified. If no keyvalue is available, an error is returned unless -sql is used.
+
+	- keyfield (optional)
+
+		Temporarily override of keyfield specified at oncreate
+
+	- inlinename (optional)
+
+		Defaults to autocreated inlinename
+
+	- lock (optional flag)
+
+		If flag is specified, a record lock will be set
+
+	- user (optional)
+
+		The user who is locking the record (required if using lock)
+
+	- sql (optional)
+
+		SQL statement to use instead of keyvalue. Must include the keyfield (and lockfield if locking is used).
+
 **/
 	public getrecord(
 		keyvalue::string = string(.'keyvalue'),
@@ -678,15 +722,37 @@ stdoutnl('knop_database getrecord lock ' + .'user' -> 'dblocks')
 	) => .getrecord(#keyvalue, #keyfield, #inlinename, #lock, #user, #sql)
 
 /**!
-saverecord Updates a specific database record.
+Updates a specific database record.
+
 Parameters:
-	-fields (required array) Lasso-style field values in pair array
-	-keyfield (optional) Keyfield is ignored if lockvalue is specified
-	-keyvalue (optional) Keyvalue is ignored if lockvalue is specified
-	-lockvalue (optional) Either keyvalue or lockvalue must be specified
-	-keeplock (optional flag) Avoid clearing the record lock when saving. Updates the lock timestamp.
-	-user (optional) If lockvalue is specified, user must be specified as well
-	-inlinename (optional) Defaults to autocreated inlinename.
+	- fields (required array)
+
+		Lasso-style field values in pair array
+
+	- keyfield (optional)
+
+		Keyfield is ignored if lockvalue is specified
+
+	- keyvalue (optional)
+
+		Keyvalue is ignored if lockvalue is specified
+
+	- lockvalue (optional)
+
+		Either keyvalue or lockvalue must be specified
+
+	- keeplock (optional flag)
+
+		Avoid clearing the record lock when saving. Updates the lock timestamp.
+
+	- user (optional)
+
+		If lockvalue is specified, user must be specified as well
+
+	- inlinename (optional)
+
+		Defaults to autocreated inlinename.
+
 **/
 	public saverecord(
 		fields::array,
@@ -848,11 +914,20 @@ Parameters:
 	}
 
 /**!
-deleterecord Deletes a specific database record.
+Deletes a specific database record.
+
 Parameters:
-	-keyvalue (optional) Keyvalue is ignored if lockvalue is specified
-	-lockvalue (optional) Either keyvalue or lockvalue must be specified
-	-user (optional) If lockvalue is specified, user must be specified as well.
+	- keyvalue (optional)
+
+		Keyvalue is ignored if lockvalue is specified
+
+	- lockvalue (optional)
+
+		Either keyvalue or lockvalue must be specified
+
+	- user (optional)
+
+		If lockvalue is specified, user must be specified as well.
 **/
 	public deleterecord(
 		keyvalue::string = .'keyvalue',
@@ -975,9 +1050,13 @@ Parameters:
 	) => .deleterecord(#keyvalue, #lockvalue, #user)
 
 /**!
-clearlocks Release all record locks for the specified user, suitable to use when showing record list.
+Release all record locks for the specified user, suitable to use when showing
+record list.
+
 Parameters:
-	-user (required) The user to unlock records for.
+	- user (required)
+
+		The user to unlock records for.
 **/
 	public clearlocks(
 		user::any
@@ -1078,7 +1157,7 @@ Parameters:
 	) => .'resultset_count_map' -> find(#inlinename)
 
 /**!
-recorddata A map containing all fields, only available for single record results.
+A map containing all fields, only available for single record results.
 **/
 	public recorddata(
 		recordindex::integer = .'current_record'
@@ -1108,10 +1187,18 @@ recorddata A map containing all fields, only available for single record results
 	public records_array() => .'records_array'
 
 /**!
-field_names Returns an array of the field names from the last database query. If no database query has been performed, a "-show" request is performed.
+Returns an array of the field names from the last database query. If no database
+query has been performed, a "-show" request is performed.
+
 Parameters:
-	-table (optional) Return the field names for the specified table
-	-types (optional flag) If specified, returns a pair array with fieldname and corresponding Lasso data type.
+	- table (optional)
+
+		Return the field names for the specified table
+
+	- types (optional flag)
+
+		If specified, returns a pair array with fieldname and corresponding Lasso data type.
+
 **/
 	public field_names(
 		table::string = .table,
@@ -1142,7 +1229,7 @@ Parameters:
 	} // END field_names
 
 /**!
-table_names Returns an array with all table names for the database.
+Returns an array with all table names for the database.
 **/
 	public table_names() => {
 //debug => {
@@ -1159,7 +1246,7 @@ table_names Returns an array with all table names for the database.
 	} // END table_names
 
 /**!
-error_data Returns more info for those errors that provide such.
+Returns more info for those errors that provide such.
 **/
 	public error_data() => {
 
@@ -1184,7 +1271,7 @@ error_data Returns more info for those errors that provide such.
 	} // END get
 
 /**!
-records Returns all found records as a knop_databaserows object.
+Returns all found records as a knop_databaserows object.
 **/
 	public records(
 		inlinename::string = .'inlinename'
@@ -1212,7 +1299,7 @@ records Returns all found records as a knop_databaserows object.
 	} // END records
 
 /**!
-field A shortcut to return a specific field from a single record result.
+A shortcut to return a specific field from a single record result.
 **/
 	public field(
 		fieldname::string,
@@ -1246,12 +1333,15 @@ field A shortcut to return a specific field from a single record result.
 	} // END field
 
 /**!
-next Increments the record pointer, returns true if there are more records to show, false otherwise.
-Useful as an alternative to a regular records loop:
+Increments the record pointer, returns true if there are more records to show,
+false otherwise.
+
+Useful as an alternative to a regular records loop::
+
 	$database -> select;
 	while($database -> next);
 		$database -> field( \'name\');\'<br>\';
-	/while;.
+	/while;
 **/
 	public next() => {
 		if(.'current_record' < .'shown_count') => {
@@ -1564,10 +1654,9 @@ varname Returns the name of the variable that this type instance is stored in.
 
 
 /**!
-knop_databaserows
 Custom type to return all record rows from knop_database. Used as output for knop_database->records
 Lasso 9 version
-**/
+*/
 define knop_databaserows => type {
 	/*
 
@@ -1587,11 +1676,16 @@ define knop_databaserows => type {
 	data public current_record::integer = 0
 
 /**!
-oncreate
 Create a record rows object.
+
 Parameters:
-	-records_array (array) Array of arrays with field values for all fields for each record of all found records
-	-field_names (array) Array with all the field names
+	- records_array (array)
+
+		Array of arrays with field values for all fields for each record of all found records
+
+	- field_names (array)
+
+		Array with all the field names
 **/
 	public oncreate(
 		records_array::staticarray,
@@ -1612,7 +1706,7 @@ Parameters:
 	} // END oncreate
 
 /**!
-onconvert Output the current record as a plain array of field values.
+Output the current record as a plain array of field values.
 **/
 	public onconvert(
 		recordindex::integer = .'current_record'
@@ -1638,7 +1732,7 @@ onconvert Output the current record as a plain array of field values.
 	} // END get
 
 /**!
-field Return an individual field value.
+Return an individual field value.
 **/
 	public field(
 		fieldname::string,
@@ -1670,7 +1764,8 @@ field Return an individual field value.
 	} // END field
 
 /**!
-summary_header Returns true if the specified field name has changed since the previous record, or if we are at the first record.
+Returns true if the specified field name has changed since the previous record,
+or if we are at the first record.
 **/
 	public summary_header(
 		fieldname::string
@@ -1691,7 +1786,8 @@ summary_header Returns true if the specified field name has changed since the pr
 	} // END summary_header
 
 /**!
-summary_footer Returns true if the specified field name will change in the following record, or if we are at the last record.
+Returns true if the specified field name will change in the following record, or
+if we are at the last record.
 **/
 	public summary_footer(
 		fieldname::string
@@ -1712,7 +1808,7 @@ summary_footer Returns true if the specified field name will change in the follo
 	} // END summary_footer
 
 /**!
-next Increments the record pointer, returns true if there are more records to show, false otherwise..
+Increments the record pointer, returns true if there are more records to show, false otherwise.
 **/
 	public next() => {
 
@@ -1730,7 +1826,6 @@ next Increments the record pointer, returns true if there are more records to sh
 } // END knop_databaserows
 
 /**!
-knop_databaserow
 Custom type to return individual record rows from knop_database. Used as output for knop_database->get
 Lasso 9 version
 **/
@@ -1751,11 +1846,16 @@ define knop_databaserow => type {
 	data public field_names::array = array
 
 /**!
-oncreate
 Create a record row object.
+
 Parameters:
-	-record_array (array) Array with field values for all fields for the record
-	field_names (array) Array with all the field names, should be same size as -record_array
+	- record_array (array)
+
+		Array with field values for all fields for the record
+
+	- field_names (array)
+
+		Array with all the field names, should be same size as -record_array
 **/
 	public oncreate(
 		record_array::staticarray,
@@ -1777,12 +1877,12 @@ Parameters:
 
 
 /**!
-onconvert Output the record as a plain array of field values.
+Output the record as a plain array of field values.
 **/
 	public onconvert() => .'record_array'
 
 /**!
-field Return an individual field value.
+Return an individual field value.
 **/
 	public field(
 		fieldname::string,
