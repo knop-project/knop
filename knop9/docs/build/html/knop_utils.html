@@ -1,0 +1,357 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>knop_utils &mdash; Knop knop9 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     'knop9',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Knop knop9 documentation" href="index.html" />
+    <link rel="prev" title="knop_user" href="knop_user.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="knop_user.html" title="knop_user"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Knop knop9 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="knop-utils">
+<h1>knop_utils<a class="headerlink" href="#knop-utils" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="knop_timer">
+<em class="property">class </em><tt class="descname">knop_timer</tt><a class="headerlink" href="#knop_timer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Utility type to provide a simple timer
+Usage:</p>
+<div class="highlight-python"><pre>Initialise  var(timer = knop_timer)
+Read        $timer
+Math        100 + $timer or $timer + 100
+                        100 - $timer or $timer - 100</pre>
+</div>
+<p>For other integer handling wrap it in integer first
+<tt class="docutils literal"><span class="pre">integer($timer)</span></tt></p>
+<dl class="method">
+<dt>
+<tt class="descname">+(rhs::integer)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">-(rhs::integer)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_timer.asstring">
+<tt class="descname">asstring</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_timer.asstring" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_timer.micros">
+<tt class="descname">micros</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_timer.micros" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">micros=(micros::boolean)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_timer.oncreate">
+<tt class="descname">oncreate</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_timer.oncreate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">oncreate</tt><big>(</big><em>-micros::boolean</em><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">oncreate</tt><big>(</big><em>micros::boolean</em><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_timer.resolution">
+<tt class="descname">resolution</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_timer.resolution" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_timer.time">
+<tt class="descname">time</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_timer.time" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_timer.timer">
+<tt class="descname">timer</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_timer.timer" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">timer=(timer::integer)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_timer.version">
+<tt class="descname">version</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_timer.version" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">version=(version::date)</tt></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_affected_count">
+<tt class="descname">knop_affected_count</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_affected_count" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adding a affected_count method pending a native implementation in Lasso 9
+Used in sql updates, deletes etc returning number of rows affected by the change</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_blowfish">
+<tt class="descname">knop_blowfish</tt><big>(</big><em>-string::string</em>, <em>-mode::string</em><big>)</big><a class="headerlink" href="#knop_blowfish" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">knop_blowfish</tt><big>(</big><em>string::string</em>, <em>-mode::string</em>, <em>-key::string</em><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">knop_blowfish</tt><big>(</big><em>string::string</em>, <em>mode::string</em>, <em>key::string =?</em><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_client_param">
+<tt class="descname">knop_client_param</tt><big>(</big><em>param::string</em>, <em>-count::boolean =?</em><big>)</big><a class="headerlink" href="#knop_client_param" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the value of a client GET/POST parameter</p>
+<p>Example usage:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">knop_client_param</span><span class="p">(</span><span class="s">&#39;my&#39;</span><span class="p">);</span>
+<span class="n">knop_client_param</span><span class="p">(</span><span class="s">&#39;my&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">);</span>
+<span class="n">knop_client_param</span><span class="p">(</span><span class="s">&#39;my&#39;</span><span class="p">,</span> <span class="s">&#39;get&#39;</span><span class="p">);</span>
+<span class="n">knop_client_param</span><span class="p">(</span><span class="s">&#39;my&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="s">&#39;post&#39;</span><span class="p">);</span>
+<span class="n">knop_client_param</span><span class="p">(</span><span class="s">&#39;my&#39;</span><span class="p">,</span> <span class="o">-</span><span class="n">count</span><span class="p">);</span>
+<span class="n">knop_client_param</span><span class="p">(</span><span class="s">&#39;my&#39;</span><span class="p">,</span> <span class="s">&#39;get&#39;</span><span class="p">,</span> <span class="o">-</span><span class="n">count</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>Inspired by Bil Corrys lp_client_param
+Lasso 9 version by Jolle Carlestam</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">knop_client_param</tt><big>(</big><em>param::string</em>, <em>index::integer</em>, <em>method::string =?</em>, <em>-count::boolean =?</em><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">knop_client_param</tt><big>(</big><em>param::string</em>, <em>method::string</em>, <em>-count::boolean =?</em><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_client_params">
+<tt class="descname">knop_client_params</tt><big>(</big><em>-method::string =?</em><big>)</big><a class="headerlink" href="#knop_client_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">knop_client_params</tt><big>(</big><em>method::string =?</em><big>)</big></dt>
+<dd><p>Returns a static array of GET/POST parameters passed from the client.
+An optional param &#8220;method&#8221; can direct it to return only post or get params</p>
+<p>Example usage:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">knop_client_params</span><span class="p">;</span>
+<span class="n">knop_client_params</span><span class="p">(</span><span class="s">&#39;post&#39;</span><span class="p">);</span>
+<span class="n">knop_client_params</span><span class="p">(</span><span class="o">-</span><span class="n">method</span> <span class="o">=</span> <span class="s">&#39;get&#39;</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>Based on same code as action_params but without the inline sensing parts.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_crypthash">
+<tt class="descname">knop_crypthash</tt><big>(</big><em>string::string</em>, <em>-cost::integer =?</em>, <em>-saltlength::integer =?</em>, <em>-hash::string =?</em>, <em>-salt =?</em>, <em>-cipher::string =?</em>, <em>-map::boolean =?</em><big>)</big><a class="headerlink" href="#knop_crypthash" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">knop_crypthash</tt><big>(</big><em>string::string</em>, <em>cost::integer =?</em>, <em>saltlength::integer =?</em>, <em>hash::string =?</em>, <em>salt =?</em>, <em>cipher::string =?</em>, <em>map::boolean =?</em><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_encodesql_full">
+<tt class="descname">knop_encodesql_full</tt><big>(</big><em>text::string</em><big>)</big><a class="headerlink" href="#knop_encodesql_full" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_encrypt">
+<tt class="descname">knop_encrypt</tt><big>(</big><em>data</em>, <em>-salt =?</em>, <em>-cipher::string =?</em><big>)</big><a class="headerlink" href="#knop_encrypt" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">knop_encrypt</tt><big>(</big><em>data</em>, <em>salt =?</em>, <em>cipher::string =?</em><big>)</big></dt>
+<dd><p>Encrypts the input using digest encryption, optionally with salt.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_foundrows">
+<tt class="descname">knop_foundrows</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_foundrows" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_IDcrypt">
+<tt class="descname">knop_IDcrypt</tt><big>(</big><em>value::integer</em>, <em>seed::string =?</em><big>)</big><a class="headerlink" href="#knop_IDcrypt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Encrypts or Decrypts integer values</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">knop_IDcrypt</tt><big>(</big><em>value::string</em>, <em>seed::string =?</em><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_math_dectohex">
+<tt class="descname">knop_math_dectohex</tt><big>(</big><em>base10::integer</em><big>)</big><a class="headerlink" href="#knop_math_dectohex" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a base16 string given a base10 integer.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_math_hexToDec">
+<tt class="descname">knop_math_hexToDec</tt><big>(</big><em>base16::string</em><big>)</big><a class="headerlink" href="#knop_math_hexToDec" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a base10 integer given a base16 string.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_normalize_slashes">
+<tt class="descname">knop_normalize_slashes</tt><big>(</big><em>path::string</em><big>)</big><a class="headerlink" href="#knop_normalize_slashes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_response_filepath">
+<tt class="descname">knop_response_filepath</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_response_filepath" title="Permalink to this definition">¶</a></dt>
+<dd><p>Safer than using Lasso 9 response_filepath when dealing wit hone file systems on Apache</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_seed">
+<tt class="descname">knop_seed</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_seed" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_stripbackticks">
+<tt class="descname">knop_stripbackticks</tt><big>(</big><em>input</em><big>)</big><a class="headerlink" href="#knop_stripbackticks" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">knop_stripbackticks</tt><big>(</big><em>input::bytes</em><big>)</big></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">knop_stripbackticks</tt><big>(</big><em>input::string</em><big>)</big></dt>
+<dd><p>Remove backticks (`) from a string to make it safe for MySQL object names</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_unique">
+<tt class="descname">knop_unique</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_unique" title="Permalink to this definition">¶</a></dt>
+<dd><p>Original version
+Returns a very unique but still rather short random string. Can in most cases be replaced by the Lasso 9 version of lasso_unique since it&#8217;s safer than the pre 9 version.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_unique9">
+<tt class="descname">knop_unique9</tt><big>(</big><em>-prefix::string =?</em><big>)</big><a class="headerlink" href="#knop_unique9" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">knop_unique9</tt><big>(</big><em>pre::string =?</em><big>)</big></dt>
+<dd></dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="knop_user.html"
+                        title="previous chapter">knop_user</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/knop_utils.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="knop_user.html" title="knop_user"
+             >previous</a> |</li>
+        <li><a href="index.html">Knop knop9 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Johan Sölve, Jolle Carlestam, Tim Taplin, and Steve Piercy.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

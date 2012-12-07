@@ -2,7 +2,6 @@
 log_critical('loading knop_nav from LassoApp')
 
 /**!
-knop_nav
 Experimental new leaner version of custom type to handle site navigation menu
 **/
 define knop_nav => type {
@@ -55,18 +54,49 @@ CHANGE NOTES
 	data public error_lang::knop_lang = knop_lang(-default = 'en', -fallback)
 
 /**!
-oncreate
-Parameters:\n\
-			-default (optional) Key of default navigation item\n\
-			-root (optional) The root path for the site section that this nav object is used for\n\
-			-fileroot (optional) The root for include files, to be able to use a different root for physical files than the logical root of the site. Defaults to the value of -root. \n\
-			-navmethod (optional) path or param. Path for "URL designed" URLs, otherwise a -path parameter will be used for the navigation. \n\
-			-filenaming (optional) prefix (default), suffix or extension, specifies how include files are named\n\
-			-trace (optional flag) If specified debug_trace will be used. Defaults to disabled for performance reasons. \n\
-			-template (optional) html template used to render the navigation menu\n\
-			-class (optional) default class for all navigation links\n\
-			-currentclass (optional) class added for the currently active link\n\
-			-currentmarker (optional) character(s) show to the right link of current nav (typically &raquo;)
+Parameters:
+	- default (optional)
+
+		Key of default navigation item
+
+	- root (optional)
+
+		The root path for the site section that this nav object is used for
+
+	- fileroot (optional)
+
+		The root for include files, to be able to use a different root for physical
+		files than the logical root of the site. Defaults to the value of -root. 
+
+	- navmethod (optional)
+
+		path or param. Path for "URL designed" URLs, otherwise a -path parameter
+		 will be used for the navigation. 
+
+	- filenaming (optional)
+
+		prefix (default), suffix or extension, specifies how include files are named
+
+	- trace (optional flag)
+
+		If specified debug_trace will be used. Defaults to disabled for performance reasons. 
+
+	- template (optional)
+
+		html template used to render the navigation menu
+
+	- class (optional)
+
+		default class for all navigation links
+
+	- currentclass (optional)
+
+		class added for the currently active link
+
+	- currentmarker (optional)
+
+		character(s) show to the right link of current nav (typically &raquo;)
+
 **/
 
 	public oncreate(
@@ -224,13 +254,24 @@ Inserts a nav item into the nav array
 	) => .insert(#key, #label, #default, #url, #title, #id, #template, #children, #param, #class, #filename, #disabled, #after, #target, #data, #hide)
 
 /**!
-Render hierarchial nav structure.\n\
-			Parameters:\n\
-			-renderpath (optional) Only render the children of the specified path (and below)\n\
-			-flat (optional flag) Only render one level\n\
-			-expand (optional flag) Render the entire expanded nav tree and not just the currently active branch\n\
-			-xhtml (optional) XHTML valid output
+Render hierarchial nav structure.
 
+Parameters:
+	- renderpath (optional)
+
+		Only render the children of the specified path (and below)
+
+	- flat (optional flag)
+
+		Only render one level
+
+	- expand (optional flag)
+
+		Render the entire expanded nav tree and not just the currently active branch
+
+	- xhtml (optional)
+
+		XHTML valid output
 **/
 	public renderhtml(
 		items::array = array,
@@ -314,7 +355,6 @@ TODO Still need to implement urlparams support
 	) => .renderhtml(#items, #keyval, #flat, #toplevel, #xhtml, #patharray, #levelcount)
 
 /**!
-setlocation
 Sets the current location to a specific nav path or url
 **/
 	public setlocation(
@@ -330,10 +370,13 @@ Sets the current location to a specific nav path or url
 	) => .setlocation(#path)
 
 /**!
-getlocation
-Grabs path and actionpath from params or urlhandler, translates from url to path if needed. This must be called before using the nav object. \n\
-			Parameters:\n\
-			-setpath (optional) forces a new path
+Grabs path and actionpath from params or urlhandler, translates from url to path
+if needed. This must be called before using the nav object.
+
+Parameters:
+	- setpath (optional)
+
+		forces a new path
 **/
 	public getlocation(
 		setpath::string = '',
@@ -511,10 +554,10 @@ Grabs path and actionpath from params or urlhandler, translates from url to path
 	) => .getlocation(#setpath, #refresh)
 
 /**!
-label
 Returns the name of the current (or specified) nav location
-			Parameters:
-			-path (optional)
+
+Parameters:
+	-path (optional)
 **/
 	public label(
 		path::string = .'path'
@@ -525,10 +568,10 @@ Returns the name of the current (or specified) nav location
 	) => .getnav(#path) -> find('label')
 
 /**!
-path
 Returns url or key path for the current or specified location
-			Parameters:
-			-path (optional)
+
+Parameters:
+	- path (optional)
 **/
 	public path(
 		path::string = .'path'
@@ -549,49 +592,41 @@ Returns url or key path for the current or specified location
 	) => .path(#path)
 
 /**!
-patharray
 Returns current path as array.
 **/
 	public patharray() => .'patharray'
 
 /**!
-actionpath
 Returns current path as array.
 **/
 	public actionpath() => .'actionpath'
 
 /**!
-actionconfigfile
 Shortcut to filename: actcfg.
 **/
 	public actionconfigfile() => .filename('actcfg')
 
 /**!
-actionfile
 Shortcut to filename: act.
 **/
 	public actionfile() => .filename('act')
 
 /**!
-configfile
 Shortcut to filename: cfg.
 **/
 	public configfile() => .filename('cfg')
 
 /**!
-libraryfile
 Shortcut to filename: lib.
 **/
 	public libraryfile() => .filename('lib')
 
 /**!
-contentfile
 Shortcut to filename: cnt.
 **/
 	public contentfile() => .filename('cnt')
 
 /**!
-library
 includes file just as ->include, but returns no output.
 **/
 	public library(file::string, path = null) => {.include(#file, #path)}
@@ -599,7 +634,6 @@ includes file just as ->include, but returns no output.
 	public library(-file::string, -path = null) => {.include(#file, #path)}
 
 /**!
-directorytree
 Returns a map of all existing knop file paths.
 **/
 	public directorytree(basepath::string = .'fileroot', firstrun::boolean = true) => {
@@ -645,17 +679,34 @@ Returns a map of all existing knop file paths.
 	}
 
 /**!
-url
-Returns full url for current path or specified path. Path parameters can be provided and overridden by \
-			passing them to this tag. \n\
-			Parameters:\n\
-			-path (optional) \n\
-			-params (optional) Pair array to be used in url instead of plain parameters sent to this tag\n\
-			-urlargs (optional) Raw string with url parameters to append at end of url and -params\n\
-			-getargs (optional flag) Add the getargs (leftover path parts) to the url\n\
-			-except (optional) Array of parameter names to exclude (or single parameter name as string)\n\
-			-topself (optional nav) Internal, needed to call url from renderhtml when rendering sublevels\n\
-			-autoparams (optional flag) Enables the automatic passing of action_params that begin with "-"
+Returns full url for current path or specified path. Path parameters can be provided and overridden by passing them to this tag.
+
+Parameters:\n\
+	- path (optional) 
+
+	- params (optional)
+		
+		Pair array to be used in url instead of plain parameters sent to this tag
+
+	- urlargs (optional)
+
+		Raw string with url parameters to append at end of url and -params
+
+	- getargs (optional flag)
+
+		Add the getargs (leftover path parts) to the url
+
+	- except (optional)
+
+		Array of parameter names to exclude (or single parameter name as string)
+
+	- topself (optional nav)
+
+		Internal, needed to call url from renderhtml when rendering sublevels
+
+	-autoparams (optional flag)
+
+		Enables the automatic passing of action_params that begin with "-"
 **/
 	public url(
 		path::string = '',
@@ -773,10 +824,12 @@ Returns full url for current path or specified path. Path parameters can be prov
 	) => .url(#path, #params, #urlargs, #getargs, #except, #topself, #autoparams, #rest)
 
 /**!
-filename
-Returns the full path to the specified type of precissing file for the current navigation. \n\
-			Parameters:\n\
-			-type (required) lib, act, cnt, cfg, actcfg
+Returns the full path to the specified type of precissing file for the current navigation.
+
+Parameters:
+	-type (required)
+
+		lib, act, cnt, cfg, actcfg
 **/
 	public filename(
 		type::string,
@@ -964,10 +1017,13 @@ Returns the full path to the specified type of precissing file for the current n
 	public urlmap() => .'urlmap'
 
 /**!
-include
-Includes any of the files for the current path, fails silently if file does not exist. \n\
-			Parameters:\n\
-			-file (required) lib, act, cnt, cfg, actcfg or library, action, config, actionconfig, content, or any arbitrary filename
+Includes any of the files for the current path, fails silently if file does not exist.
+
+Parameters:
+	-file (required)
+
+		lib, act, cnt, cfg, actcfg or library, action, config, actionconfig,
+		content, or any arbitrary filename
 **/
 	public include(
 		file::string,
@@ -1028,7 +1084,6 @@ Includes any of the files for the current path, fails silently if file does not 
 	) => .include(#file, #path)
 
 /**!
-getnav
 Return reference to the current navigation object map, or for the specified path.
 **/
 	public getnav(
@@ -1077,10 +1132,12 @@ Return reference to the current navigation object map, or for the specified path
 	}
 
 /**!
-getargs
-Path arguments = the leftover when we found a matching path, to be used for keyvalue for example.\n\
-			Parameters:\n\
-			-index (optional integer) Specifies which leftover path item to return, defaults to all path items as a string
+Path arguments = the leftover when we found a matching path, to be used for keyvalue for example.
+
+Parameters:
+	- index (optional integer)
+
+		Specifies which leftover path item to return, defaults to all path items as a string
 **/
 	public getargs(
 		index::integer = -1
@@ -1102,7 +1159,6 @@ Path arguments = the leftover when we found a matching path, to be used for keyv
 	) => .getargs(#index)
 
 /**!
-linkparams
 Returns an array for all parameters that should be sent along with nav links
 **/
 	public linkparams(
@@ -1131,7 +1187,6 @@ Returns an array for all parameters that should be sent along with nav links
 	) => .linkparams(#navitem)
 
 /**!
-children
 Return reference to the children of the current navigation object map, or for the specified path
 **/
 	public children(
@@ -1162,7 +1217,6 @@ Return reference to the children of the current navigation object map, or for th
 	) => .children(#path)
 
 /**!
-addchildren
 Add nav object as children to specified key path, replacing the current children if any.
 **/
 	public addchildren(
@@ -1196,13 +1250,26 @@ Add nav object as children to specified key path, replacing the current children
 	) => .addchildren(#path, #children)
 
 /**!
-setformat
-Sets html template for the nav object, use #items# #item# #/items# or more elaborate #items# #link##label##current##/link##children# #/items# as placeholders.\n\
-			Parameters:\n\
-			-template (optional string) Html template, defaults to <ul>#items#<li>#item#</li>#/items#</ul>\n\
-			-class (optional string) Css class name that will be used for every navigation link\n\
-			-currentclass (optional string) Css class name that will be added to the currently active navigation link (defaults to crnt)\n\
-			-currentmarker (optional string) String that will be appended to menu text of currently active navigation link
+Sets html template for the nav object, use #items# #item# #/items# or more
+elaborate #items# #link##label##current##/link##children# #/items# as 
+placeholders.
+
+Parameters:
+	- template (optional string)
+
+		Html template, defaults to <ul>#items#<li>#item#</li>#/items#</ul>
+
+	- class (optional string)
+
+		Css class name that will be used for every navigation link
+
+	- currentclass (optional string)
+
+		Css class name that will be added to the currently active navigation link (defaults to crnt)
+
+	- currentmarker (optional string)
+
+		String that will be appended to menu text of currently active navigation link
 **/
 	public setformat(
 		template::string = string,
@@ -1230,7 +1297,6 @@ Sets html template for the nav object, use #items# #item# #/items# or more elabo
 	) => .setformat(#template, #class, #currentclass, #currentmarker)
 
 /**!
-haschildren
 Returns true if nav object has children that are not all -hide.
 **/
 	public haschildren(
@@ -1261,11 +1327,16 @@ Returns true if nav object has children that are not all -hide.
 	) => .haschildren(#navitem)
 
 /**!
-renderbreadcrumb
-Shows the current navigation as breadcrumb trail. \n\
-			Parameters:\n\
-			-delimiter (optional) Specifies the delimiter to use between nav levels, defaults to " > " if not specified\n\
-			-home (optional flag) Show the default navigation item (i.e. "home") first in the breadcrumb (unless already there).
+Shows the current navigation as breadcrumb trail.
+
+Parameters:
+	- delimiter (optional)
+
+		Specifies the delimiter to use between nav levels, defaults to " > " if not specified
+
+	- home (optional flag)
+
+		Show the default navigation item (i.e. "home") first in the breadcrumb (unless already there).
 **/
 	public renderbreadcrumb(
 		delimiter::string = ' &gt; ',
@@ -1329,11 +1400,16 @@ Shows the current navigation as breadcrumb trail. \n\
 	) => .renderbreadcrumb(#delimiter, #home, #skipcurrent, #plain)
 
 /**!
-data
-Returns data object that can be stored for the current nav location (or specified nav location).\n\
-			Parameters:\n\
-			-path (optional)\n\
-			-type (optional string) Force a certain return type. If the stored object doesn´t match the specified type, an empty instance of the type is returned. That way the data can be filtered by type without having to use conditionals to check the type before.
+Returns data object that can be stored for the current nav location (or specified nav location).
+
+Parameters:
+	- path (optional)
+
+	- type (optional string)
+
+		Force a certain return type. If the stored object doesn´t match the specified
+		type, an empty instance of the type is returned. That way the data can be
+		filtered by type without having to use conditionals to check the type before.
 **/
 	public data(
 		path::string = .'path',
@@ -1445,7 +1521,6 @@ trace // can wait
 	}
 
 /**!
-	scrubKeywords
 	Pinched from Kyles inline definitions. Needed to have keywords, like -path act like regular pairs
 **/
 	protected scrubKeywords(input::trait_queriable)::trait_forEach => {

@@ -1,0 +1,655 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>knop_user &mdash; Knop knop9 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     'knop9',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Knop knop9 documentation" href="index.html" />
+    <link rel="next" title="knop_utils" href="knop_utils.html" />
+    <link rel="prev" title="knop_nav" href="knop_nav.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="knop_utils.html" title="knop_utils"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="knop_nav.html" title="knop_nav"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Knop knop9 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="knop-user">
+<h1>knop_user<a class="headerlink" href="#knop-user" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="knop_user">
+<em class="property">class </em><tt class="descname">knop_user</tt><a class="headerlink" href="#knop_user" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>Purpose:</dt>
+<dd><ul class="first last simple">
+<li>Maintain user identity and authentication</li>
+<li>Handle database record locking more intelligently, also to be able to release all unused locks for a user</li>
+<li>Authenticating user login</li>
+<li>Restricting access to data</li>
+<li>Displaying specific navigation options depending on type of user</li>
+</ul>
+</dd>
+</dl>
+<p>lets add some date handling in there too like time of last login
+and probably the IP that the user logged in from.</p>
+<p>Some options to handle what happens when a user logs in again whilst already logged in.
+ie one could:</p>
+<blockquote>
+<div><ul class="simple">
+<li>disallow second login (with a message explaining why)</li>
+<li>automatically log the first session out (with a message indicating what happened)</li>
+<li>send a message to first session: &#8220;Your username is attempting to log in again, do you wish to close this session, or deny the second login attempt?&#8221;</li>
+<li>allow multiple logins (from the same IP address)</li>
+<li>allow multiple logins from any IP address</li>
+</ul>
+</div></blockquote>
+<p>All of these could be useful options, depending of the type of app.</p>
+<p>And different types of user (ie normal, admin) could have different types of treatment.</p>
+<p>Handling for failed login attempts:</p>
+<blockquote>
+<div><ul class="simple">
+<li>Option to set how many tries can be attempted;</li>
+<li>Option to lock users out permanently after x failed attempts?</li>
+<li>Logging (to database) of failed logins / successful logins</li>
+</ul>
+</div></blockquote>
+<p>Password recovery system (ie emailing a time sensitive link to re-set password)
+By &#8220;password recovery&#8221; I&#8217;m not thinking &#8220;email my password&#8221; (hashed passwords can&#8217;t be emailed...) but rather to email a short lived link that gives the user an opportunity to change his password. How is this different from &#8220;password reset&#8221;?
+Yes, that is an accurate description of what I had in mind, except for the bit about emailing a short-lived link.  Instead I imagined having the user reset their password 100% on the web site through the use of &#8220;Security Questions&#8221;, much like banks employ.</p>
+<p>I like the idea of more info attached to the user. Like login attempts, locking a user temporarily after too many failed attempts etc.</p>
+<p>The setup is more or less that I have users and groups.</p>
+<p>I&#8217;m thinking that Knop shouldn&#8217;t do any session handling by itself, but the knop_user variable would be stored in the app&#8217;s session as any other variable. Knop should stay as lean as possible...</p>
+<p>Other things to handle:</p>
+<blockquote>
+<div><ul class="simple">
+<li>Prevent session sidejacking by storing and comparing the user&#8217;s ip and other identifying properties.</li>
+<li>Provide safe password handling with strong one-way salted encryption.</li>
+</ul>
+</div></blockquote>
+<p>consider having a separate table for auditing all user actions, including logging in, logging out, the basic CRUD actions, searches</p>
+<p>The object have to handle situations where no user is logged in. A guest can still have rights to some actions. Modules that can be viewed. Forms that could be sent in etc.
+That the added functions don&#8217;t slow down the processing. We already have a lot of time consuming overhead in Knop.</p>
+<p>Features:</p>
+<ol class="arabic">
+<li><p class="first">Authentication and credentials</p>
+<blockquote>
+<div><ul class="simple">
+<li>Handle the authentication process</li>
+<li>Keep track of if a user is properly logged in</li>
+<li>Optionally keep track of multiple logins to same account</li>
+<li>Prevent sidejacking</li>
+<li>Optionally handle encrypted/hashed passwords (with salt)</li>
+<li>Prevent brute force attacks (delay between attempts etc)</li>
+<li>Handle general information about the user</li>
+<li>Provide accessors for user data</li>
+</ul>
+</div></blockquote>
+</li>
+<li><p class="first">Permissions and access control</p>
+<blockquote>
+<div><ul class="simple">
+<li>Keep track of what actions a user is allowed to perform (the &#8220;verbs&#8221;)</li>
+<li>Tie into knop_nav to be able to filter out locations based on permissions</li>
+</ul>
+</div></blockquote>
+</li>
+<li><p class="first">Record locks</p>
+<blockquote>
+<div><ul class="simple">
+<li>Handle clearing of record locks from knop_database</li>
+</ul>
+</div></blockquote>
+</li>
+<li><p class="first">Audit trail/logging</p>
+<blockquote>
+<div><ul class="simple">
+<li>Optionally log login/logout actions</li>
+<li>Provide hooks to be able to log other user actions</li>
+</ul>
+</div></blockquote>
+</li>
+</ol>
+<dl class="docutils">
+<dt>Future additions:</dt>
+<dd><ul class="first last simple">
+<li>Keep track of what objects and resources a user is allowed to act on (the &#8220;nouns&#8221;)</li>
+<li>Provide filtering to use in database queries</li>
+<li>What groups a user belongs to</li>
+<li>Mechanism to update user information, password etc</li>
+<li>Handle password recovery</li>
+</ul>
+</dd>
+</dl>
+<p>Permissions can be read, create, update, delete, or application specific (for example publish)</p>
+<dl class="method">
+<dt id="knop_user._unknowntag">
+<tt class="descname">_unknowntag</tt><big>(</big><em>...</em><big>)</big><a class="headerlink" href="#knop_user._unknowntag" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_user.acceptDeserializedElement">
+<tt class="descname">acceptDeserializedElement</tt><big>(</big><em>d::serialization_element</em><big>)</big><a class="headerlink" href="#knop_user.acceptDeserializedElement" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called when a knop_user object is retrieved from a session</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_user.addlock">
+<tt class="descname">addlock</tt><big>(</big><em>-dbname</em><big>)</big><a class="headerlink" href="#knop_user.addlock" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">addlock</tt><big>(</big><em>dbname</em><big>)</big></dt>
+<dd><p>Called by database object, adds the name of a database object that has been locked by this user.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_user.allowsidejacking">
+<tt class="descname">allowsidejacking</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_user.allowsidejacking" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">allowsidejacking=(allowsidejacking::boolean)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_user.auth">
+<tt class="descname">auth</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_user.auth" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks if user is authenticated, returns true/false</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_user.clearlocks">
+<tt class="descname">clearlocks</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_user.clearlocks" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clears all database locks that has been set by this user.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_user.client_fingerprint">
+<tt class="descname">client_fingerprint</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_user.client_fingerprint" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">client_fingerprint=(client_fingerprint::string)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_user.client_fingerprint_expression">
+<tt class="descname">client_fingerprint_expression</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_user.client_fingerprint_expression" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns an encrypted fingerprint based on client_ip and client_type.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_user.cost">
+<tt class="descname">cost</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_user.cost" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">cost=(cost::boolean)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_user.costfield">
+<tt class="descname">costfield</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_user.costfield" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">costfield=(costfield::string)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_user.costsize">
+<tt class="descname">costsize</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_user.costsize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">costsize=(costsize::integer)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_user.data">
+<tt class="descname">data</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_user.data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">data=(data::map)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_user.dblocks">
+<tt class="descname">dblocks</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_user.dblocks" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">dblocks=(dblocks::set)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_user.description">
+<tt class="descname">description</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_user.description" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">description=(description)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_user.encrypt">
+<tt class="descname">encrypt</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_user.encrypt" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">encrypt=(encrypt::boolean)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_user.encrypt_cipher">
+<tt class="descname">encrypt_cipher</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_user.encrypt_cipher" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">encrypt_cipher=(encrypt_cipher::string)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_user.fields">
+<tt class="descname">fields</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_user.fields" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">fields=(fields::array)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_user.getdata">
+<tt class="descname">getdata</tt><big>(</big><em>field::string</em><big>)</big><a class="headerlink" href="#knop_user.getdata" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get field data from the data map</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_user.getpermission">
+<tt class="descname">getpermission</tt><big>(</big><em>permission::string</em><big>)</big><a class="headerlink" href="#knop_user.getpermission" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns true if user has permission to perform the specified action, false otherwise</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_user.groups">
+<tt class="descname">groups</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_user.groups" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">groups=(groups::array)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_user.id_user">
+<tt class="descname">id_user</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_user.id_user" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the user id</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">id_user=(id_user)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_user.keys">
+<tt class="descname">keys</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_user.keys" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns all keys for the stored user data.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_user.logdatafield">
+<tt class="descname">logdatafield</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_user.logdatafield" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">logdatafield=(logdatafield::string)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_user.logdb">
+<tt class="descname">logdb</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_user.logdb" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">logdb=(logdb::knop_database)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_user.logeventfield">
+<tt class="descname">logeventfield</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_user.logeventfield" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">logeventfield=(logeventfield::string)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_user.login">
+<tt class="descname">login</tt><big>(</big><em>-username =?</em>, <em>-password =?</em>, <em>-searchparams::array =?</em>, <em>-force::string =?</em><big>)</big><a class="headerlink" href="#knop_user.login" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">login</tt><big>(</big><em>username =?</em>, <em>password =?</em>, <em>searchparams::array =?</em>, <em>force::string =?</em><big>)</big></dt>
+<dd><p>Log in user. On successful login, all fields on the user record will be available by -&gt; getdata.</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd><ul class="first last simple">
+<li>username (required)
+Optional if -force is specified</li>
+<li>password (required)
+Optional if -force is specified</li>
+<li>searchparams (optional)
+Extra search params array to use in combination with username and password</li>
+<li>force (optional)
+Supply a user id for a manually authenticated user if custom authentication logics is needed</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_user.loginattempt_count">
+<tt class="descname">loginattempt_count</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_user.loginattempt_count" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">loginattempt_count=(loginattempt_count::integer)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_user.loginattempt_date">
+<tt class="descname">loginattempt_date</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_user.loginattempt_date" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">loginattempt_date=(loginattempt_date::date)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_user.logobjectfield">
+<tt class="descname">logobjectfield</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_user.logobjectfield" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">logobjectfield=(logobjectfield::string)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_user.logout">
+<tt class="descname">logout</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_user.logout" title="Permalink to this definition">¶</a></dt>
+<dd><p>Logout the user</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_user.loguserfield">
+<tt class="descname">loguserfield</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_user.loguserfield" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">loguserfield=(loguserfield::string)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_user.oncreate">
+<tt class="descname">oncreate</tt><big>(</big><em>-userdb::knop_database</em>, <em>-encrypt =?</em>, <em>-cost =?</em>, <em>-useridfield::string =?</em>, <em>-userfield::string =?</em>, <em>-passwordfield::string =?</em>, <em>-saltfield::string =?</em>, <em>-costfield::string =?</em>, <em>-logdb =?</em>, <em>-loguserfield::string =?</em>, <em>-logeventfield::string =?</em>, <em>-logobjectfield::string =?</em>, <em>-logdatafield::string =?</em>, <em>-singleuser::boolean =?</em>, <em>-allowsidejacking::boolean =?</em><big>)</big><a class="headerlink" href="#knop_user.oncreate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">oncreate</tt><big>(</big><em>userdb::knop_database</em>, <em>encrypt =?</em>, <em>cost =?</em>, <em>useridfield::string =?</em>, <em>userfield::string =?</em>, <em>passwordfield::string =?</em>, <em>saltfield::string =?</em>, <em>costfield::string =?</em>, <em>logdb =?</em>, <em>loguserfield::string =?</em>, <em>logeventfield::string =?</em>, <em>logobjectfield::string =?</em>, <em>logdatafield::string =?</em>, <em>singleuser::boolean =?</em>, <em>allowsidejacking::boolean =?</em><big>)</big></dt>
+<dd><dl class="docutils">
+<dt>Parameters:</dt>
+<dd><ul class="first last simple">
+<li>encrypt (optional flag or string)
+Use encrypted passwords. If a value is specified then that cipher will be used
+instead of the default RIPEMD160. If -saltfield is specified then the value of
+that field will be used as salt.</li>
+<li>singleuser (optional flag)
+Multiple logins to the same account are prevented (not implemented)</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_user.passwordfield">
+<tt class="descname">passwordfield</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_user.passwordfield" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">passwordfield=(passwordfield::string)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_user.permissions">
+<tt class="descname">permissions</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_user.permissions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">permissions=(permissions::map)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_user.removedata">
+<tt class="descname">removedata</tt><big>(</big><em>field::string</em><big>)</big><a class="headerlink" href="#knop_user.removedata" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove field data from the data map</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_user.saltfield">
+<tt class="descname">saltfield</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_user.saltfield" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">saltfield=(saltfield::string)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_user.serializationElements">
+<tt class="descname">serializationElements</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_user.serializationElements" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called when a knop_user object is stored in a session</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_user.setdata">
+<tt class="descname">setdata</tt><big>(</big><em>field</em>, <em>value =?</em><big>)</big><a class="headerlink" href="#knop_user.setdata" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set field data in the data map. Either -&gt; setdata(-field=&#8217;fieldname&#8217;, -value=&#8217;value&#8217;) or -&gt; setdata(&#8216;fieldname&#8217;=&#8217;value&#8217;)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_user.setpermission">
+<tt class="descname">setpermission</tt><big>(</big><em>permission::string</em>, <em>value =?</em><big>)</big><a class="headerlink" href="#knop_user.setpermission" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the user&#8217;s permission to perform the specified action (true or false, or just the name of the permission</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="knop_user.singleuser">
+<tt class="descname">singleuser</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_user.singleuser" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">singleuser=(singleuser::boolean)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_user.uniqueid">
+<tt class="descname">uniqueid</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_user.uniqueid" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">uniqueid=(uniqueid::string)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_user.userdb">
+<tt class="descname">userdb</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_user.userdb" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">userdb=(userdb::knop_database)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_user.userfield">
+<tt class="descname">userfield</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_user.userfield" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">userfield=(userfield::string)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_user.useridfield">
+<tt class="descname">useridfield</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_user.useridfield" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">useridfield=(useridfield::string)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_user.validlogin">
+<tt class="descname">validlogin</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_user.validlogin" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">validlogin=(validlogin::boolean)</tt></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="knop_user.version">
+<tt class="descname">version</tt><big>(</big><big>)</big><a class="headerlink" href="#knop_user.version" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">version=(version)</tt></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="knop_nav.html"
+                        title="previous chapter">knop_nav</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="knop_utils.html"
+                        title="next chapter">knop_utils</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/knop_user.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="knop_utils.html" title="knop_utils"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="knop_nav.html" title="knop_nav"
+             >previous</a> |</li>
+        <li><a href="index.html">Knop knop9 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Johan Sölve, Jolle Carlestam, Tim Taplin, and Steve Piercy.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>
