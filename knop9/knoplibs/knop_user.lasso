@@ -1,5 +1,5 @@
 ﻿<?LassoScript
-log_critical('loading knop_user from LassoApp')
+log_critical('loading knop_user')
 
 /**!
 knop_user
@@ -89,6 +89,7 @@ Permissions can be read, create, update, delete, or application specific (for ex
 define knop_user => type {
 /*
 CHANGE NOTES
+	2012-07-20	JC	Added getpermission(array)
 	2012-07-02	JC	Replaced all old style if, inline and loop with code blocks
 	2012-07-02	JC	Fixed erroneous handling of addlock and clearlocks
 	2012-05-19	JC	Made sure id_user is always of type string
@@ -104,7 +105,7 @@ CHANGE NOTES
 */
 	parent knop_base
 
-	data public version = '2012-05-18'
+	data public version = '2012-07-20'
 	data public description = 'Custom type to handle user identification and authentication'
 
 	data public fields::array = array()
@@ -337,7 +338,7 @@ Parameters:\n\
 **/
 	public auth() => {
 
-		local('validlogin' = .'validlogin')
+		local('validlogin' = .validlogin)
 		local('client_fingerprint_now' = string)
 
 		if(#validlogin && .'allowsidejacking' == false) => {
@@ -415,6 +416,9 @@ Log in user. On successful login, all fields on the user record will be availabl
 				}
 
 				#db -> select(#searchparams)
+
+				#db -> error_code ? log_critical('Error in knop_user DB call ' + #db -> error_msg)
+
 //				..'_debug_trace' -> insert('knop_user -> login: Searching user db, ' (#db -> found_count) + ' found ' + (#db -> error_msg) + ' ' + (#db -> action_statement))
 
 				if(#db -> found_count == 1
@@ -431,7 +435,6 @@ Log in user. On successful login, all fields on the user record will be availabl
 							-cost = (.'costfield' -> size ? integer(#db -> field(.'costfield')) | .'costsize'), -cipher = (.'encrypt_cipher')) == true) => {
 
 							#validlogin = true
-
 						}
 
 					else(.'encrypt' && .'saltfield' -> size)
@@ -589,6 +592,39 @@ Returns true if user has permission to perform the specified action, false other
 	}
 
 /**!
+getpermission(array)
+Will compare permissions to the given array. Can have one of two optional params
+	-any will return true if any of the provided array params match a permission
+	-all will return tru only if all the given params have a match in the users permission map.
+**/
+	public getpermission(
+		permissions::array,
+		-any::boolean = true,
+		-all::boolean = false
+	) => {
+
+		#permissions -> size == 0 ? return false
+
+		if(.auth && #any) => {
+			local(permstatus = false)
+			#permissions -> foreach => {
+				local(perm = #1)
+				.'permissions' >> #perm ? #permstatus = .'permissions' -> find(#perm)
+				#permstatus ? return true
+			}
+		else(.auth && #all)
+			#permissions -> foreach => {
+				local(perm = #1)
+				not .'permissions' >> #perm ? return false
+				.'permissions' -> find(#perm) == false ? return false
+			}
+			return true
+		}
+		return false
+
+	}
+
+/**!
 Sets the user\'s permission to perform the specified action (true or false, or just the name of the permission
 **/
 	public setpermission(
@@ -612,13 +648,11 @@ Called by database object, adds the name of a database object that has been lock
 	public addlock(
 		dbname::any
 	) => {
-stdoutnl('knop_user addlock called ' + #dbname)
 //stdoutnl('knop_user addlock check ' + var(#dbname) -> type)
 		if(var(#dbname) -> isa(::knop_database)) => {
 //			..'_debug_trace' -> insert('knop_user -> addlock: adding database name  ' + #dbname)
 			.'dblocks' -> insert(#dbname)
 		}
-stdoutnl('knop_user addlock dblocks ' + .'dblocks')
 	}
 
 	public addlock(
@@ -642,7 +676,7 @@ Clears all database locks that has been set by this user.
 //				if(var(loop_value) -> isa(::knop_database)) => {
 				protect => {
 					handle_error => {
-						log_critical('Error on clearlocks ' + error_msg)
+						log_critical('Error on knop_user clearlocks ' + error_msg)
 					}
 					#thislock -> clearlocks(.'id_user')
 					#cleared_dbs -> insert(#locks)
@@ -673,7 +707,7 @@ Returns an encrypted fingerprint based on client_ip and client_type.
 
 }
 
-log_critical('loading knop_user done')
+//log_critical('loading knop_user done')
 
 
 ?>

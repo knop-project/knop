@@ -1,8 +1,18 @@
 <?Lasso
-log_critical('loading knop_form from LassoApp')
+log_critical('loading knop_form')
 
 define knop_form => type {
 /*
+
+	2013-03-12	JC	Changed encode_html(#requiredmarker) to #requiredmarker
+	2013-03-12	JC	Changed renderform to use #labelstart##labelend# instead of #label#. This to enable #required# to be part of the <label>text</label> code
+	2013-03-12	JC	Fixes in renderhtml that contained tracking code no longer needed. Also changed replace #label# calls that should have been #required#
+	2013-01-21	JC	Changed remaining isa('xxxx') to isa(::xxxx)
+	2012-10-30	JC	Fixed bug preventing hint on input type text field to work properly
+	2012-10-20	JC	Expanded support for input type text to include 'text', 'url', 'email', 'number', 'tel'
+	2012-10-11	JC	Changing errorclass so that it defaults to "error"
+	2012-10-11	JC	Added support for helpblock and error class marking where requested
+	2012-09-21	JC	Added support for bootstrap markup of checkbox. New param -bootstrap in render_form
 	2012-07-02	JC	Fixed erroneous handling of addlock and clearlocks
 	2012-06-10	JC	Changed all iterate to query expr. Changed all += to append. Set br to br /
 	2012-06-07	JC	Tweaks to make knop_form -> process work
@@ -33,7 +43,7 @@ define knop_form => type {
 */
 	parent knop_base
 
-	data public version = '2012-07-02'
+	data public version = '2013-03-12'
 
 	// instance variables
 	data public fields::array = array
@@ -90,7 +100,7 @@ define knop_form => type {
 	data public error_lang = knop_lang(-default = 'en', -fallback)
 	data public errors = null
 	//config vars
-	data public validfieldtypes::map = map('text' = '', 'password' = '', 'checkbox' = '', 'radio' = '', 'textarea' = '', 'select' = '', 'file' = '', 'search' = '', 'submit' = '', 'reset' = '', 'image' = '', 'hidden' = '', 'fieldset' = '', 'legend' = '', 'html' = '')
+	data public validfieldtypes::map = map('text' = '', 'password' = '', 'checkbox' = '', 'radio' = '', 'textarea' = '', 'select' = '', 'file' = '', 'search' = '', 'submit' = '', 'reset' = '', 'image' = '', 'hidden' = '', 'fieldset' = '', 'legend' = '', 'html' = '', 'url' = string, 'email' = string, 'number' = string, 'tel' = string)
 	//special types
 	data public exceptionfieldtypes::map = map('file' = '', 'submit' = '', 'reset' = '', 'image' = '', 'addbutton' = '', 'savebutton' = '', 'searchbutton' = '', 'deletebutton' = '', 'cancelbutton' = '', 'fieldset' = '', 'legend' = '', 'html' = '')
 
@@ -116,7 +126,7 @@ define knop_form => type {
 			-buttontemplate (optional string) html template for buttons, defaults to #field# but uses -template if specified\n\
 			-required (optional string) character(s) to display for required fields (used for #required#), defaults to *\n\
 			-class (optional string) css class name that will be used for the form element, default none\n\
-			-errorclass (optional string) css class name that will be used for the label to highlight input errors, if not defined style="color: red" will be used\n\
+			-errorclass (optional string) css class name that will be used for the label to highlight input errors, default error\n\
 			-unsavedmarker (optional string) id for html element that should be used to indicate when the form becomes dirty. \n\
 			-unsavedmarkerclass (optional string) class name to use for the html element. Defaults to "unsaved". \n\
 			-unsavedwarning (optional string)\n\
@@ -124,7 +134,7 @@ define knop_form => type {
 			-noscript (optional flag) if specified, don\'t inject any javascript in the form. This will disable all client side functionality such as hints, focus and unsaved warnings. \n\
 			-database (optional database) Optional database object that the form object will interact with
 **/
-	public oncreate(formaction = null, method = '', name = '', id = '', raw = '',actionpath = '', fieldset::boolean = false, legend = '', entersubmitblock = false, noautoparams = false, template::string = '', buttontemplate::string = '', required::string = '*', class::string = '', errorclass::string = '', unsavedmarker::string = '', unsavedmarkerclass::string = 'unsaved', unsavedwarning::string = '', keyparamname::string = '-keyvalue', noscript = true, database::any = '')
+	public oncreate(formaction = null, method = '', name = '', id = '', raw = '',actionpath = '', fieldset::boolean = false, legend = '', entersubmitblock = false, noautoparams = false, template::string = '', buttontemplate::string = '', required::string = '*', class::string = '', errorclass::string = 'error', unsavedmarker::string = '', unsavedmarkerclass::string = 'unsaved', unsavedwarning::string = '', keyparamname::string = '-keyvalue', noscript = true, database::any = '')
 		=> {
 //		debug => {
 
@@ -137,7 +147,7 @@ define knop_form => type {
 		.'buttontemplate' = #buttontemplate
 		.'required' = #required
 		.'class' = #class
-		.'errorclass' = #errorclass
+		.errorclass = #errorclass
 		.'unsavedmarker' = #unsavedmarker
 		.'unsavedmarkerclass' = #unsavedmarkerclass
 		.'unsavedwarning' = #unsavedwarning
@@ -165,7 +175,7 @@ define knop_form => type {
 // 	} // end debug
 	} // END oncreate
 
-	public oncreate(-formaction = null, -method = '', -name = '', -id = '', -raw = '', -actionpath = '', -fieldset::boolean = false, -legend = '', -entersubmitblock = false, -noautoparams = false, -template::string = '', -buttontemplate::string = '', -required::string = '*', -class::string = '', -errorclass::string = '', -unsavedmarker::string = '', -unsavedmarkerclass::string = 'unsaved', -unsavedwarning::string = '', -keyparamname::string = '-keyvalue', -noscript = true, -database::any = '') => .oncreate(#formaction, #method, #name, #id, #raw, #actionpath, #fieldset, #legend, #entersubmitblock, #noautoparams, #template, #buttontemplate, #required, #class, #errorclass, #unsavedmarker, #unsavedmarkerclass, #unsavedwarning, #keyparamname, #noscript, #database)
+	public oncreate(-formaction = null, -method = '', -name = '', -id = '', -raw = '', -actionpath = '', -fieldset::boolean = false, -legend = '', -entersubmitblock = false, -noautoparams = false, -template::string = '', -buttontemplate::string = '', -required::string = '*', -class::string = '', -errorclass::string = 'error', -unsavedmarker::string = '', -unsavedmarkerclass::string = 'unsaved', -unsavedwarning::string = '', -keyparamname::string = '-keyvalue', -noscript = true, -database::any = '') => .oncreate(#formaction, #method, #name, #id, #raw, #actionpath, #fieldset, #legend, #entersubmitblock, #noautoparams, #template, #buttontemplate, #required, #class, #errorclass, #unsavedmarker, #unsavedmarkerclass, #unsavedwarning, #keyparamname, #noscript, #database)
 
 /**!
 onconvert
@@ -207,9 +217,9 @@ Shortcut to getvalue
 	Inserts a form element in the form. \n\
 
 			Parameters:\n\
-			-type (required) Supported types are listed in form -> \'validfieldtypes\'. Also custom field types addbuton, savebutton or deletebutton are supported (translated to submit buttons with predefined names). \
+			-type (required) Supported types are listed in form -> \'validfieldtypes\'. Also custom field types addbutton, savebutton or deletebutton are supported (translated to submit buttons with predefined names). \
 			For the field types html, fieldset and legend use -value to specify the data to display for these fields. A legend field automatically creates a fieldset (closes any previously open fieldsets). Use fieldset with -value = false to close a fieldset without opening a new one. \n\
-			-name (optional) Required for all input types except addbuton, savebutton, deletebutton, fieldset, legend and html\n\
+			-name (optional) Required for all input types except addbutton, savebutton, deletebutton, fieldset, legend and html\n\
 			-id (optional) id for the html object, will be autogenerated if not specified\n\
 			-dbfield (optional) Corresponding database field name (name is used if dbfield is not specified), or null/emtpy string if ignore this field for database\n\
 			-value (optional) Initial value for the field\n\
@@ -244,13 +254,14 @@ Shortcut to getvalue
 		hint = '',
 		options = '',
 		default = '',
-		size = '',
-		maxlength = '',
-		rows = '',
-		cols = '',
+		size = -1,
+		maxlength = -1,
+		rows = -1,
+		cols = -1,
 		class = '',
 		labelclass = '',
 		raw = '',
+		helpblock = '',
 		confirmmessage = '',
 		validate = '',
 		filter = '',
@@ -329,18 +340,19 @@ Shortcut to getvalue
 		#field -> insert('type' = #_type)
 		#field -> insert('name' = #_name)
 
-		#field -> insert('id' = #id -> ascopy)
-		#field -> insert('hint' = #hint -> ascopy)
-		#field -> insert('default' = #default -> ascopy)
-		#field -> insert('label' = #label -> ascopy)
-		#field -> insert('size' = #size -> ascopy)
-		#field -> insert('maxlength' = #maxlength -> ascopy)
-		#field -> insert('rows' = #rows -> ascopy)
-		#field -> insert('cols' = #cols -> ascopy)
-		#field -> insert('class' = #class -> ascopy)
-		#field -> insert('labelclass' = #labelclass -> ascopy)
-		#field -> insert('raw' = #raw -> ascopy)
-		#field -> insert('confirmmessage' = #confirmmessage -> ascopy)
+		#id -> size > 0 ? #field -> insert('id' = #id -> ascopy)
+		#hint -> size > 0 ? #field -> insert('hint' = #hint -> ascopy)
+		#default -> size > 0 ? #field -> insert('default' = #default -> ascopy)
+		#label -> size > 0 ? #field -> insert('label' = #label -> ascopy)
+		#size > 0 ? #field -> insert('size' = #size -> ascopy)
+		#maxlength > 0 ? #field -> insert('maxlength' = #maxlength -> ascopy)
+		#rows > 0 ? #field -> insert('rows' = #rows -> ascopy)
+		#cols > 0 ? #field -> insert('cols' = #cols -> ascopy)
+		#class -> size > 0 ? #field -> insert('class' = #class -> ascopy)
+		#labelclass -> size > 0 ? #field -> insert('labelclass' = #labelclass -> ascopy)
+		#raw -> size > 0 ? #field -> insert('raw' = #raw -> ascopy)
+		#helpblock -> size > 0 ? #field -> insert('helpblock' = #helpblock -> ascopy)
+		#confirmmessage -> size > 0 ? #field -> insert('confirmmessage' = #confirmmessage -> ascopy)
 		#field -> insert('originaltype' = #originaltype -> ascopy)
 
 		#field -> insert('dbfield' = ( #dbfield != NULL ? #dbfield -> ascopy | #_name -> ascopy ) )
@@ -357,9 +369,9 @@ Shortcut to getvalue
 // 	} // end debug
 	}
 
-	public addfield(-type, -name = '', -label = '', -value = '', -id = '', -dbfield = NULL, -hint = '', -options = '', -multiple = false, -linebreak = false, -default = '', -size::integer = -1, -maxlength::integer = -1, -rows::integer = -1, -cols::integer = -1, -focus = false, -class = '', -labelclass = '', -disabled = false, -raw = '', -confirmmessage = '', -required = false, -validate = '', -filter = '', -nowarning = false, -op::string = 'bw', -logical_op::string = string, -after = '') => {
+	public addfield(-type, -name = '', -label = '', -value = '', -id = '', -dbfield = NULL, -hint = '', -options = '', -multiple = false, -linebreak = false, -default = '', -size::integer = -1, -maxlength::integer = -1, -rows::integer = -1, -cols::integer = -1, -focus = false, -class = '', -labelclass = '', -disabled = false, -raw = '', -helpblock = '', -confirmmessage = '', -required = false, -validate = '', -filter = '', -nowarning = false, -op::string = 'bw', -logical_op::string = string, -after = '') => {
 
-	.addfield(#type, #name, #label, #value, #id, #dbfield, #hint, #options, #default, #size, #maxlength, #rows, #cols, #class, #labelclass, #raw, #confirmmessage, #validate, #filter, #after, #required, #nowarning, #op, #logical_op, #multiple, #linebreak, #focus, #disabled)
+	.addfield(#type, #name, #label, #value, #id, #dbfield, #hint, #options, #default, #size, #maxlength, #rows, #cols, #class, #labelclass, #raw, #helpblock, #confirmmessage, #validate, #filter, #after, #required, #nowarning, #op, #logical_op, #multiple, #linebreak, #focus, #disabled)
 	}
 
 /*
@@ -560,9 +572,9 @@ Overwrites all field values with values from either database, action_params or e
 						// load field values from explicit -params using dbfield names
 						if(#_params >> #fieldpair -> value -> find('dbfield') && #fieldpair -> value -> find('dbfield') != '') => {
 
-							if(#_params -> isa('map')) => {
+							if(#_params -> isa(::map)) => {
 								#fieldpair -> value -> insert('value' = #_params -> find(#fieldpair -> value -> find('dbfield')) -> asCopy )
-							else(#_params -> isa('array'))
+							else(#_params -> isa(::array))
 								#fieldpair -> value -> insert('value' = #_params -> find(#fieldpair -> value -> find('dbfield')) -> first -> value -> asCopy)
 							}
 						}
@@ -594,7 +606,7 @@ Overwrites all field values with values from either database, action_params or e
 					}
 				}
 				// apply filtering of field value (do this for all instances of the same field name, so outside of the #fieldnames_done check)
-				if(#fieldpair -> value -> find('filter') -> isa('tag')) => {
+				if(#fieldpair -> value -> find('filter') -> isa(::tag)) => {
 					#fieldpair -> value -> insert('value'= #fieldpair -> value -> find('filter') -> run(-params = #fieldpair -> value -> find('value')))
 				}
 			}
@@ -716,7 +728,7 @@ Performs validation and fills a transient array with field names that have input
 					if(#fieldvalue -> value -> find('required') && #fieldvalue -> value -> find('value') == '') => {
 						.'errors' -> insert(#fieldvalue-> value -> find('name') )
 					}
-					if(#fieldvalue -> value -> find('validate') -> isa('tag')) => {
+					if(#fieldvalue -> value -> find('validate') -> isa(::tag)) => {
 						// perform validation expression on the field value
 						local(result = #fieldvalue -> value -> find('validate') -> run(-params = #fieldvalue -> value -> find('value')))
 						if(#result === true || #result === 0) => {
@@ -1112,7 +1124,7 @@ Automatically handles a form submission and handles add, update, or delete.
 
 // 	} // end debug
 	}
-       
+
 /**!
 	Defines a html template for the form. \n\
 			Parameters:\n\
@@ -1121,7 +1133,7 @@ Automatically handles a form submission and handles add, update, or delete.
 			-required (optional string) character(s) to display for required fields (used for #required#), defaults to *\n\
 			-legend (optional string) legend for the entire form - if specified, a fieldset will also be wrapped around the form\n\
 			-class (optional string) css class name that will be used for the form element, default none\n\
-			-errorclass (optional string) css class name that will be used for the label to highlight input errors, if not defined style="color: red" will be used\n\
+			-errorclass (optional string) css class name that will be used for the label to highlight input errors, default error\n\
 			-unsavedmarker (optional string) \n\
 			-unsavedmarkerclass (optional string) \n\
 			-unsavedwarning (optional string)
@@ -1299,8 +1311,17 @@ Outputs HTML for the form fields, a specific field, a range of fields or all fie
 			-end (optional) Only render the ending </form> tag\n\
 			-xhtml (optional flag) XHTML valid output
 **/
-	public renderform(name::string = '', from = 0, to = 0, type = '', excludetype = '', legend::string = '', xhtml::boolean = false, onlyformcontent::boolean = false ) => {
-// debug => {
+	public renderform(
+		name::string = '',
+		from = 0,
+		to = 0,
+		type = '',
+		excludetype = '',
+		legend::string = '',
+		xhtml::boolean = false,
+		onlyformcontent::boolean = false,
+		bootstrap::boolean = false
+	) => debug => {
 /*name::string = '', 	// field name
 		from = 1, 	// number index or field name
 		to = 0, 		// number index or field name
@@ -1338,6 +1359,7 @@ Outputs HTML for the form fields, a specific field, a range of fields or all fie
 		local(_from = #from -> ascopy)
 		local(_to = #to -> ascopy)
 		local(_type = #type -> ascopy)
+		local(linebreak = false)
 
 		local(endslash = (.xhtml(params) ? ' /' | ''))
 
@@ -1354,7 +1376,7 @@ Outputs HTML for the form fields, a specific field, a range of fields or all fie
 			#_to = #name -> ascopy
 		}
 
-		(#_to -> isa('string') && #_to -> size == 0) || (#_to -> isa('integer') && #_to == 0) ? #_to = .'fields' -> size
+		(#_to -> isa(::string) && #_to -> size == 0) || (#_to -> isa(::integer) && #_to == 0) ? #_to = .'fields' -> size
 		#_type == '' ? #_type = .'validfieldtypes'
 		#excludetype == '' ? #excludetype = map
 		#_type -> isa(::string) ? #_type = map(#_type)
@@ -1378,19 +1400,21 @@ Outputs HTML for the form fields, a specific field, a range of fields or all fie
 		// sanity check
 		#_from > #_to ? #_to = #_from
 
-		local(template = ( .'template' != '' ? .'template' | '#label# #field##required#<br />\n' ) )
+		local(template = ( .template != '' ? .template | '#label# #field##required#<br />\n' ) )
+
+		#template -> replace('#label#', '#labelstart##labelend#')
+
 
 		//local('buttontemplate'= ( .'buttontemplate' != '' ? .'buttontemplate' | (.'template' != '' ? .'template' | '#field#\n' )))
-		if(.'buttontemplate' -> size > 0) => {
-			local('buttontemplate'= .'buttontemplate')
+		if(.buttontemplate -> size > 0) => {
+			local(buttontemplate = .'buttontemplate')
 		else(.'template' -> size > 0)
-			local('buttontemplate'= .'template')
+			local(buttontemplate = .'template')
 		else
-			local('buttontemplate'= '#field#\n')
+			local(buttontemplate = '#field#\n')
 		}
 		local(requiredmarker = .'required')
 		local(defaultclass = ( .'class' != '' ? .'class' | ''))
-		local(errorclass = ( .'errorclass' != '' ? (' class="' + .'errorclass' + '"') | ' style="color: red;"'))
 		if(#legend -> size > 0) => {
 			.'render_fieldset2_open' = true
 			#output -> append('<fieldset>\n' + '<legend>' + #legend + '</legend>\n')
@@ -1440,7 +1464,7 @@ Outputs HTML for the form fields, a specific field, a range of fields or all fie
 				else
 					#renderrow = #template -> asCopy
 				}
-				if(#onefield -> find('id') != '') => {
+				if(#onefield -> find('id') -> size) => {
 					local(id = #onefield -> find('id'))
 				else
 					local(id = (.'formid' + '_' + #onefield ->find('name') + loop_count))
@@ -1455,18 +1479,32 @@ Outputs HTML for the form fields, a specific field, a range of fields or all fie
 				//	#renderrow -> replace('#label#', '')
 				//else:
 				if(.'errors'-> isa(::array) && .'errors' >> #onefield -> find('name')) => {
-					#renderrow -> replace('#label#',
-						('<label for="' + #id + '" id="' + #id + '_label" ' + #errorclass + '>' + #onefield -> find('label') + '</label>'))
+					#renderrow -> replace('#labelstart#',
+						('<label for="' + #id + '" id="' + #id + '_label" class="' + .errorclass + '">' + #onefield -> find('label')))
+					#renderrow -> replace('#labelend#',
+						('</label>'))
+					#renderrow ->replace('#errorclass#', .errorclass)
 					if(#focusfield == '') => {
 						#focusfield = #id
 					}
 				else
-					#renderrow ->replace('#label#', ('<label for="' + #id + '" id="' + #id + '_label">' + #onefield -> find('label') + '</label>'))
+					#renderrow ->replace('#labelstart#', ('<label for="' + #id + '" id="' + #id + '_label">' + #onefield -> find('label')))
+					#renderrow ->replace('#labelend#', ('</label>'))
+					#renderrow ->replace('#errorclass#', '')
 				}
+
+				if(#onefield -> find('helpblock') -> size) => {
+					#renderrow -> replace('#helpblock#', #onefield -> find('helpblock'))
+				else
+					#renderrow -> replace('#helpblock#', '')
+				}
+
+				// helps identifying layout blocks related to this field
+				#renderrow -> replace('#id#', #id)
 
 				// set markers for required fields
 				if(#onefield -> find('required') && .'exceptionfieldtypes' !>> #fieldtype) => {
-					#renderrow -> replace('#required#', encode_html(#requiredmarker))
+					#renderrow -> replace('#required#', #requiredmarker)
 				else
 					#renderrow -> replace('#required#', '')
 				}
@@ -1486,7 +1524,8 @@ Outputs HTML for the form fields, a specific field, a range of fields or all fie
 					case('html')
 
 						#renderrow = #template -> ascopy
-						#renderrow -> replace('#label#', '')
+						#renderrow -> replace('#labelstart#', '')
+						#renderrow -> replace('#labelend#', '')
 						#renderrow -> replace('#required#', '')
 						#renderfield = (#fieldvalue + '\n')
 					case('legend')
@@ -1522,15 +1561,17 @@ Outputs HTML for the form fields, a specific field, a range of fields or all fie
 							+ ' value="' + encode_html(#fieldvalue) + '"' + #endslash + '>')
 						#renderrow = ''
 						#output -> append((#renderfield + '\n'))
-					case('text')
-						#renderfield -> append('<input type="text"'
+					case('text', 'url', 'email', 'number', 'tel')
+						#renderfield -> append('<input type="' + #fieldtype + '"'
 							+ #renderfield_base
 							+ ' value="' + encode_html(#fieldvalue) + '"'
 							+ (#onefield >> 'size' 	? (' size="' + #onefield ->find('size') + '"' ))
 							+ (#onefield >> 'maxlength' ? (' maxlength="' + #onefield ->find('maxlength') + '"' )))
-						if(!.'noscript' && #onefield ->find('hint') != '') => {
+						if(!.'noscript' && #onefield ->find('hint') -> size > 0) => {
 							#renderfield -> append(' onfocus="clearHint(this)" onblur="setHint(this, \''+#onefield ->find('hint')+'\')"')
 							#usehint ->insert(#onefield -> find('name') = #id)
+						else(#onefield ->find('hint') -> size > 0)
+							#renderfield -> append(' placeholder="' + encode_html(#onefield ->find('hint')) + '"')
 						}
 						if(!.'noscript' && !#nowarning) => {
 							#renderfield -> append(' onkeydown="dirtyvalue(this)" onkeyup="makedirty(this)"')
@@ -1541,7 +1582,7 @@ Outputs HTML for the form fields, a specific field, a range of fields or all fie
 							+ #renderfield_base
 							+ ' value="' + encode_html(#fieldvalue) + '"'
 							+ (#onefield >> 'size' 	? (' size="' + #onefield ->find('size') + '"' )))
-						if(#onefield ->find('hint') != '') => {
+						if(#onefield ->find('hint') -> size > 0) => {
 							#renderfield -> append(' placeholder="' + encode_html(#onefield ->find('hint')) + '"')
 						}
 						if(!.'noscript' && !#nowarning) => {
@@ -1571,78 +1612,142 @@ Outputs HTML for the form fields, a specific field, a range of fields or all fie
 						}
 						#renderfield -> append('>' + encode_html(#fieldvalue) + '</textarea>')
 					case('checkbox')
-						local(optioncount = integer)
-						#renderfield -> append('<div class="inputgroup'
-							+ (#onefield -> find('class') -> size > 0 ?  ' ' + (#onefield -> find('class'))
-							| (#defaultclass != '' ? ' ' + #defaultclass) )
-							+ '" id="' + #id + '">\n')
+						#linebreak = #onefield -> find('linebreak')
+						if(#bootstrap) => {
+							local(optioncount = integer)
+							#renderfield -> append('<div class="inputgroup'
+								+ (#onefield -> find('class') -> size > 0 ?  ' ' + (#onefield -> find('class'))
+								| (#defaultclass != '' ? ' ' + #defaultclass) )
+								+ '" id="' + #id + '">\n')
 
-						with optionitem in #options do => {
+							with optionitem in #options do => {
 
-							#optioncount += 1
-							#renderfield -> append( (#optioncount > 1 && #onefield -> find('linebreak')) ? ('<br />') + '\n')
-							if(#optionitem -> name == '-optgroup') => {
-								#renderfield -> append((!#onefield -> find('linebreak') && #optioncount > 1) ? ('\n<br />'))
-								if(#optionitem -> value != '-optgroup') => {
-									#renderfield -> append(#optionitem -> value
-										+ (!#onefield -> find('linebreak') ? ('<br />\n')))
+								#optioncount += 1
+//								#renderfield -> append( (#optioncount > 1 && #linebreak) ? ('<br />') + '\n')
+								if(#optionitem -> name == '-optgroup') => {
+									#renderfield -> append((!#linebreak && #optioncount > 1) ? ('\n<br />'))
+									if(#optionitem -> value != '-optgroup') => {
+										#renderfield -> append(#optionitem -> value
+											+ (!#linebreak ? ('<br />\n')))
+									}
+								else
+									#renderfield -> append('<label class="checkbox ' + (#linebreak ? ' inline') + '"><input type="checkbox"'
+										+ string_replaceregexp(#renderfield_base, -find = 'id="(.+?)"', -replace = ('id="\\1_' + #optioncount + '"'))
+										+ ' value="' + encode_html(#optionitem -> name) + '"')
+									if(#optionitem -> name != '' && #fieldvalue_array >> #optionitem -> name) => {
+										#renderfield -> append(' checked="checked"')
+									}
+									#renderfield -> append(#endslash + '> ' + #optionitem -> value + '</label>\n')
 								}
-							else
-								#renderfield -> append('<span><input type="checkbox"'
-									+ string_replaceregexp(#renderfield_base, -find = 'id="(.+?)"', -replace = ('id="\\1_' + #optioncount + '"'))
-									+ ' value="' + encode_html(#optionitem -> name) + '"')
-								if(#optionitem -> name != '' && #fieldvalue_array >> #optionitem -> name) => {
-									#renderfield -> append(' checked="checked"')
-								}
-								if(!.'noscript' && !#nowarning) => {
-									#renderfield -> append(' onclick="makedirty();"')
-								}
-								#renderfield -> append(#endslash + '> <label for="' + #id + '_' + #optioncount
-									+ '" id="' + #id + '_' + #optioncount + '_label"')
-								if(.'noscript' && !#nowarning) => {
-									#renderfield -> append(' onclick="makedirty();"')
-								}
-								#renderfield -> append('>' + #optionitem -> value + '</label></span>')
 							}
+							#renderfield -> append('</div>\n')
+						else
+							local(optioncount = integer)
+							#renderfield -> append('<div class="inputgroup'
+								+ (#onefield -> find('class') -> size > 0 ?  ' ' + (#onefield -> find('class'))
+								| (#defaultclass != '' ? ' ' + #defaultclass) )
+								+ '" id="' + #id + '">\n')
+
+							with optionitem in #options do => {
+
+								#optioncount += 1
+								#renderfield -> append( (#optioncount > 1 && #linebreak) ? ('<br />') + '\n')
+								if(#optionitem -> name == '-optgroup') => {
+									#renderfield -> append((!#linebreak && #optioncount > 1) ? ('\n<br />'))
+									if(#optionitem -> value != '-optgroup') => {
+										#renderfield -> append(#optionitem -> value
+											+ (!#linebreak ? ('<br />\n')))
+									}
+								else
+									#renderfield -> append('<span><input type="checkbox"'
+										+ string_replaceregexp(#renderfield_base, -find = 'id="(.+?)"', -replace = ('id="\\1_' + #optioncount + '"'))
+										+ ' value="' + encode_html(#optionitem -> name) + '"')
+									if(#optionitem -> name != '' && #fieldvalue_array >> #optionitem -> name) => {
+										#renderfield -> append(' checked="checked"')
+									}
+									if(!.'noscript' && !#nowarning) => {
+										#renderfield -> append(' onclick="makedirty();"')
+									}
+									#renderfield -> append(#endslash + '> <label for="' + #id + '_' + #optioncount
+										+ '" id="' + #id + '_' + #optioncount + '_label"')
+									if(.'noscript' && !#nowarning) => {
+										#renderfield -> append(' onclick="makedirty();"')
+									}
+									#renderfield -> append('>' + #optionitem -> value + '</label></span>')
+								}
+							}
+							#renderfield -> append('</div>\n')
 						}
-						#renderfield -> append('</div>\n')
+
 
 					case('radio')
-						local(optioncount = integer)
-						#renderfield -> append('<div class="inputgroup'
-							+ (#onefield -> find('class') -> size > 0 ?  ' ' + (#onefield -> find('class'))
-							| (#defaultclass != '' ? ' ' + #defaultclass) )
-							+ '" id="' + #id + '">\n')
+						if(#bootstrap) => {
+							local(optioncount = integer)
+							#renderfield -> append('<div class="inputgroup'
+								+ (#onefield -> find('class') -> size > 0 ?  ' ' + (#onefield -> find('class'))
+								| (#defaultclass != '' ? ' ' + #defaultclass) )
+								+ '" id="' + #id + '">\n')
 
-						with optionitem in #options do => {
+							with optionitem in #options do => {
 
-							#optioncount += 1
-							#renderfield -> append(((#optioncount > 1 && #onefield -> find('linebreak')) ? ('<br />') )+ '\n')
-							if(#optionitem -> name == '-optgroup') => {
-								#renderfield -> append((!#onefield -> find('linebreak') && #optioncount > 1) ? ('\n<br />'))
-								if(#optionitem -> value != '-optgroup') => {
-									#renderfield -> append(#optionitem -> value
-										+ (!#onefield -> find('linebreak') ? ('<br />\n')))
+								#optioncount += 1
+//								#renderfield -> append( (#optioncount > 1 && #linebreak) ? ('<br />') + '\n')
+								if(#optionitem -> name == '-optgroup') => {
+									#renderfield -> append((!#linebreak && #optioncount > 1) ? ('\n<br />'))
+									if(#optionitem -> value != '-optgroup') => {
+										#renderfield -> append(#optionitem -> value
+											+ (!#linebreak ? ('<br />\n')))
+									}
+								else
+									#renderfield -> append('<label class="radio ' + (#linebreak ? ' inline') + '"><input type="radio"'
+										+ string_replaceregexp(#renderfield_base, -find = 'id="(.+?)"', -replace = ('id="\\1_' + #optioncount + '"'))
+										+ ' value="' + encode_html(#optionitem -> name) + '"')
+									if(#optionitem -> name != '' && #fieldvalue_array >> #optionitem -> name) => {
+										#renderfield -> append(' checked="checked"')
+									}
+									#renderfield -> append(#endslash + '> ' + #optionitem -> value + '</label>\n')
 								}
-							else
-								#renderfield -> append('<input type="radio"'
-									+ string_replaceregexp(#renderfield_base, -find = 'id="(.+?)"', -replace = ('id="\\1_' + #optioncount + '"'))
-									+ ' value="' + encode_html(#optionitem -> name) + '"')
-								if(#optionitem-> name != '' && #fieldvalue_array >> #optionitem -> name) => {
-									#renderfield -> append(' checked="checked"')
-								}
-								if(!.'noscript' && !#nowarning) => {
-									#renderfield -> append(' onclick="makedirty();"')
-								}
-								#renderfield -> append(#endslash + '> <label for="' + #id + '_' + #optioncount
-									+ '" id="' + #id + '_' + #optioncount + '_label"')
-								if(!.'noscript' && !#nowarning) => {
-									#renderfield -> append(' onclick="makedirty();"')
-								}
-								#renderfield -> append('>' + #optionitem -> value + '</label> ')
 							}
+							#renderfield -> append('</div>\n')
+						else
+							#linebreak = #onefield -> find('linebreak')
+							local(optioncount = integer)
+							#renderfield -> append('<div class="inputgroup'
+								+ (#onefield -> find('class') -> size > 0 ?  ' ' + (#onefield -> find('class'))
+								| (#defaultclass != '' ? ' ' + #defaultclass) )
+								+ '" id="' + #id + '">\n')
+
+							with optionitem in #options do => {
+
+								#optioncount += 1
+								#renderfield -> append(((#optioncount > 1 && #linebreak) ? ('<br />') )+ '\n')
+								if(#optionitem -> name == '-optgroup') => {
+									#renderfield -> append((!#linebreak && #optioncount > 1) ? ('\n<br />'))
+									if(#optionitem -> value != '-optgroup') => {
+										#renderfield -> append(#optionitem -> value
+											+ (!#linebreak ? ('<br />\n')))
+									}
+								else
+									#renderfield -> append('<input type="radio"'
+										+ string_replaceregexp(#renderfield_base, -find = 'id="(.+?)"', -replace = ('id="\\1_' + #optioncount + '"'))
+										+ ' value="' + encode_html(#optionitem -> name) + '"')
+									if(#optionitem-> name != '' && #fieldvalue_array >> #optionitem -> name) => {
+										#renderfield -> append(' checked="checked"')
+									}
+									if(!.'noscript' && !#nowarning) => {
+										#renderfield -> append(' onclick="makedirty();"')
+									}
+									#renderfield -> append(#endslash + '> <label for="' + #id + '_' + #optioncount
+										+ '" id="' + #id + '_' + #optioncount + '_label"')
+									if(!.'noscript' && !#nowarning) => {
+										#renderfield -> append(' onclick="makedirty();"')
+									}
+									#renderfield -> append('>' + #optionitem -> value + '</label> ')
+								}
+							}
+							#renderfield -> append('</div>\n')
 						}
-						#renderfield -> append('</div>\n')
+
 					case('select')
 						#renderfield -> append('<select '
 							+ #renderfield_base
@@ -1656,7 +1761,7 @@ Outputs HTML for the form fields, a specific field, a range of fields or all fie
 							}
 						}
 						#renderfield -> append('>\n')
-						if(#onefield -> find('default') != '' && #onefield ->find('size') <= 1) => {
+						if(#onefield -> find('default') -> size > 0 && #onefield ->find('size') <= 1) => {
 							#renderfield -> append('<option value="">' + encode_html(#onefield -> find('default')) + '</option>\n<option value=""></option>\n')
 						}
 						local(optgroup_open = false)
@@ -1682,26 +1787,40 @@ Outputs HTML for the form fields, a specific field, a range of fields or all fie
 						}
 						#renderfield -> append('</select>\n')
 					case('submit')
-						#renderfield -> append('<input type="submit"'
-							+ #renderfield_base
-							+ ' value="' + encode_html(#fieldvalue) + '"')
-						if(.formmode == 'add'
-							&& !#onefield -> find('disabled') // already disabled
-							&& (#onefield -> find('originaltype') == 'savebutton' || #onefield -> find('originaltype') == 'deletebutton'
-							|| #onefield -> find('name') == 'button_save' || #onefield -> find('name') == 'button_delete')) => {
-							#renderfield -> append(' disabled="disabled"')
+						if(#bootstrap) => {
+							#renderfield -> append('<button type="submit"'
+								+ #renderfield_base)
+							if(.formmode == 'add'
+								&& !#onefield -> find('disabled') // already disabled
+								&& (#onefield -> find('originaltype') == 'savebutton' || #onefield -> find('originaltype') == 'deletebutton'
+								|| #onefield -> find('name') == 'button_save' || #onefield -> find('name') == 'button_delete')) => {
+								#renderfield -> append(' disabled="disabled"')
+							}
+
+							#renderfield -> append('>' + #fieldvalue + '</button>')
+
+						else
+							#renderfield -> append('<input type="submit"'
+								+ #renderfield_base
+								+ ' value="' + encode_html(#fieldvalue) + '"')
+							if(.formmode == 'add'
+								&& !#onefield -> find('disabled') // already disabled
+								&& (#onefield -> find('originaltype') == 'savebutton' || #onefield -> find('originaltype') == 'deletebutton'
+								|| #onefield -> find('name') == 'button_save' || #onefield -> find('name') == 'button_delete')) => {
+								#renderfield -> append(' disabled="disabled"')
+							}
+							if(!.'noscript'
+								&& (#onefield ->find('name') == 'button_delete'
+									|| #onefield ->find('originaltype') == 'deletebutton'
+									|| #onefield ->find('confirmmessage') != '')) => {
+								local(confirmmessage = (#onefield -> find('confirmmessage') -> size > 0
+									? #onefield -> find('confirmmessage') | 'Really delete?'))
+								#confirmmessage ->replace('"', '&quot;')
+								#confirmmessage ->replace('\'', '\\\'')
+								#renderfield -> append(' onclick="return confirm(\'' + #confirmmessage +  '\')"')
+							}
+							#renderfield -> append(#endslash + '>')
 						}
-						if(!.'noscript'
-							&& (#onefield ->find('name') == 'button_delete'
-								|| #onefield ->find('originaltype') == 'deletebutton'
-								|| #onefield ->find('confirmmessage') != '')) => {
-							local(confirmmessage = (#onefield -> find('confirmmessage') -> size > 0
-								? #onefield -> find('confirmmessage') | 'Really delete?'))
-							#confirmmessage ->replace('"', '&quot;')
-							#confirmmessage ->replace('\'', '\\\'')
-							#renderfield -> append(' onclick="return confirm(\'' + #confirmmessage +  '\')"')
-						}
-						#renderfield -> append(#endslash + '>')
 					case('reset')
 						#renderfield -> append('<input type="reset"'
 							+ #renderfield_base
@@ -2070,7 +2189,6 @@ Outputs HTML for the form fields, a specific field, a range of fields or all fie
 		return(#output)
 
 		///protect
-// 	} // end debug
 	} // end renderform
 
 	public renderform(
@@ -2083,13 +2201,14 @@ Outputs HTML for the form fields, a specific field, a range of fields or all fie
 		-start::boolean = false,
 		-end::boolean = false,
 		-onlyformcontent::boolean = false,
+		-bootstrap::boolean = false,
 		-xhtml::boolean = false   // xhtml =  boolean, if set to true adjust output for XHTML
 
 		) => {
 
 		#start ? return(.renderformstart(#xhtml))	// only output the starting <form> tag
 		#end ? return(.renderformend(#xhtml))	// only output the end </form> tag
-		return .renderform(#name, #from, #to, #type, #excludetype, #legend, #xhtml, #onlyformcontent)
+		return .renderform(#name, #from, #to, #type, #excludetype, #legend, #xhtml, #onlyformcontent, #bootstrap)
 	}
 
 /**!
@@ -2123,9 +2242,11 @@ Outputs form data as plain HTML, a specific field, a range of fields or all fiel
 		local(renderrow = string)
 		local(fieldvalue = string)
 		local(fieldvalue_array = array)
+		local(fieldtype = string)
 		local(options = array)
 		local(usehint = array)
 		local(loopcount = 0)
+		local(linebreak = false)
 
 		// local var that adjust tag endings if rendered for XHTML
 		local(endslash = (.xhtml(params) ? ' /' | ''))
@@ -2170,6 +2291,8 @@ Outputs form data as plain HTML, a specific field, a range of fields or all fiel
 
 			#onefield = .'fields' -> get(loop_count) -> value
 
+			#fieldtype = #onefield -> find('type')
+
 			#fieldvalue = #onefield ->find('value') -> ascopy
 			#fieldvalue_array = #fieldvalue
 			if(!#fieldvalue_array -> isa(::array)) => {
@@ -2184,6 +2307,7 @@ Outputs form data as plain HTML, a specific field, a range of fields or all fiel
 			if(#onefield >> 'options') => {
 				#options = #onefield -> find('options')
 				// convert types for pair
+				#options -> isa(::string) ? #options = array(#options)
 				with optionitem in #options do => {
 					if(!#optionitem -> isa(::pair)) => {
 						#optionitem = pair(#optionitem = #optionitem)
@@ -2196,58 +2320,60 @@ Outputs form data as plain HTML, a specific field, a range of fields or all fiel
 
 			if(loop_count >= #from
 				&& loop_count <= #to
-				&& #type >> #onefield -> find('type')
+				&& #type >> #fieldtype
 				&& !(#excludetype >> #onefield ->find('type'))) => {
 
-				if(map('submit', 'reset', 'image') >> #onefield -> find('type')) => {
+				if(map('submit', 'reset', 'image') >> #fieldtype) => {
 					#renderrow = #buttontemplate -> ascopy
 				else
 					#renderrow = #template -> ascopy
 				}
 
-				if(.'exceptionfieldtypes' >> #onefield -> find('type')) => {
+				if(.'exceptionfieldtypes' >> #fieldtype) => {
 					#renderrow -> replace('#label#:', '')
-					#renderrow -> replace('#label#', '')
+					#renderrow -> replace('#required#', '')
 				else(#onefield -> find('label') != '')
 					#renderrow -> replace('#label#', encode_html(#onefield -> find('label')) )
 				else
 					#renderrow -> replace('#label#:', '')
-					#renderrow -> replace('#label#', '')
+					#renderrow -> replace('#required#', '')
 				}
 				if(map('radio', 'checkbox', 'select') >> #onefield ->find('type')) => {
+					#linebreak = #onefield -> find('linebreak')
 					#renderfield = string
 					#loopcount = 0
 					with onefieldvalue in #fieldvalue_array do => {
 						#loopcount += 1
 						if(#loopcount > 1) => {
-							#renderfield -> append(#onefield -> find('linebreak') ? ('<br />\n') | ', ')
+							#renderfield -> append(#linebreak ? ('<br />\n') | ', ')
 						}
 						if(#options >> #onefieldvalue) => {
 							// show the display text for a selected option
-							#renderfield -> append(encode_break(#options ->find(#onefieldvalue) -> first -> value))
+							local(thisonefieldvalue = #options ->find(#onefieldvalue) -> first)
+							#renderfield -> append(encode_break(string(#thisonefieldvalue -> isa(::pair) ? #thisonefieldvalue -> value | #thisonefieldvalue)))
 						else
 							// show the option value itself
-							#renderfield -> append(encode_break(#onefieldvalue))
+							#renderfield -> append(encode_break(string(#onefieldvalue)))
 						}
 					}
-				else(#onefield -> find('type') == 'html')
+				else(#fieldtype == 'html')
 					#renderrow = #template
 					#renderrow -> replace('#label#', '')
 					#renderrow -> replace('#required#', '')
 					#renderfield = (#fieldvalue + '\n')
-				else(#onefield -> find('type') == 'legend')
+				else(#fieldtype == 'legend')
 					#renderrow = ''
 					if(.'render_fieldset_open') => {
-						#output -> append('checking_first</fieldset>\n')
+						#output -> append('</fieldset>\n')
 						.'render_fieldset_open' = false
 					}
 					#output -> append('<fieldset>\n')
-					#output -> append('<legend>checking_aha' + encode_html(#fieldvalue) + '</legend>')
+					#output -> append('<legend>' + encode_html(#fieldvalue) + '</legend>')
 					.'render_fieldset_open' = true
-				else(#onefield -> find('type') == 'fieldset')
+				else(#fieldtype == 'fieldset')
 					#renderrow = ''
 					if(.'render_fieldset_open') => {
-						#output -> append('checking_second</fieldset>\n')
+						#output -> append('</fieldset>\n')
 						.'render_fieldset_open' = false
 					}
 					if(#fieldvalue != false) => {
@@ -2265,7 +2391,7 @@ Outputs form data as plain HTML, a specific field, a range of fields or all fiel
 		if(#legend!='' && .'render_fieldset2_open') => {
 			// inner fieldset is open
 			.'render_fieldset2_open' = false
-			#output -> append('checking_third</fieldset>\n')
+			#output -> append('</fieldset>\n')
 		}
 		return(#output)
 
@@ -2370,15 +2496,15 @@ Sets the param content for a form field.
 					#_name = #value
 
 				case(#param == 'size' || #param == 'rows' || #param == 'cols')
-					fail_if(!#value -> isa('integer'), -9956, 'The specified value not of the correct type (not integer)')
+					fail_if(!#value -> isa(::integer), -9956, 'The specified value not of the correct type (not integer)')
 
 				case(#param == 'multiple' || #param == 'linebreak' || #param == 'focus' || #param == 'disabled' || #param == 'required' || #param == 'nowarning')
 
-					fail_if(!#value -> isa('boolean'), -9956, 'The specified value not of the correct type (not boolean)')
+					fail_if(!#value -> isa(::boolean), -9956, 'The specified value not of the correct type (not boolean)')
 
 				case(#param == 'options')
 
-					fail_if(!#value -> isa('array') && !#value -> isa('set'), -9956, 'The specified value not of the correct type (not array or set)')
+					fail_if(!#value -> isa(::array) && !#value -> isa(::set), -9956, 'The specified value not of the correct type (not array or set)')
 
 			}
 
@@ -2524,5 +2650,5 @@ Internal member tag. Adds needed javascripts through an atend handler that will 
 	}
 
 }
-log_critical('loading knop_form done')
+//log_critical('loading knop_form done')
 ?>

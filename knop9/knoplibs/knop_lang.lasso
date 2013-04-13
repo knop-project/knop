@@ -13,6 +13,10 @@ define knop_lang => type {
 	/*
 
 	CHANGE NOTES
+	2013-04-02	JC	Add log_critical for keys that wasn't found and if the -always flag is set
+	2013-01-29	JC	Minor cleanup. Should mean an ever so small speed gain.
+	2012-11-04	JC	Added param always to getstring. Will always return a value. If the key is not found will return the keyvalue itself
+	2012-06-10	JC	Changed all iterate to query expr or loop. Removed all semicolons. Changed all old style if to code blocks.
 	2012-05-18	JC	Added additional signature for unknowntag to support keyword calls
 	2012-05-14	JC	Reactivated unknowntag
 	2012-05-14	JC	Added set to allowed params for getstring -replace
@@ -26,13 +30,13 @@ define knop_lang => type {
 
 	*/
 
-	data public version::date = date('2011-06-18') -> format('%Q')
+	data public version::date = date('2013-04-02') -> format('%Q')
 
 	data public strings::map = map
-	data fallback::boolean = false
-	data debug::boolean = false
-	data public defaultlanguage::string = ''
-	data public currentlanguage::string = ''
+	data fallback::boolean
+	data debug::boolean
+	data public defaultlanguage::string
+	data public currentlanguage::string = string
 	data public keys = null
 
 	/**!
@@ -43,18 +47,18 @@ define knop_lang => type {
 	-fallback (optional) If specified, falls back to default language if key is missing.
 	**/
 	public onCreate(
-		default::string = '',
+		default::string = string,
 		fallback::boolean = false,
 		debug::boolean = false
 	) => {
 
-		.'defaultlanguage' = #default;
-		.'fallback' = #fallback;
-		.'debug' = #debug;
+		.'defaultlanguage' = #default
+		.'fallback' = #fallback
+		.'debug' = #debug
 
 	}
 
-	public onCreate(-default::string = '') => .onCreate(#default)
+	public onCreate(-default::string = string) => .onCreate(#default)
 
 	public onConvert() => (self -> listmethods)
 
@@ -67,15 +71,15 @@ define knop_lang => type {
 		-replace (optional) see getstring( -replace).
 	**/
 	public _unknowntag(
-		language::any = '',
-		replace::any = ''
+		language::any = string,
+		replace::any = string
 	) => {
 		local(name = string(currentCapture->calledName))
 		return .keys >> #name ? .getstring(string(#name), string(#language), #replace)
 	}
 	public _unknowntag(
-		-language::any = '',
-		-replace::any = ''
+		-language::any = string,
+		-replace::any = string
 	) => {
 		local(name = string(currentCapture->calledName))
 		return .keys >> #name ? .getstring(string(#name), string(#language), #replace)
@@ -93,8 +97,8 @@ define knop_lang => type {
 		strings::map = map
 	) => {
 
-		.'keys' = null;
-		.'strings' -> insert( #language = #strings);
+		.'keys' = null
+		.'strings' -> insert( #language = #strings)
 	}
 	public addlanguage(
 		-language::string,
@@ -114,10 +118,10 @@ define knop_lang => type {
 		key::string,
 		value::string
 	) => {
-		.'keys' = null;
-		.'strings' !>> #language ? .'strings' -> insert( #language = map);
+		.'keys' = null
+		.'strings' !>> #language ? .'strings' -> insert( #language = map)
 
-		(.'strings' -> find( #language)) -> insert( #key = #value);
+		(.'strings' -> find( #language)) -> insert( #key = #value)
 
 	}
 
@@ -132,116 +136,114 @@ define knop_lang => type {
 	**/
 	public getstring(
 		key::any,
-		language::string = '',
-		replace = ''
+		language::string = string,
+		replace = string,
+		always::boolean = false
 	) => {
 
-		#language = #language -> ascopy;
-		#replace = #replace -> ascopy;
+		#language = #language -> ascopy
+		#replace = #replace -> ascopy
 
-		if(!var_defined('_knop_data'));
+		if(not var_defined('_knop_data')) => {
 			// page level caching
-			var('_knop_data' = map);
-		/if;
+			var(_knop_data = map)
+		}
 
-		local(output = '');
+		local(output = string)
 
-		if(#language -> size == 0 || !(.validlanguage( #language)));
-			#language = .'currentlanguage';
-			if(#language -> size == 0);
-				local(currentlanguage) = $_knop_data -> find( 'currentlanguage');
-				if(.validlanguage( #currentlanguage));
+		if(#language -> size == 0 || !(.validlanguage( #language))) => {
+			#language = .'currentlanguage'
+			if(#language -> size == 0) => {
+				local(currentlanguage) = $_knop_data -> find( 'currentlanguage')
+				if(.validlanguage( #currentlanguage)) => {
 					// fall back to page level language
-					#language = #currentlanguage;
-				else;
+					#language = #currentlanguage
+				else
 					// fall back to the browser's preferred language
-					#language = .browserlanguage;
-				/if;
-			/if;
-			if(#language -> size == 0 && .validlanguage( .'defaultlanguage'));
+					#language = .browserlanguage
+				}
+			}
+			if(#language -> size == 0 && .validlanguage( .'defaultlanguage')) => {
 				// still no matching language, fall back to defaultlanguage
-				#language = .'defaultlanguage';
-			else(#language -> size == 0);
+				#language = .'defaultlanguage'
+			else(#language -> size == 0)
 				// still no matching language, fall back to the first language
-				#language = .'strings' -> keys -> first;
-			/if;
+				#language = .'strings' -> keys -> first
+			}
 			if(.'strings' !>> #language
 				|| (.'strings' >> #language
 					&& .'strings' -> find( #language) !>> #key
-					&& .'fallback'));
+					&& .'fallback')) => {
 				// key is not found in current language, switch to default language
-				if(.validlanguage( .'defaultlanguage'));
+				if(.validlanguage( .'defaultlanguage')) => {
 					// still no matching language, fall back to defaultlanguage
-					#language = .'defaultlanguage';
-				else;
+					#language = .'defaultlanguage'
+				else
 					// no default language to fall back to
-				/if;
-			/if;
-		/if;
-		if(.'strings' >> #language);
-			if(.'strings' -> find(#language) !>> #key);
+				}
+			}
+		}
+		if(.'strings' >> #language) => {
+			if(.'strings' -> find(#language) !>> #key) => {
 				/* pending a debugging feature
-				(self -> 'debug_trace') -> insert('Error: ' + #key + ' not found');
-				self -> 'tagtime_tagname' = tag_name;
-				self -> 'tagtime' = integer(#timer); // cast to integer to trigger onconvert and to "stop timer"
+				(self -> 'debug_trace') -> insert('Error: ' + #key + ' not found')
+				self -> 'tagtime_tagname' = tag_name
+				self -> 'tagtime' = integer(#timer) // cast to integer to trigger onconvert and to "stop timer"
 				(self -> 'debug')
 					? return('*' + tag_name + '*')
-					| return;
+					| return
 				*/
-				return '';
-			/if;
-			#output = .'strings' -> find( #language) -> find( #key);
+				if(#always) => {
+					return #key
+					log_critical('lang called with key that wasn\'t found. Key: ' + #key)
+				else
+					return string
+				}
+			}
+			#output = .'strings' -> find( #language) -> find( #key)
 
-			if(#output -> isa( 'tag'));
+			if(#output -> isa(::tag)) => {
 				// execute compund expression
-				#output = #output -> run;
-			/if;
-			if(#output -> size > 0 && #replace -> size > 0);
+				#output = #output -> run
+			}
+			if(#output -> size > 0 && #replace -> size > 0) => {
 				// replace placeholders with real values
-				if(!(#replace -> isa(::array)) && !(#replace -> isa(::map)) && !(#replace -> isa(::set)));
-					#replace = array( #replace);
-				/if;
-				iterate(#replace, local('replacement'));
+				if(!(#replace -> isa(::array)) && !(#replace -> isa(::map)) && !(#replace -> isa(::set))) => {
+					#replace = array( #replace)
+				}
+				local(loopcount = 0)
+				with replacement in #replace do => {
+					#loopcount += 1
 					// make sure we have a pair
-					if(!(#replacement -> isa( 'pair')));
-						#replacement = pair( '#' + loop_count + '#' = #replacement);
-					/if;
+					if(!(#replacement -> isa(::pair))) => {
+						#replacement = pair( '#' + #loopcount + '#' = #replacement)
+					}
 					// if we have a compund expression as replacement, execute the replacement first
-					if((#replacement -> value -> isa( 'tag')));
-						(#replacement -> value) = #replacement -> value -> run;
-					/if;
-					#output -> replace( #replacement -> name, #replacement -> value);
-				/iterate;
-			/if;
-		/if;
+					if((#replacement -> value -> isa(::tag))) => {
+						(#replacement -> value) = #replacement -> value -> run
+					}
+					#output -> replace( #replacement -> name, #replacement -> value)
+				}
+			}
+		}
 
-		return #output;
+		return #output
 
 	}
 
 	public getstring(
-		key::string,
-		-language::string = '',
-		-replace = ''
-	) => .getstring(#key, #language, #replace)
+		key::any,
+		-language::string = string,
+		-replace = string,
+		-always::boolean = false
+	) => .getstring(#key, #language, #replace, #always)
 
 	public getstring(
-		-key::string,
-		-language::string = '',
-		-replace = ''
-	) => .getstring(#key, #language, #replace)
-
-	public getstring(
-		key::integer,
-		-language::string = '',
-		-replace = ''
-	) => .getstring(#key, #language, #replace)
-
-	public getstring(
-		-key::integer,
-		-language::string = '',
-		-replace = ''
-	) => .getstring(#key, #language, #replace)
+		-key::any,
+		-language::string = string,
+		-replace = string,
+		-always::boolean = false
+	) => .getstring(#key, #language, #replace, #always)
 
 	/**!
 	setlanguage
@@ -251,17 +253,17 @@ define knop_lang => type {
 		language::string
 	) => {
 
-		if(var( '_knop_data') -> type != 'map');
+		if(not var_defined('_knop_data')) => {
 			// page level caching
-			$_knop_data = map;
-		/if;
-		if(.validlanguage( #language));
-			.'currentlanguage' = #language;
+			var(_knop_data = map)
+		}
+		if(.validlanguage( #language)) => {
+			.'currentlanguage' = #language
 			// save page level language
-			$_knop_data -> insert('currentlanguage' = #language);
-		else;
-//			(self -> 'debug_trace') -> insert( tag_name + '### Could not set current language to ' + #language + ' since it does not exist in the lang object');
-		/if;
+			$_knop_data -> insert('currentlanguage' = #language)
+		else
+//			(self -> 'debug_trace') -> insert( tag_name + '### Could not set current language to ' + #language + ' since it does not exist in the lang object')
+		}
 	}
 
 	/**!
@@ -279,68 +281,71 @@ define knop_lang => type {
 	Autodetects and returns the most preferred language out of all available languages as specified by the browser's accept-language q-value.
 	**/
 	public browserlanguage() => {
-		local('browserlanguage' = string);
+		local(browserlanguage = string)
 
-		if(var( '_knop_data') -> type != 'map');
+		if(not var_defined('_knop_data')) => {
 			// page level caching
-			$_knop_data = map;
-		/if;
+			var(_knop_data = map)
+		}
 
-		if($_knop_data >> 'browserlanguage');
+		if($_knop_data >> 'browserlanguage') => {
 			// use page cache
-			#browserlanguage = $_knop_data -> find('browserlanguage');
+			#browserlanguage = $_knop_data -> find('browserlanguage')
 
-		else;
-			local('acceptlanguage' = web_request -> httpacceptlanguage);
-			local('browserlanguages' = array);
+		else
+			local(acceptlanguage = web_request -> httpacceptlanguage)
+			local(browserlanguages = array)
 
-			#acceptlanguage -> trim; // NOTE needed?
-//			(self -> 'debug_trace') -> insert( tag_name + '### Accept-Language: ' + #acceptlanguage);
-			#acceptlanguage = #acceptlanguage -> split( ',');
-			iterate(#acceptlanguage, local('language'));
-				#language = #language -> split( ';');
-				if(#language -> size == 1);
+			#acceptlanguage -> trim // NOTE needed?
+//			(self -> 'debug_trace') -> insert( tag_name + '### Accept-Language: ' + #acceptlanguage)
+			#acceptlanguage = #acceptlanguage -> split( ',')
+			with language in #acceptlanguage do => {
+				#language = #language -> split( ';')
+				if(#language -> size == 1) => {
 					// no q value specified, use default 1.0
-					#language -> insert( 'q=1.0');
-				/if;
-				(#language -> first) -> trim;
-				if(#language -> size >= 2 && #language -> first -> size > 0);
-					(#language -> get(2)) = (#language -> second) -> split( '=') -> last;
-					(#language -> second) -> trim;
-					#browserlanguages -> insert( decimal( (#language -> second)) = (#language -> first) );
-				/if;
-			/iterate;
-			#browserlanguages -> sort( true);
+					#language -> insert( 'q=1.0')
+				}
+				(#language -> first) -> trim
+				if(#language -> size >= 2 && #language -> first -> size > 0) => {
+					(#language -> get(2)) = (#language -> second) -> split( '=') -> last
+					(#language -> second) -> trim
+					#browserlanguages -> insert( decimal( (#language -> second)) = (#language -> first) )
+				}
+			}
+			#browserlanguages -> sort( true)
 
 			// find the most preferred language
-//			(self -> 'debug_trace') -> insert( tag_name + '### looking for matching languages ');
-			iterate(#browserlanguages, local('language'));
-				if(.validlanguage(#language -> second));
+//			(self -> 'debug_trace') -> insert( tag_name + '### looking for matching languages ')
+			local(languagetmp)
+			loop(#browserlanguages -> size) => {
+				#languagetmp = #browserlanguages -> get(loop_count)
+				if(.validlanguage(#languagetmp -> second)) => {
 					/// found a valid language
-					#browserlanguage = #language -> second;
-//					(self -> 'debug_trace') -> insert( tag_name + '### found valid language ' + #browserlanguage);
-					loop_abort;
-				/if;
-			/iterate;
-			if(#browserlanguage -> size == 0);
+					#browserlanguage = #languagetmp -> second
+//					(self -> 'debug_trace') -> insert( tag_name + '### found valid language ' + #browserlanguage)
+					loop_abort
+				}
+			}
+			if(#browserlanguage -> size == 0) => {
 				// no matching language found, try again without locale
-//				(self -> 'debug_trace') -> insert( tag_name + '### no valid language found, looking again without locale ' + #language);
-				iterate(#browserlanguages, local('language'));
-					(#language -> second) = (#language -> second) -> split( '-') -> first;
-					if(.validlanguage(#language -> second));
+//				(self -> 'debug_trace') -> insert( tag_name + '### no valid language found, looking again without locale ' + #language)
+				loop(#browserlanguages -> size) => {
+					#languagetmp = #browserlanguages -> get(loop_count)
+					(#languagetmp -> second) = (#languagetmp -> second) -> split( '-') -> first
+					if(.validlanguage(#languagetmp -> second)) => {
 						/// found a valid language
-						#browserlanguage = #language -> second;
-//						(self -> 'debug_trace') -> insert( tag_name + '### found valid language ' + #browserlanguage);
-						loop_abort;
-					/if;
-				/iterate;
-			/if;
-			$_knop_data -> insert('browserlanguage' = #browserlanguage);
-		/if;
+						#browserlanguage = #languagetmp -> second
+//						(self -> 'debug_trace') -> insert( tag_name + '### found valid language ' + #browserlanguage)
+						loop_abort
+					}
+				}
+			}
+			$_knop_data -> insert('browserlanguage' = #browserlanguage)
+		}
 
-//		self -> 'tagtime_tagname' = tag_name;
-//		self -> 'tagtime' = integer(#timer); // cast to integer to trigger onconvert and to "stop timer"
-		return #browserlanguage;
+//		self -> 'tagtime_tagname' = tag_name
+//		self -> 'tagtime' = integer(#timer) // cast to integer to trigger onconvert and to "stop timer"
+		return #browserlanguage
 	}
 
 	/**!
@@ -349,20 +354,20 @@ define knop_lang => type {
 	Parameters:
 	-language (optional) string or array of strings.
 	**/
-	public languages(language = '') => {
-		local('languages' = .'strings' -> keys -> asarray);
-		if(#language -> size > 0);
+	public languages(language = string) => {
+		local(languages = .'strings' -> keys -> asarray)
+		if(#language -> size > 0) => {
 
-			#language = #language -> ascopy;
+			#language = #language -> ascopy
 
-			!(#language -> isa( 'array')) ? #language = array(#language);
+			!(#language -> isa(::array)) ? #language = array(#language)
 
-			#languages -> sort;
-			#language -> sort;
+			#languages -> sort
+			#language -> sort
 			// get the languages that exist in both arrays
-			#languages = #languages -> intersection( #language);
-		/if;
-		return #languages;
+			#languages = #languages -> intersection( #language)
+		}
+		return #languages
 	}
 
 	/**!
@@ -371,26 +376,26 @@ define knop_lang => type {
 	**/
 	public keys() => {
 
-		if(!.'keys' -> isa( 'array'));
-			local('keysarray' = array);
-//			local('keysmap' = map); // NOTE not used?
-			local('keysarray_new' = array);
+		if(!.'keys' -> isa(::array)) => {
+			local(keysarray = array)
+//			local(keysmap = map) // NOTE not used?
+			local(keysarray_new = array)
 			// no cached result yet - create list of all keys
-			iterate(.'strings', local('strings_language'));
-				#keysarray_new = #strings_language -> value -> keys -> asarray;
-				#keysarray_new -> sort;
-				#keysarray -> sort;
+			with strings_language in .'strings' do => {
+				#keysarray_new = #strings_language -> keys -> asarray
+				#keysarray_new -> sort
+				#keysarray -> sort
 				// add the keys that are not already in #keysarray by using union
-				#keysarray = #keysarray -> union( #keysarray_new);
-			/iterate;
-			.'keys' = #keysarray;
-		/if;
-		return .'keys';
+				#keysarray = #keysarray -> union( #keysarray_new)
+			}
+			.'keys' = #keysarray
+		}
+		return .'keys'
 
 	}
 
 }
 
-log_critical('load knop_lang ended')
+//log_critical('loading knop_lang done')
 
 ?>

@@ -1,5 +1,5 @@
 ﻿<?LassoScript
-log_critical('loading knop_nav from LassoApp')
+log_critical('loading knop_nav')
 
 /**!
 knop_nav
@@ -10,6 +10,11 @@ define knop_nav => type {
 /*
 
 CHANGE NOTES
+	2012-11-26	JC	Added support for divider list item in bootstrap
+	2012-11-26	JC	Added param raw
+	2012-11-26	JC	Fixes for bootstrap rendering
+	2012-09-11	JC	Minor tweak to getlocation adding knop_trim
+	2012-07-08	JC	Fixed bug that was using type as a reference instead of a copy in method filename
 	2012-06-10	JC	Changed += to append. Changed iterate to query expr. or loop.
 	2012-05-19	JC	Changed web_request->scriptURL to web_request->fcgiReq->requestParams->find(::REQUEST_URI)->asString -> split('?') -> first to make it consistent between different Apache platforms
 	2012-05-18	JC	Fixed bug in getnav that would change the supplied path param instead of copying it
@@ -24,7 +29,7 @@ CHANGE NOTES
 
 	parent knop_base
 
-	data public version = '2012-06-10'
+	data public version = '2012-11-26'
 
 	// instance variables
 	data public navitems::array = array
@@ -71,7 +76,7 @@ Parameters:\n\
 	public oncreate(
 		template::string = '',
 		class::string = '',
-		currentclass::string = '',
+		currentclass::string = 'crnt',
 		currentmarker::string = '',
 		default::string = '',
 		root::string = '/',
@@ -118,7 +123,7 @@ Parameters:\n\
 	public oncreate(
 		-template::string = '',
 		-class::string = '',
-		-currentclass::string = '',
+		-currentclass::string = 'crnt',
 		-currentmarker::string = '',
 		-default::string = '',
 		-root::string = '/',
@@ -158,7 +163,9 @@ Inserts a nav item into the nav array
 		after::any = string,
 		target::any = string,
 		data::any = string,
-		hide::boolean = false
+		hide::boolean = false,
+		raw::string = string,
+		divider::boolean = false
 	) => {
 //	debug => {
 
@@ -181,7 +188,9 @@ Inserts a nav item into the nav array
 			'after' = string(#after),
 			'target' = string(#after),
 			'data' = string(#data),
-			'hide' = #hide
+			'hide' = #hide,
+			'raw' = #raw,
+			'divider' = #divider
  		))
 
 		if(#children -> isa('knop_nav')) => {
@@ -219,8 +228,10 @@ Inserts a nav item into the nav array
 		-after::any = string,
 		-target::any = string,
 		-data::any = string,
-		-hide::boolean = false
-	) => .insert(#key, #label, #default, #url, #title, #id, #template, #children, #param, #class, #filename, #disabled, #after, #target, #data, #hide)
+		-hide::boolean = false,
+		-raw::string = string,
+		-divider::boolean = false
+	) => .insert(#key, #label, #default, #url, #title, #id, #template, #children, #param, #class, #filename, #disabled, #after, #target, #data, #hide, #raw, #divider)
 
 /**!
 Render hierarchial nav structure.\n\
@@ -238,68 +249,169 @@ Render hierarchial nav structure.\n\
 		toplevel::boolean = true,
 		xhtml::boolean = false,
 		patharray = .'patharray' -> ascopy,
-		levelcount::integer = 1
-	) => {
-//	debug => {
+		levelcount::integer = 1,
+		bootstrap::boolean = false
+	) => debug => {
 
 		local(output = string)
-
 		#items -> size == 0 ? #items = .'navitems'
 
 		local(localkeyval = #keyval -> ascopy)
 		local(navitem = null)
 		local(levelcounted = false)
 		.'renderhtml_levels' = #levelcount -> ascopy
-		#output -> append('<ul' + (#toplevel && .'class' -> size > 0 ? ' class="' + .'class' + '"') + '>\r')
 
-		with itemtmp in #items do => {
-			#navitem = #itemtmp -> value
-			#localkeyval -> insert(#navitem -> find('key'))
+		if(#bootstrap) => {
 
-			if(!(#navitem -> find('hide'))) => {
-				#output -> append('<li' + (#navitem -> find('class') -> size > 0 ? ' class="' + #navitem -> find('class') + '"') + '>\r')
-
-				if(#navitem -> find('disabled')) => {
-					#output -> append('<span' + (#navitem -> find('class') -> size > 0 ? ' class="' + #navitem -> find('class') + '"') + ' disabled="disabled">' + #navitem -> find('label') + '</span>')
-
-				else
-/* code from original nav
-		if((#topself -> 'navmethod') == 'param') => {
-			#url = './?' + #url + (#urlparams -> size || (local: 'urlargs') != '' ? '&amp;')
-		else  // path
-			#url = (#topself -> 'root') + #url +  (#urlparams -> size || (local: 'urlargs') != '' ? '?')
-		}
-TODO Still need to implement urlparams support
+/*
+<ul class="nav nav-pills">
+            <li class="active"><a href="#">Regular link</a></li>
+            <li class="dropdown">
+              <a href="#" data-toggle="dropdown" class="dropdown-toggle">Dropdown <b class="caret"></b></a>
+              <ul class="dropdown-menu" id="menu1">
+                <li><a href="#">Action</a></li>
+                <li><a href="#">Another action</a></li>
+                <li><a href="#">Something else here</a></li>
+                <li class="divider"></li>
+                <li><a href="#">Separated link</a></li>
+              </ul>
+            </li>
+            <li class="dropdown">
+              <a href="#" data-toggle="dropdown" class="dropdown-toggle">Dropdown 2 <b class="caret"></b></a>
+              <ul class="dropdown-menu" id="menu2">
+                <li><a href="#">Action</a></li>
+                <li><a href="#">Another action</a></li>
+                <li><a href="#">Something else here</a></li>
+                <li class="divider"></li>
+                <li><a href="#">Separated link</a></li>
+              </ul>
+            </li>
+            <li class="dropdown">
+              <a href="#" data-toggle="dropdown" class="dropdown-toggle">Dropdown 3 <b class="caret"></b></a>
+              <ul class="dropdown-menu" id="menu3">
+                <li><a href="#">Action</a></li>
+                <li><a href="#">Another action</a></li>
+                <li><a href="#">Something else here</a></li>
+                <li class="divider"></li>
+                <li><a href="#">Separated link</a></li>
+              </ul>
+            </li>
+          </ul>
 */
+			local(gotchildren = false)
+			local(li_class = array)
+			local(a_class = array)
 
-					#output -> append('<a href="' +
-						(.'navmethod' == 'param' ? './?') +
-						(#navitem -> find('url') -> size > 0 ? #navitem -> find('url') | '/' + #localkeyval -> join('/') + '/') +
-						'"' +
-						(#navitem -> find('id') -> size > 0 ? ' id="' + #navitem -> find('id') + '"') +
-						(#navitem -> find('class') -> size > 0 ? ' class="' + #navitem -> find('class') + '"') +
-						(#navitem -> find('title') -> size > 0 ? ' title="' + #navitem -> find('title') + '"') +
-						(#navitem -> find('target') -> size > 0 ? ' target="' + #navitem -> find('target') + '"') +
-						'>' + #navitem -> find('label') + '</a>'
-					)
+			#output -> append('<ul' + (#toplevel && .'class' -> size > 0 ? ' class="' + .'class' + '"' | ' class="dropdown-menu"') + '>\r')
 
-				} // (#navitem -> find('disabled'))
+			with itemtmp in #items do => {
+				#navitem = #itemtmp -> value
+				#localkeyval -> insert(#navitem -> find('key'))
 
-				if((!#flat || #patharray -> first == #navitem -> find('key')) && #navitem >> 'children' && #navitem -> find('children') -> isa('array') && #navitem -> find('children') -> size) => {
-					local(subpatharray = #patharray -> ascopy)
-					#subpatharray -> size > 0 ? #subpatharray -> removefirst
-					!#levelcounted ? #levelcount += 1
-					#levelcounted = true
-					#output -> append(.renderhtml(#navitem -> find('children'), #localkeyval -> ascopy, #flat, false, #xhtml, #subpatharray, #levelcount))
-				} // (!#flat || #patharray -> first == #navitem -> find('key')) && #navitem >> 'children' && #navitem -> find('children') -> isa('array') && #navitem -> find('children') -> size
-				#output -> append('</li>\r')
-			} // !(#navitem -> find('hide'))
-			#localkeyval = #keyval -> ascopy
-		} //with
-		#output -> append('</ul>\r')
+				if(#navitem -> find('divider')) => {
+					#output -> append('<li class="divider"></li>\r')
+				else(not (#navitem -> find('hide')))
+
+					#li_class = array
+					#a_class = array
+					if(#navitem -> find('class') -> size > 0) => {
+						#li_class -> insert(#navitem -> find('class'))
+						#a_class -> insert(#navitem -> find('class'))
+					}
+
+					#gotchildren = (((not #flat || #patharray -> first == #navitem -> find('key')) && #navitem >> 'children' && #navitem -> find('children') -> isa('array') && #navitem -> find('children') -> size) ? true | false)
+
+					if(#gotchildren) => {
+						#li_class -> insert('dropdown')
+						#a_class -> insert('dropdown-toggle')
+					}
+
+					#output -> append('<li' + (#li_class -> size > 0 ? ' class="' + #li_class -> join(' ') + '"') + '>\r')
+
+					if(#navitem -> find('disabled')) => {
+						#output -> append('<a href="#"' + (#navitem -> find('class') -> size > 0 ? ' class="' + #navitem -> find('class') + '"') + ' disabled="disabled">' + #navitem -> find('label') + '</a>')
+
+					else
+
+						#output -> append('<a href="' +
+							(.'navmethod' == 'param' ? './?') +
+							(#navitem -> find('url') -> size > 0 ? #navitem -> find('url') | '/' + #localkeyval -> join('/') + '/') +
+							'"' +
+							(#navitem -> find('id') -> size > 0 ? ' id="' + #navitem -> find('id') + '"') +
+							(#a_class -> size > 0 ? ' class="' + #a_class -> join(' ') + '"') +
+							(#gotchildren ? ' data-toggle="dropdown"') +
+							(#navitem -> find('title') -> size > 0 ? ' title="' + #navitem -> find('title') + '"') +
+							(#navitem -> find('target') -> size > 0 ? ' target="' + #navitem -> find('target') + '"') +
+							(#navitem -> find('raw') -> size > 0 ? ' ' + #navitem -> find('raw')) +
+							'>' + #navitem -> find('label') + '</a>'
+						)
+
+					} // (#navitem -> find('disabled'))
+
+					if(#gotchildren and not #navitem -> find('disabled')) => {
+						local(subpatharray = #patharray -> ascopy)
+						#subpatharray -> size > 0 ? #subpatharray -> removefirst
+						!#levelcounted ? #levelcount += 1
+						#levelcounted = true
+						#output -> append(.renderhtml(#navitem -> find('children'), #localkeyval -> ascopy, #flat, false, #xhtml, #subpatharray, #levelcount, true))
+					} // (!#flat || #patharray -> first == #navitem -> find('key')) && #navitem >> 'children' && #navitem -> find('children') -> isa('array') && #navitem -> find('children') -> size
+					#output -> append('</li>\n')
+				} // !(#navitem -> find('hide'))
+				#localkeyval = #keyval -> ascopy
+			} //with
+			#output -> append('</ul>\r')
+		else // not bootstrap
+			#output -> append('<ul' + (#toplevel && .'class' -> size > 0 ? ' class="' + .'class' + '"') + '>\r')
+
+			with itemtmp in #items do => {
+				#navitem = #itemtmp -> value
+				#localkeyval -> insert(#navitem -> find('key'))
+
+				if(!(#navitem -> find('hide'))) => {
+					#output -> append('<li' + (#navitem -> find('class') -> size > 0 ? ' class="' + #navitem -> find('class') + '"') + '>\r')
+
+					if(#navitem -> find('disabled')) => {
+						#output -> append('<span' + (#navitem -> find('class') -> size > 0 ? ' class="' + #navitem -> find('class') + '"') + ' disabled="disabled">' + #navitem -> find('label') + '</span>')
+
+					else
+	/* code from original nav
+			if((#topself -> 'navmethod') == 'param') => {
+				#url = './?' + #url + (#urlparams -> size || (local: 'urlargs') != '' ? '&amp;')
+			else  // path
+				#url = (#topself -> 'root') + #url +  (#urlparams -> size || (local: 'urlargs') != '' ? '?')
+			}
+	TODO Still need to implement urlparams support
+	*/
+
+						#output -> append('<a href="' +
+							(.'navmethod' == 'param' ? './?') +
+							(#navitem -> find('url') -> size > 0 ? #navitem -> find('url') | '/' + #localkeyval -> join('/') + '/') +
+							'"' +
+							(#navitem -> find('id') -> size > 0 ? ' id="' + #navitem -> find('id') + '"') +
+							(#navitem -> find('class') -> size > 0 ? ' class="' + #navitem -> find('class') + '"') +
+							(#navitem -> find('title') -> size > 0 ? ' title="' + #navitem -> find('title') + '"') +
+							(#navitem -> find('target') -> size > 0 ? ' target="' + #navitem -> find('target') + '"') +
+							(#navitem -> find('raw') -> size > 0 ? ' ' + #navitem -> find('raw')) +
+							'>' + #navitem -> find('label') + '</a>'
+						)
+
+					} // (#navitem -> find('disabled'))
+
+					if((!#flat || #patharray -> first == #navitem -> find('key')) && #navitem >> 'children' && #navitem -> find('children') -> isa('array') && #navitem -> find('children') -> size) => {
+						local(subpatharray = #patharray -> ascopy)
+						#subpatharray -> size > 0 ? #subpatharray -> removefirst
+						!#levelcounted ? #levelcount += 1
+						#levelcounted = true
+						#output -> append(.renderhtml(#navitem -> find('children'), #localkeyval -> ascopy, #flat, false, #xhtml, #subpatharray, #levelcount))
+					} // (!#flat || #patharray -> first == #navitem -> find('key')) && #navitem >> 'children' && #navitem -> find('children') -> isa('array') && #navitem -> find('children') -> size
+					#output -> append('</li>\r')
+				} // !(#navitem -> find('hide'))
+				#localkeyval = #keyval -> ascopy
+			} //with
+			#output -> append('</ul>\r')
+		}
 
 		return #output
-//	} // end debug
 	}
 
 	public renderhtml(
@@ -309,8 +421,9 @@ TODO Still need to implement urlparams support
 		-toplevel::boolean = true,
 		-xhtml::boolean = false,
 		-patharray = .'patharray' -> ascopy,
-		-levelcount::integer = 1
-	) => .renderhtml(#items, #keyval, #flat, #toplevel, #xhtml, #patharray, #levelcount)
+		-levelcount::integer = 1,
+		-bootstrap::boolean = false
+	) => .renderhtml(#items, #keyval, #flat, #toplevel, #xhtml, #patharray, #levelcount, #bootstrap)
 
 /**!
 setlocation
@@ -357,11 +470,11 @@ Grabs path and actionpath from params or urlhandler, translates from url to path
 			.'pathargs' = string
 			.'actionpath' = string
 
-			// get action path
-			local('clientparams' = tie(web_request -> queryParams, web_request -> postParams) -> asStaticArray)
+			local(clientparams = tie(web_request -> queryParams, web_request -> postParams) -> asStaticArray)
 
-			#actionpath = (#clientparams >> '-action' ? string(#clientparams -> find('-action') -> first -> value) | string)
-			#actionpath -> removeleading('/') & removetrailing('/')
+			// get action path
+			#actionpath = (#clientparams >> '-action' ? string(#clientparams -> find('-action') -> first -> value) -> knop_trim('/')& | string)
+
 			// validate action path
 			if(#actionpath -> size && .'pathmap' >> #actionpath) => {
 				.'actionpath' = #actionpath
@@ -613,7 +726,6 @@ Returns a map of all existing knop file paths.
 		local('dirlist' = map)
 		local('diritem' = string)
 		local('dirlist_sub' = map)
-		local('diritem_sub' = pair)
 		local('defaultitems' = map('_knop', '_include', '_config', '_action', '_library', '_content'))
 
 		with diritem in file_listdirectory(#path) do {
@@ -851,7 +963,7 @@ Returns the full path to the specified type of precissing file for the current n
 			#filenamearray  == '' ? #filenamearray = #path
 			#filenamearray = #filenamearray -> split('/')
 		}
-		#type =='actcfg' ? #prefix = 'cfg' | #prefix = #type
+		#type =='actcfg' ? #prefix = 'cfg' | #prefix = string(#type)
 		#type_short = #prefix
 		#typefolder = #typefoldermap -> find(#type)
 
@@ -1478,6 +1590,6 @@ trace // can wait
     }
 
 }
-log_critical('loading knop_nav done')
+//log_critical('loading knop_nav done')
 
 ?>
