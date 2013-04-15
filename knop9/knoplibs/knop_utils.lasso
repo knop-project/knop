@@ -1,8 +1,9 @@
 ﻿<?Lasso
-log_critical('loading knop_utils from LassoApp')
+log_critical('loading knop_utils')
 /*
 	CHANGE NOTES
 
+	2012-11-03	JC	Cleaned up code for knop_crypthash making sure it can take bytes as input for string value and made it look better
 	2012-06-25	JC	Added knop_response_filepath
 	2012-06-24	JC	Enhancing knop_stripbackticks to deal with more than strings
 	2012-06-11	JC	knop_math_hexToDec; changed iterate to loop to speed it up
@@ -61,11 +62,13 @@ if(!tag_exists('knop_debug')) => {
 */
 
 /**!
-Safer than using Lasso 9 response_filepath when dealing wit hone file systems on Apache
+knop_response_filepath
+Safer than using Lasso 9 response_filepath when dealing with one-file systems on Apache
 **/
 define knop_response_filepath => web_request->fcgiReq->requestParams->find(::REQUEST_URI)->asString -> split('?') -> first
 
 /**!
+knop_affected_count
 Adding a affected_count method pending a native implementation in Lasso 9
 Used in sql updates, deletes etc returning number of rows affected by the change
 **/
@@ -74,6 +77,7 @@ define knop_affected_count => var_defined('__updated_count__') ? integer($__upda
 
 
 /**!
+knop_stripbackticks
 Remove backticks (`) from a string to make it safe for MySQL object names
 **/
 define knop_stripbackticks(input::string) => #input -> split('`') -> first
@@ -81,6 +85,7 @@ define knop_stripbackticks(input::bytes) => #input -> split('`') -> first
 define knop_stripbackticks(input::any) => knop_stripbackticks(string(#input))
 
 /**!
+knop_unique
 Original version
 Returns a very unique but still rather short random string. Can in most cases be replaced by the Lasso 9 version of lasso_unique since it's safer than the pre 9 version.
 **/
@@ -205,6 +210,7 @@ define knop_foundrows => { // Originally from http://tagswap.net/found_rows
 }
 
 /**!
+knop_IDcrypt
 Encrypts or Decrypts integer values
 **/
 define knop_IDcrypt(
@@ -299,16 +305,15 @@ seed::string = ''
 }
 
 /**!
+knop_timer
 Utility type to provide a simple timer
-Usage::
-
-	Initialise  var(timer = knop_timer)
-	Read        $timer
-	Math        100 + $timer or $timer + 100
-		  		100 - $timer or $timer - 100
-
+Usage:
+Initialise  var(timer = knop_timer)
+Read        $timer
+Math        100 + $timer or $timer + 100
+		  100 - $timer or $timer - 100
 For other integer handling wrap it in integer first
-``integer($timer)``
+		  integer($timer)
 **/
 define knop_timer => type {
 
@@ -359,15 +364,14 @@ define integer -> +(rhs::knop_timer) => self + #rhs -> time
 define integer -> -(rhs::knop_timer) => self - #rhs -> time
 define integer(f::knop_timer) => #f -> time
 
-/**!
+/**
+knop_client_params
 Returns a static array of GET/POST parameters passed from the client.
 An optional param "method" can direct it to return only post or get params
-
-Example usage::
-
-	knop_client_params;
-	knop_client_params('post');
-	knop_client_params(-method = 'get');
+Example usage:
+knop_client_params;
+knop_client_params('post');
+knop_client_params(-method = 'get');
 
 Based on same code as action_params but without the inline sensing parts.
 */
@@ -382,17 +386,17 @@ define knop_client_params(-method::string = '') => knop_client_params(#method)
 
 
 
-/**!
+/**
+knop_client_param
 Returns the value of a client GET/POST parameter
 
-Example usage::
-
-	knop_client_param('my');
-	knop_client_param('my', 2);
-	knop_client_param('my', 'get');
-	knop_client_param('my', 2, 'post');
-	knop_client_param('my', -count);
-	knop_client_param('my', 'get', -count);
+Example usage
+knop_client_param('my');
+knop_client_param('my', 2);
+knop_client_param('my', 'get');
+knop_client_param('my', 2, 'post');
+knop_client_param('my', -count);
+knop_client_param('my', 'get', -count);
 
 Inspired by Bil Corrys lp_client_param
 Lasso 9 version by Jolle Carlestam
@@ -455,8 +459,12 @@ define knop_encrypt(
 	) => knop_encrypt(#data, #salt, #cipher)
 
 
+/**!
+knop_crypthash
+
+**/
 define knop_crypthash(
-	string::string, // text to hash, or check hash against
+	string::any, // text to hash, or check hash against
 	cost::integer = 20, // default is 20, can be any number between 1 and 2000
 	saltLength::integer = -1, // default is a random length between 10 and 20, you can set it to a static size
 	hash::string = '', // known hash to compare unknown hash against
@@ -472,68 +480,74 @@ define knop_crypthash(
 
 		as configured, the largest size the hash returned will be 87 characters
 	*/
-	#cost > 2000 ? #cost = 2000
+	local(_string = string(#string))
+	local(_cost = integer(#cost))
+	local(_saltLength = integer(#saltLength))
+	local(_hash = string(#hash))
+	local(_salt = #salt -> ascopy)
+
+	#_cost > 2000 ? #_cost = 2000
+
 
 	// get hash, if possible
-	if(#hash != '' && #salt == '')
-			fail_if(#hash -> size < 14, -1, 'hash size too small')
-			local('lassoVersion' = #hash -> substring(1, 6))
-			local('costLength' = integer(#hash -> substring(7,1)))
-			local('cost' = integer(#hash->substring(8, #costLength)))
-			local('saltLength' = knop_math_hexToDec(#hash -> substring(8 + #costLength, 4)))
-			local('salt' = #hash->substring(12 + #costLength, #saltLength))
-			#hash = #hash->substring(12 + #costLength + #saltLength)
-	else(#salt == '')
+	if(#_hash != '' && #_salt == '') => {
+			fail_if(#_hash -> size < 14, -1, 'hash size too small')
+//			local(lassoVersion = #_hash -> substring(1, 6)) //not used
+			local(costLength = integer(#_hash -> substring(7,1)))
+			#_cost = integer(#_hash->substring(8, #costLength))
+			#_saltLength = knop_math_hexToDec(#_hash -> substring(8 + #costLength, 4))
+			#_salt = #_hash->substring(12 + #costLength, #_saltLength)
+			#_hash = #_hash->substring(12 + #costLength + #_saltLength)
+	else(#_salt == '')
 		// code snippet from Bil Corrys lp_string_random
 		local('alphanumeric' = 'abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ')
 
-		#saltLength < 1 ? #saltLength = math_random(16, 32)
-		loop(integer(#saltLength));
-			#salt += #alphanumeric -> get(math_random( -lower = 1, -upper = 62))
-		/loop
+		#_saltLength < 1 ? #_saltLength = math_random(16, 32)
+		loop(#_saltLength) => {
+			#_salt += #alphanumeric -> get(math_random( -lower = 1, -upper = 62))
+		}
 
 
-	/if
+	}
 
-	(#cost < 1) ? #cost = 1
+	(#_cost < 1) ? #_cost = 1
 
-	loop(#cost)
-		#string = string(cipher_digest((#salt + #string), -digest = #cipher, -hex))
-	/loop
+	loop(#_cost) => {
+		#_string = string(cipher_digest((#_salt + #_string), -digest = #cipher, -hex))
+	}
 
-	if(#hash != '');
-		if(#hash == #string);
-			return(true);
+	if(#_hash != '') => {
+		if(#_hash == #_string) => {
+			return true
 		else;
-			return(false);
-		/if;
-	/if;
+			return false
+		}
+	}
 
-	if(#map)
-		return(map('hash' = #string, 'salt' = #salt, 'cost' = #cost, 'cipher' = #cipher))
-	/if
+	if(#map) => {
+		return(map('hash' = #_string, 'salt' = #_salt, 'cost' = #_cost, 'cipher' = #cipher))
+	}
 
 	local(edition = string(lasso_version(-lassoedition)) -> get(1))
-	#edition += string(lasso_version(-lassoplatform)) -> get(1)
-	local(version = lasso_version(-lassoversion))
-	#version = #version -> split('.')
-	if(#version -> size < 4)
-		loop(4 - #version -> size)
+	#edition ->append(string(lasso_version(-lassoplatform)) -> get(1))
+	local(version = lasso_version(-lassoversion) -> split('.'))
+	if(#version -> size < 4) => {
+		loop(4 - #version -> size) => {
 			#version -> insert('0')
-		/loop
-	/if
+		}
+	}
 
-	local(newsaltLength = knop_math_dectohex(#salt->size))
+	local(newsaltLength = knop_math_dectohex(#_salt->size))
 
 	#newsaltLength = ('0' * (4 - #newsaltLength->size)) + #newsaltLength
 
 
-	return(#edition + (#version -> join('')) -> substring(1,6) + string(#cost)->size + #cost + #newsaltLength + #salt + #string)
+	return #edition + (#version -> join('')) -> substring(1,6) + string(#_cost)->size + #_cost + #newsaltLength + #_salt + #_string
 
 }
 
 define knop_crypthash(
-	string::string,
+	string::any,
 	-cost::integer = 20,
 	-saltLength::integer = -1,
 	-hash::string = '',
@@ -543,6 +557,10 @@ define knop_crypthash(
 	) => knop_crypthash(#string, #cost, #saltLength, #hash, #salt, #cipher, #map)
 
 
+/**!
+knop_blowfish
+
+**/
 define knop_blowfish(
 	string::string,
 	mode::string,
@@ -606,6 +624,7 @@ define knop_blowfish(
 
 
 /**!
+knop_math_hexToDec
 Returns a base10 integer given a base16 string.
 **/
 define knop_math_hexToDec(
@@ -634,6 +653,7 @@ define knop_math_hexToDec(
 }
 
 /**!
+knop_math_decToHex
 Returns a base16 string given a base10 integer.
 **/
 define knop_math_decToHex(
@@ -665,6 +685,7 @@ define string -> knop_trim(trim::string) => {
 }
 
 /**!
+knop_encodesql_full
 Alternative to encode_sql that also deals with escaping % and _ so that the resulting string can be safely used when creating sql queries with LIKE sections.
 See Bil Corrys talk from LDC Chicago 2008
 
@@ -717,6 +738,6 @@ define knop_trait_providesProperties => trait {
 	}
 }
 */
-log_critical('loading knop_utils done')
+//log_critical('loading knop_utils done')
 
 ?>
