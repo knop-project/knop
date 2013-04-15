@@ -2,17 +2,22 @@
 log_critical('loading knop_grid')
 
 /**!
+knop_grid
 Custom type to handle data grids (record listings).
 **/
 define knop_grid => type {
 	parent knop_base
 
-	data public version = '2012-05-18'
+	data public version = '2012-10-30'
 
 /*
 
 CHANGE NOTES
 
+	2012-10-30	JC	Fixed bug preventing quicksearch hint and input field to work properly
+	2012-10-21	JC	Changed old style if to Lasso 9 proper. Removed quotes from local declarations. Replaced .'xxx' with 'xxx. Replaced iterate with query expression. Replaced += with append.
+	2012-10-21	JC	Added support for bootstrap quicksearch form
+	2012-10-21	JC	Changed -> type == 'xxx' to -> isa(::xxx)
 	2012-05-19	JC	Added -getargs = false when creating url_cached
 	2012-05-18	JC	Fixed bug that would not populate dbfield and label if only a name param was supplied
 	2011-12-20	JC	Added support for jquery row sorting
@@ -46,11 +51,11 @@ Move templates to a member tag to be make it easier to subclass
 	data public database
 	data public nav = null
 
-	data public quicksearch::string = 'Quicksearch'
+	data public quicksearch_string::string = 'Quicksearch'
 	data public quicksearch_form
 	data public quicksearch_form_reset
-	data public rawheader::string = ''
-	data public class::string = ''
+	data public rawheader::string = string
+	data public class::string = string
 
 	data public tbl_id::string = 'grid'
 	data public qs_id::string = 'quicksearch'
@@ -66,49 +71,34 @@ Move templates to a member tag to be make it easier to subclass
 	data public rowsorting
 
 /**!
-Parameters:
-	- database (required database)
-	  Database object that the grid object will interact with
-
-	- nav (optional nav)
-	  Navigation object to interact with
-
-	- quicksearch (optional)
-	  Label text for the quick search field
-
-	- rawheader (optional)
-	  Extra html to be inserted in the grid header
-
-	- class (optional)
-	  Extra classes to be inserted in the grid header. The standard class "grid" is always inserted
-
-	- id (optional)
-	  Creates a custom id used for table, quicksearch and quicksearch_reset
-
-	- nosort (optional flag)
-	  Global setting for the entire grid (overrides column specific sort options)
-
-	- language (optional)
-	  Language to use for the grid, defaults to the browser's preferred language
-
-	- numbered (optional flag or integer)
-	  If specified, pagination links will be shown as page numbers instead of regular prev/next links. 
-	  Defaults to 6 links, specify another number (minimum 6) if more numbers are wanted. Can be specified in ->renderhtml as well.
+oncreate
+Parameters:\n\
+			-database (required database) Database object that the grid object will interact with\n\
+			-nav (optional nav) Navigation object to interact with\n\
+			-quicksearch (optional) Label text for the quick search field\n\
+			-rawheader (optional) Extra html to be inserted in the grid header\n\
+			-class (optional) Extra classes to be inserted in the grid header. The standard class "grid" is always inserted\n\
+			-id (optional) Creates a custom id used for table, quicksearch and quicksearch_reset\n\
+			-nosort (optional flag) Global setting for the entire grid (overrides column specific sort options)\n\
+			-language (optional) Language to use for the grid, defaults to the browser\'s preferred language\n\
+			-numbered (optional flag or integer) If specified, pagination links will be shown as page numbers instead of regular prev/next links. Defaults to 6 links, specify another number (minimum 6) if more numbers are wanted. Can be specified in ->renderhtml as well.
 **/
 	public oncreate(
 		database::knop_database,
-		nav::any = '',
+		nav::any = string,
 		quicksearch = false,
-		rawheader::string = '',
-		class::string = '',
-		id::string = '',
+		rawheader::string = string,
+		class::string = string,
+		id::string = string,
 		nosort = false,
 		language::string = 'en',
 		numbered::any = false,
-		rowsorting::boolean = false
+		rowsorting::boolean = false,
+		quicksearch_btnclass = string
 		) => {
 
-		local('lang' = .'lang')
+		local(lang = .'lang')
+
 		#lang -> addlanguage(-language = 'en', -strings = map(
 			'quicksearch_showall' = 'Show all',
 			'quicksearch_search' = 'Search',
@@ -155,72 +145,76 @@ Parameters:
 
 		//need to review and address the following functionality TT Feb4, 2011
 		// the following params are stored as reference, so the values of the params can be altered after adding a field simply by changing the referenced variable.
-		.'database' = #database
-		#nav -> isa('knop_nav') ? .'nav' = #nav
+		.database = #database
+		#nav -> isa(::knop_nav) ? .nav = #nav
 
-		.'nosort' = #nosort
-		.'rowsorting' = #rowsorting
 
-		.'numbered' = (#numbered != false ? integer(#numbered) | false)
+		.nosort = #nosort
+		.rowsorting = #rowsorting
+
+		.numbered = (#numbered != false ? integer(#numbered) | false)
 
 		#class -> size > 0 ?
-			.'class' = #class
+			.class = #class
 
-		if(#id -> size > 0);
-			.'tbl_id' = #id + '_grid';
-			.'qs_id' = #id + '_quicksearch';
-			.'qsr_id' = #id + '_qs_reset';
-		/if;
+		if(#id -> size > 0) => {
+			.tbl_id = #id + '_grid'
+			.qs_id = #id + '_quicksearch'
+			.qsr_id = #id + '_qs_reset'
+		}
 
-		local('clientparams' = knop_client_params)
+		local(clientparams = knop_client_params)
 
-		if(!.'nosort')
-			.'sortfield' = (#clientparams >> '-sort' ? string(#clientparams -> find('-sort') -> first -> value) | string);
-			.'sortdescending' = (#clientparams >> '-desc')
-		/if
-		.'page' = (#clientparams >> '-page' ? integer(#clientparams -> find('-page') -> first -> value) | 1)
-		.'page' < 1 ? .'page' = 1
 
-		if(#quicksearch != false) => {
+		if(!.nosort) => {
+			.sortfield = (#clientparams >> '-sort' ? string(#clientparams -> find('-sort') -> first -> value) | string)
+			.sortdescending = (#clientparams >> '-desc')
+		}
+		.page = (#clientparams >> '-page' ? integer(#clientparams -> find('-page') -> first -> value) | 1)
+		.page < 1 ? .page = 1
 
-			.'quicksearch' = (#quicksearch -> isa(::string) && #quicksearch -> size > 0 ? #quicksearch | 'Quicksearch')
+		if(#quicksearch) => {
 
-			.'quicksearch_form' = knop_form(-name = 'quicksearch', -id = .'qs_id', -formaction = './', -method = 'get', -template = '#field#\n', -noautoparams)
-			.'quicksearch_form_reset' = knop_form(-name = 'quicksearch_reset', -id = .'qsr_id', -formaction = './', -method = 'get', -template = '#field#\n', -noautoparams)
-			local('autosavekey' = server_name + response_path)
-			if(.'nav'-> type == 'knop_nav' && .'nav' -> 'navmethod'=='param')
-				.'quicksearch_form' -> addfield(-type = 'hidden', -name = '-path', -value= .'nav' -> path)
-				.'quicksearch_form_reset' -> addfield(-type = 'hidden', -name = '-path', -value = .'nav' -> path)
+			#quicksearch -> isa(::string) && #quicksearch -> size > 0 ? .quicksearch_string = #quicksearch
+			.quicksearch_form = knop_form(-name = 'quicksearch', -id = .qs_id, -formaction = './', -method = 'get', -template = '#field#\n', -class= 'form-search', -noautoparams)
+			.quicksearch_form_reset = knop_form(-name = 'quicksearch_reset', -id = .qsr_id, -formaction = './', -method = 'get', -template = '#field#\n', -class= 'form-search', -noautoparams)
+			local(autosavekey = server_name + response_path)
+			if(.nav-> isa(::knop_nav) && .nav -> 'navmethod'=='param') => {
+				.quicksearch_form -> addfield(-type = 'hidden', -name = '-path', -value= .nav -> path)
+				.quicksearch_form_reset -> addfield(-type = 'hidden', -name = '-path', -value = .nav -> path)
 				#autosavekey -> removetrailing('/')
-				#autosavekey += ('/' + .'nav' -> path)
-			/if
-			if(.'sortfield' != '' && !.'nosort')
-				.'quicksearch_form' -> addfield(-type = 'hidden', -name = '-sort', -value = .'sortfield')
-				.'quicksearch_form_reset' -> addfield(-type = 'hidden', -name = '-sort', -value = .'sortfield')
-				if(.'sortdescending')
-					.'quicksearch_form' -> addfield(-type = 'hidden', -name = '-desc')
-					.'quicksearch_form_reset' -> addfield(-type = 'hidden', -name = '-desc')
-				/if
-			/if
-			if(client_type >> 'WebKit')
+				#autosavekey -> append('/' + .nav -> path)
+			}
+
+			if(.sortfield != '' && !.nosort) => {
+				.quicksearch_form -> addfield(-type = 'hidden', -name = '-sort', -value = .sortfield)
+				.quicksearch_form_reset -> addfield(-type = 'hidden', -name = '-sort', -value = .sortfield)
+				if(.sortdescending) => {
+					.quicksearch_form -> addfield(-type = 'hidden', -name = '-desc')
+					.quicksearch_form_reset -> addfield(-type = 'hidden', -name = '-desc')
+				}
+			}
+			if(client_type >> 'WebKit') => {
 				// only use<input type=search" for WebKit based browsers like Safari
-				.'quicksearch_form' -> addfield(-type = 'search', -name = '-q', -hint = .'quicksearch', -size = 15, -id = .'qs_id' + '_q', -raw = ('autosave="' + #autosavekey + '" results="10"'))
+				.quicksearch_form -> addfield(-type = 'search', -name = '-q', -hint = .quicksearch_string, -size = 16, -id = .qs_id + '_q', -class = 'search-query', -raw = ('autosave="' + #autosavekey + '" results="10"'))
 			else
-				.'quicksearch_form' -> addfield(-type = 'text', -name = '-q', -hint = .'quicksearch', -size = 15, -id = .'qs_id' + '_q')
-			/if
-			.'quicksearch_form' -> addfield(-type = 'submit', -name = 's', -value = #lang -> getstring('quicksearch_search'))
-			if(#clientparams >> '-q')
-				.'quicksearch_form' -> setvalue('-q' = #clientparams -> find('-q') -> first -> value)
-				.'quicksearch_form_reset' -> addfield(-type = 'submit', -name = 'a', -value = #lang -> getstring('quicksearch_showall'))
+				.quicksearch_form -> addfield(-type = 'text', -name = '-q', -hint = .quicksearch_string, -size = 16, -id = .qs_id + '_q', -class = 'search-query')
+			}
+			.quicksearch_form -> addfield(-type = 'submit', -name = 's', -class = #quicksearch_btnclass, -value = #lang -> getstring('quicksearch_search'))
+			if(#clientparams >> '-q') => {
+				.quicksearch_form -> setvalue('-q' = #clientparams -> find('-q') -> first -> value)
+				.quicksearch_form_reset -> addfield(-type = 'submit', -name = 'a', -class = #quicksearch_btnclass, -value = #lang -> getstring('quicksearch_showall'))
 			else
-				.'quicksearch_form_reset' -> addfield(-type = 'submit', -name = 'a', -value = #lang -> getstring('quicksearch_showall'), -disabled)
-			/if
+				.quicksearch_form_reset -> addfield(-type = 'submit', -name = 'a', -class = #quicksearch_btnclass, -value = #lang -> getstring('quicksearch_showall'), -disabled)
+			}
+
 
 		}
 
 		/* Added by JC 071111 to handle extra form included in the header */
 
-		.'rawheader' = #rawheader
+		.rawheader = #rawheader
+
 
 	}
 
@@ -228,92 +222,66 @@ Parameters:
 		-database::knop_database,
 		-nav::any = knop_nav,
 		-quicksearch = false,
-		-rawheader::string = '',
-		-class::string = '',
-		-id::string = '',
+		-rawheader::string = string,
+		-class::string = string,
+		-id::string = string,
 		-nosort = false,
-		-language::string = '',
+		-language::string = string,
 		-numbered = false,
-		-rowsorting::boolean = false
-		) => .oncreate(#database, #nav, #quicksearch, #rawheader, #class, #id, #nosort, #language, #numbered, #rowsorting)
+		-rowsorting::boolean = false,
+		-quicksearch_btnclass = string
+		) => .oncreate(#database, #nav, #quicksearch, #rawheader, #class, #id, #nosort, #language, #numbered, #rowsorting, #quicksearch_btnclass)
 
 	public onassign(value) => {
-		local('description' = 'Internal, needed to restore references when ctype is defined as prototype')
+		local(description = 'Internal, needed to restore references when ctype is defined as prototype')
 		// recreate references here
-		.'database' = #value -> 'database'
-		.'nav' = #value -> 'nav'
+		.database = #value -> 'database'
+		.nav = #value -> 'nav'
 	}
 
 /**!
-Returns a reference to the language object
+insert
+Adds a column to the record listing. \n\
+			Parameters:\n\
+			-name (optional) Name of the field. If not specified, the field will be omitted from the grid. \
+				Useful to be able to quicksearch in fields not shown in the grid. \
+				In that case -dbfield must be specified. \n\
+			-label (optional) Column heading\n\
+			-dbfield (optional) Corresponding database field name (name is used if dbfield is not specified)\n\
+			-width (optional) Pixels (CSS width)\n\
+			-url (optional) Columns will be linked with this url as base. Can contain #value# for example to create clickable email links. \n\
+			-keyparamname (optional) Param name to use instead of the default -keyvalue for edit links\n\
+			-defaultsort (optional flag) This field will be the default sort field\n\
+			-nosort (optional flag) The field header should not be clickable for sort\n\
+			-template (optional) Either string to format values, compound expression or map containing templates to display individual values in different ways, use -default to display unknown values, use #value# to insert the actual field value in the template. \n\t\
+				If a compound expression is specified, the field value is passed as param to the expression and can be accessed as params. \n\t\
+				Example expressions: \n\t\
+				{return: params} to return just the field value as is\n\t\
+				{return: (date: (field: "moddate")) -> (format: "%-d/%-m")} to return a specific field as formatted date\n\
+			-quicksearch (optional flag) If specified, the field will be used for search with quicksearch. If not a boolean the value will be used as the searchfield name
+Previously called addfield
 **/
-	public lang => .'lang'
-
-/**!
-Adds a column to the record listing.
-
-Parameters:
-	- name (optional)
-	  Name of the field. If not specified, the field will be omitted from the grid.
-	  Useful to be able to quicksearch in fields not shown in the grid.
-	  In that case -dbfield must be specified.
-
-	- label (optional)
-	  Column heading
-	
-	- dbfield (optional)
-	  Corresponding database field name (name is used if dbfield is not specified)
-
-	- width (optional)
-	  Pixels (CSS width)
-
-	- url (optional)
-	  Columns will be linked with this url as base. Can contain #value# for example to create clickable email links.
-
-	- keyparamname (optional)
-	  Param name to use instead of the default -keyvalue for edit links
-
-	- defaultsort (optional flag)
-	  This field will be the default sort field
-
-	- nosort (optional flag)
-	  The field header should not be clickable for sort
-
-	- template (optional)
-	  Either string to format values, compound expression or map containing templates to display individual values in different ways, use -default to display unknown values, use #value# to insert the actual field value in the template.
-
-	  	If a compound expression is specified, the field value is passed as param to the expression and can be accessed as params.
-	  	Example expressions::
-	  	
-	  		{return: params} to return just the field value as is
-	  		{return: (date: (field: "moddate")) -> (format: "%-d/%-m")} to return a specific field as formatted date
-
-	- quicksearch (optional flag)
-	  If specified, the field will be used for search with quicksearch. If not a boolean the value will be used as the searchfield name
-
-*(Previously called addfield)*
-*/
 	public insert(
-			name::string = '',
+			name::string = string,
 			label::string = #name,
 			dbfield::string = #name,
 			width::integer = -1,
-			class = '',
-			raw = '', // TODO: not implemented
-			url = '',
+			class = string,
+			raw = string, // TODO: not implemented
+			url = string,
 			keyparamname::string = '-keyvalue',
 			defaultsort::any = false,
 			nosort::boolean = false,
-			template = '',
+			template = string,
 			quicksearch::any = false
 		) => {
 
-		fail_if(#template -> type != 'string'
-			&& #template -> type != 'map'
-			&& #template -> type != 'capture'
-			&& #template -> type != 'tag', -1, 'Template must be either string, map or compound expression')
+		local(template_type = string(#template -> type))
 
-		local('field' = map)
+
+		fail_if(array('string', 'map', 'capture', 'tag') !>> #template_type, -1, 'Template must be either string, map or compound expression')
+
+		local(field = map)
 		#name -> size > 0 ? #field -> insert('name' = #name)
 		#class -> size > 0 ? #field -> insert('class' = #class)
 		#raw -> size > 0 ? #field -> insert('raw' = #raw)
@@ -321,119 +289,119 @@ Parameters:
 		#field -> insert('keyparamname' = #keyparamname)
 		#width > -1 ? #field -> insert('width' = #width)
 
-		#template -> isa('capture') || #template -> isa('tag') || #template -> size > 0 ? #field -> insert('template' = (#template -> type == 'string' ? map('-default' = #template) | #template))
+		#template_type == 'capture' || #template_type == 'tag' || #template -> size > 0 ? #field -> insert('template' = (#template_type == 'string' ? map('-default' = #template) | #template))
 
-		if(#name -> size > 0)
+		if(#name -> size > 0) => {
 			#field -> insert('label' = #label)
 			#field -> insert('dbfield' = #dbfield )
 			#field -> insert('nosort' = #nosort)
-			if(#defaultsort != false && .'defaultsort' -> size == 0)
-				.'defaultsort' = #name
-				if(.'sortfield' -> size == 0)
-					.'sortfield' = .'defaultsort'
-					if(string(#defaultsort) == 'desc' || string(#defaultsort) == 'descending')
-						.'sortdescending' = true
-					/if
-				/if
-			/if
-			.'dbfieldmap' -> insert(#name = #dbfield)
-		/if
+			if(#defaultsort != false && .defaultsort -> size == 0) => {
+				.defaultsort = #name
+				if(.sortfield -> size == 0) => {
+					.sortfield = .defaultsort
+					if(string(#defaultsort) == 'desc' || string(#defaultsort) == 'descending') => {
+						.sortdescending = true
+					}
+				}
+			}
+			.dbfieldmap -> insert(#name = #dbfield)
+		}
 		// changed by Jolle 2011-06-18 to allow different quicksearch field name than
 		if(#quicksearch -> isa(::boolean) && #quicksearch) => {
-			.'quicksearch_fields' -> insert( #dbfield)
+			.quicksearch_fields -> insert( #dbfield)
 		else(#quicksearch -> isa(::string) && #quicksearch -> size > 0)
-			.'quicksearch_fields' -> insert( #quicksearch)
+			.quicksearch_fields -> insert( #quicksearch)
 		}
 
-		if(#name -> size > 0 || #label -> size > 0)
-			.'fields' -> insert(#field)
-		/if
+		if(#name -> size > 0 || #label -> size > 0) => {
+			.fields -> insert(#field)
+		}
+
 
 	}
 
 	public insert(
-			-name::string = '',
+			-name::string = string,
 			-label::string = #name,
 			-dbfield::string = #name,
 			-width::integer = -1,
-			-class::string = '',
-			-raw = '', // TODO: not implemented
-			-url::string = '',
+			-class::string = string,
+			-raw = string, // TODO: not implemented
+			-url::string = string,
 			-keyparamname::string = '-keyvalue',
 			-defaultsort::any = false,
 			-nosort::boolean = false,
-			-template = '',
+			-template = string,
 			-quicksearch::any = false
 		) => .insert(#name, #label, #dbfield, #width, #class, #raw, #url, #keyparamname, #defaultsort, #nosort, #template, #quicksearch)
 
 /**!
+addfield
 deprecated use insert instead
 **/
 	public addfield(
-			name::string = '',
+			name::string = string,
 			label::string = #name,
 			dbfield::string = #name,
 			width::integer = -1,
-			class = '',
-			raw = '', // TODO: not implemented
-			url = '',
+			class = string,
+			raw = string, // TODO: not implemented
+			url = string,
 			keyparamname::string = '-keyvalue',
 			defaultsort::any = false,
 			nosort::boolean = false,
-			template = '',
+			template = string,
 			quicksearch::any = false
 		) => .insert(#name, #label, #dbfield, #width, #class, #raw, #url, #keyparamname, #defaultsort, #nosort, #template, #quicksearch)
 
 	public addfield(
-			-name::string = '',
+			-name::string = string,
 			-label::string = #name,
 			-dbfield::string = #name,
 			-width::integer = -1,
-			-class::string = '',
-			-raw = '', // TODO: not implemented
-			-url::string = '',
+			-class::string = string,
+			-raw = string, // TODO: not implemented
+			-url::string = string,
 			-keyparamname::string = '-keyvalue',
 			-defaultsort::any = false,
 			-nosort::boolean = false,
-			-template = '',
+			-template = string,
 			-quicksearch::any = false
 		) => .insert(#name, #label, #dbfield, #width, #class, #raw, #url, #keyparamname, #defaultsort, #nosort, #template, #quicksearch)
 
 /**!
+sortparams
 Returns a Lasso-style pair array with sort parameters to use in the search inline.
-
 Parameters:
-	- sql (optional)
-	- removedotbackticks (optional flag)
-	  Use with -sql for backward compatibility for fields that contain periods.
-	  If you use periods in a fieldname then you cannot use a JOIN in Knop.
+	-sql (optional)
+	-removedotbackticks (optional flag) Use with -sql for backward compatibility for fields that contain periods.  If you use periods in a fieldname then you cannot use a JOIN in Knop.
 **/
 	public sortparams(sql::boolean = false, removedotbackticks::boolean = false) => {
 
-		if(#sql)
-			fail_if(.'database' -> 'isfilemaker', 7009, '-sql can not be used with FileMaker')
-			.'sortfield' == '' ? return string;
-			local('output' = string);
-			if(.'dbfieldmap' >> .'sortfield')
-				#output = ' ORDER BY '
-				if(#removedotbackticks)
-					#output += ('`' + knop_stripbackticks((.'dbfieldmap') -> find(.'sortfield')) + '`')
+		if(#sql) => {
+			fail_if(.database -> 'isfilemaker', 7009, '-sql can not be used with FileMaker')
+			.sortfield == '' ? return string
+			local(output = string)
+			if(.dbfieldmap >> .sortfield) => {
+				#output -> append(' ORDER BY ')
+				if(#removedotbackticks) => {
+					#output -> append('`' + knop_stripbackticks((.dbfieldmap) -> find(.sortfield)) + '`')
 				else
-					#output += ('`' + string_replace(knop_stripbackticks((.'dbfieldmap') -> find(.'sortfield')), -find = '.', -replace = '`.`') + '`')
-				/if
+					#output -> append('`' + string_replace(knop_stripbackticks((.dbfieldmap) -> find(.sortfield)), -find = '.', -replace = '`.`') + '`')
+				}
 
-				.'sortdescending' ? #output += ' DESC'
+				.sortdescending ? #output -> append(' DESC')
 
-			/if
+			}
 		else
-			local('output' = array)
-			.'sortfield' == '' ? return #output
-			if(.'dbfieldmap' >> .'sortfield')
-				#output -> insert(-sortfield = .'dbfieldmap' -> find(.'sortfield') )
-				.'sortdescending' ? #output -> insert(-sortorder = 'descending')
+			local(output = array)
+			.sortfield == '' ? return #output
+			if(.dbfieldmap >> .sortfield) => {
+				#output -> insert(-sortfield = .dbfieldmap -> find(.sortfield) )
+				.sortdescending ? #output -> insert(-sortorder = 'descending')
 
-			/if
-		/if
+			}
+		}
 
 		return #output
 	}
@@ -441,143 +409,131 @@ Parameters:
 	public sortparams(-sql::boolean = false, -removedotbackticks::boolean = false) => .sortparams(#sql, #removedotbackticks)
 
 /**!
-Returns a pair array with fieldname = value to use in a search inline. If you
-specify several fields in the grid as -quicksearch (visible or not), they will
-be treated as if they were one single concatenated field. Quicksearch will take
-each word entered in the search field and search for them in the combined set of
-quicksearch fields, performing a "word begins with" match (unless you specify
--contains when calling -> quicksearch).
-
-So if you enter dev joh it will find records with 
-firstname = Johan, occupation = Developer.
-
-If you're familiar with how FileMaker performs text searches, this is the way
-quicksearch tries to behave.
-
-Parameters:
-	- sql (optional flag)
-	  Return an SQL string for the search parameters instead.
-
-	- contains (optional flag)
-	  Perform a simple contains search instead of emulating "word begins with" search
-
-	- value (optional flag)
-	  Output just the search value of the quicksearch field instead of a pair array or SQL string
-
-	- removedotbackticks (optional flag)
-	  Use with -sql for backward compatibility for fields that contain periods. If you use periods in a fieldname then you cannot use a JOIN in Knop.
+quicksearch
+Returns a pair array with fieldname = value to use in a search inline. If you specify several fields in the grid as -quicksearch (visible or not), they will be treated as if they were one single concatenated field. Quicksearch will take each word entered in the search field and search for them in the combined set of quicksearch fields, performing a "word begins with" match (unless you specify -contains when calling -> quicksearch).\n\
+			So if you enter dev joh it will find records with firstname = Johan, occupation = Developer.\n\
+			If you\'re familiar with how FileMaker performs text searches, this is the way quicksearch tries to behave.\n\
+			Parameters:\n\
+			-sql (optional flag) Return an SQL string for the search parameters instead.\n\
+			-contains (optional flag) Perform a simple contains search instead of emulating "word begins with" search\n\
+			-value (optional flag) Output just the search value of the quicksearch field instead of a pair array or SQL string\n\
+			-removedotbackticks (optional flag) Use with -sql for backward compatibility for fields that contain periods.  If you use periods in a fieldname then you cannot use a JOIN in Knop.
 **/
-	public quicksearch(sql::boolean = false, contains::boolean = false, value::boolean = false, removedotbackticks::boolean = false) => {
+	public quicksearch(
+		sql::boolean = false,
+		contains::boolean = false,
+		value::boolean = false,
+		removedotbackticks::boolean = false
+	) => {
 
-		local('output' = array)
-		local('output_temp' = array)
-		local('_sql' = #sql -> ascopy)
-		local('wordseparators' = array(',', '.', '-', ' ', '(', '"', '@', '\n', '\r')) // \r and \n must not come after each other as \r\n, but \n\r is fine.
-		local('fieldvalue' = string(.'quicksearch_form' != NULL ? .'quicksearch_form' -> getvalue('-q')))
-		local('onevalue' = '')
-		local('field' = '')
 
-		fail_if(#_sql && .'database' -> 'isfilemaker', 7009, '-sql can not be used with FileMaker')
+		local(output = array)
+		local(output_temp = array)
+		local(_sql = #sql -> ascopy)
+		local(wordseparators = array(',', '.', '-', ' ', '(', '"', '@', '\n', '\r')) // \r and \n must not come after each other as \r\n, but \n\r is fine.
+		local(fieldvalue = string(.quicksearch_form != NULL ? .quicksearch_form -> getvalue('-q')))
 
-		if(.'quicksearch_form' -> type != 'knop_form')
+		fail_if(#_sql && .database -> 'isfilemaker', 7009, '-sql can not be used with FileMaker')
+
+		if(not .quicksearch_form -> isa(::knop_form)) => {
 			#_sql ? return string | return array
 
-		/if
-		#value ? return(string(.'quicksearch_form' -> getvalue('-q')))
+		}
+		#value ? return(string(.quicksearch_form -> getvalue('-q')))
 
-		if(#fieldvalue != '')
+		if(#fieldvalue != '') => {
 
-			if(.'database' -> 'isfilemaker')
+			if(.database -> 'isfilemaker') => {
 				#output -> insert(-logicaloperator = 'or')
-				iterate(.'quicksearch_fields')
+				with val in .quicksearch_fields do {
 					#contains ? #output -> insert(-op = 'cn')
-					#output -> insert(loop_value = #fieldvalue)
-				/iterate
+					#output -> insert(#val = #fieldvalue)
+				}
 			else
 				// search each word separately
-				#fieldvalue = #fieldvalue -> split(' ')
-				iterate(#fieldvalue, #onevalue)
-					#output_temp = array;
-					iterate(.'quicksearch_fields', #field)
-						if(#_sql)
-							if(#contains)
-								if(#removedotbackticks);
+				with onevalue in #fieldvalue -> split(' ') do {
+					#output_temp = array
+					with field in .quicksearch_fields do {
+						if(#_sql) => {
+							if(#contains) => {
+								if(#removedotbackticks) => {
 									#output_temp -> insert('`' + knop_stripbackticks(encode_sql(#field)) + '`'
-										+ ' LIKE "%' + knop_encodesql_full(#onevalue ) + '%"');
-								else;
+										+ ' LIKE "%' + knop_encodesql_full(#onevalue ) + '%"')
+								else
 									#output_temp -> insert('`' + string_replace(knop_stripbackticks(encode_sql(#field)), -find = '.', -replace = '`.`') + '`'
-										+ ' LIKE "%' + knop_encodesql_full(#onevalue ) + '%"');
-								/if;
+										+ ' LIKE "%' + knop_encodesql_full(#onevalue ) + '%"')
+								}
 
-							else;
-								if(#removedotbackticks);
+							else
+								if(#removedotbackticks) => {
 									#output_temp -> insert('`' + knop_stripbackticks(encode_sql(#field)) + '`'
-									+ ' LIKE "' + knop_encodesql_full(#onevalue ) + '%"');
-								else;
+									+ ' LIKE "' + knop_encodesql_full(#onevalue ) + '%"')
+								else
 									#output_temp -> insert('`' + string_replace(knop_stripbackticks(encode_sql(#field)), -find = '.', -replace = '`.`') + '`'
-									+ ' LIKE "' + knop_encodesql_full(#onevalue ) + '%"');
-								/if;
+									+ ' LIKE "' + knop_encodesql_full(#onevalue ) + '%"')
+								}
 
 								// basic emulation of "word begins with"
-								iterate(#wordseparators) => {
-									if(#removedotbackticks);
+								with val in #wordseparators do {
+									if(#removedotbackticks) => {
 										#output_temp -> insert('`' + knop_stripbackticks(encode_sql(#field)) + '`'
-											+ ' LIKE "%' + knop_encodesql_full(loop_value + #onevalue ) + '%"');
-									else;
+											+ ' LIKE "%' + knop_encodesql_full(#val + #onevalue ) + '%"')
+									else
 										#output_temp -> insert('`' + string_replace(knop_stripbackticks(encode_sql(#field)), -find = '.', -replace = '`.`') + '`'
-											+ ' LIKE "%' + knop_encodesql_full(loop_value + #onevalue ) + '%"');
-									/if;
+											+ ' LIKE "%' + knop_encodesql_full(#val + #onevalue ) + '%"')
+									}
 
 								}
-							/if
+							}
 						else
-							if(#contains)
+							if(#contains) => {
 								#output_temp -> insert(-op = 'cn')
 								#output_temp -> insert(#field = #onevalue )
 							else
 								#output_temp -> insert(-op = 'bw')
 								#output_temp -> insert(#field = #onevalue )
-								if( !.'database' -> 'isfilemaker')
-								// this variant is not needed for FileMaker since it already searches with "word begins with" as default							#output_temp -> (insert:  -op = 'cn');
-									iterate(#wordseparators) => {
+								if( !.database -> 'isfilemaker') => {
+								// this variant is not needed for FileMaker since it already searches with "word begins with" as default							#output_temp -> (insert:  -op = 'cn')
+									with val in #wordseparators do {
 										#output_temp -> insert(-op = 'cn')
-										#output_temp -> insert( #field = loop_value + #onevalue )
+										#output_temp -> insert( #field = #val + #onevalue )
 									}
-								/if
-							/if
-						/if
-					/iterate
-					if(#_sql)
-						if(#output_temp -> size > 1)
-							#output_temp = ('(' + #output_temp -> join( ' OR ') + ')')
+								}
+							}
+						}
+					}
+					if(#_sql) => {
+						if(#output_temp -> size > 1) => {
+							#output_temp = ('(' + #output_temp -> join(' OR ') + ')')
 						else
 							#output_temp = #output_temp -> first
-						/if
+						}
 						#output -> insert(#output_temp)
 					else
-						if(#output_temp -> size > 2)
+						if(#output_temp -> size > 2) => {
 							#output_temp -> insert(-opbegin = 'or', 1)
 							#output_temp -> insert(-opend = 'or')
-						/if;
+						}
 						#output -> merge(#output_temp)
-					/if
-				/iterate
+					}
+				}
 
-				if(#_sql)
-					if(#output -> size > 0)
+				if(#_sql) => {
+					if(#output -> size > 0) => {
 						#output = ('(' + #output -> join(' AND ') + ')')
 					else
 						#output = string
-					/if
+					}
 				else
-					if(#output -> size > 0)
+					if(#output -> size > 0) => {
 						#output -> insert(-opbegin = 'and', 1)
 						#output -> insert(-opend = 'and')
-					/if
-				/if
+					}
+				}
 
-			/if // isfilemaker
-		/if // #fieldvalue != ''
+			} // isfilemaker
+		} // #fieldvalue != ''
+
 
 		return #output
 	}
@@ -585,143 +541,151 @@ Parameters:
 	public quicksearch(-sql::boolean = false, -contains::boolean = false, -value::boolean = false, -removedotbackticks::boolean = false) => .quicksearch(#sql, #contains, #value, #removedotbackticks)
 
 /**!
+urlargs
 Returns all get params that begin with - as a query string, for internal use in links in the grid.
-
-Parameters:
-	- except (optional)
-	  Exclude these parameters (string or array)
-
-	- prefix (optional)
-	  For example ? or &amp; to include at the beginning of the querystring
-
-	- suffix (optional)
-	  For example &amp; to include at the end of the querystring
+			Parameters:
+			-except (optional) Exclude these parameters (string or array)
+			-prefix (optional) For example ? or &amp; to include at the beginning of the querystring
+			-suffix (optional) For example &amp; to include at the end of the querystring
 **/
-	public urlargs(except = '', prefix = '', suffix = '') => {
+	public urlargs(except = string, prefix = string, suffix = string) => {
+
 
 		#except = #except -> ascopy
 
-		local('output' = array)
-		local('param' = null)
+		local(output = array)
+		local(param = null)
 
 		// only getparams to not send along -action etc
-		local('clientparams' = client_getparams -> asarray)
+		local(clientparams = client_getparams -> asarray)
 
 		#except -> type != 'array' ? #except = array(#except)
 		#except -> insert(-session)
 
 		// add getparams that begin with -
-		iterate(#clientparams, #param)
-			if(#param -> type == 'pair')
-				if(#param -> name -> beginswith('-') && #except !>> #param -> name)
+		with param in #clientparams do {
+			if(#param -> isa(::pair)) => {
+				if(#param -> name -> beginswith('-') && #except !>> #param -> name) => {
 					#output -> insert(encode_stricturl(string(#param -> name)) + '=' + encode_stricturl(string(#param -> value)))
-				/if
+				}
 			else // just a string param (no pair)
-				if(#param -> beginswith('-') && #except !>> #param)
+				if(#param -> beginswith('-') && #except !>> #param) => {
 					#output -> insert(encode_stricturl(string(#param)))
-				/if
-			/if
-		/iterate
+				}
+			}
+		}
 
-		if(.'nav' -> isa('knop_nav'))
+		if(.nav -> isa(::knop_nav)) => {
 			// send params that have been defined as -params in nav
-			local('navitem' = .'nav' -> getnav)
+			local(navitem = .nav -> getnav)
 			// add post params
 			#clientparams -> merge(client_postparams)
 
-			iterate(#navitem -> find('params'), #param)
-				if(#clientparams >> #param && #clientparams -> find(#param) -> first -> type == 'pair')
+			with param in #navitem -> find('params') do {
+				if(#clientparams >> #param && #clientparams -> find(#param) -> first -> isa(::pair)) => {
 					#output -> insert(encode_stricturl(string(#clientparams -> find(#param) -> first -> name)) + '=' + encode_stricturl(string(#clientparams -> find(#param) -> first -> value)))
 				else(#clientparams >> #param)
 					#output -> insert(encode_stricturl(string(#clientparams -> find(#param) -> first)))
-				/if
-			/iterate
-		/if
+				}
+			}
+		}
 		#output = string(#output -> join('&amp;'))
 		// restore / in paths
 		#output -> replace('%2F', '/')
 
-		if(#output -> size > 0)
+		if(#output -> size > 0) => {
 			return(#prefix + #output + #suffix)
-		/if
+		}
 	}
 
 /**!
-Outputs the complete record listing. Calls renderheader, renderlisting and renderfooter as well.
-If 10 records or more are shown, renderfooter is added also just below the header.
-
-Parameters:
-	- inlinename (optional)
-	  If not specified, inlinename from the connected database object is used
-
-	- numbered (optional flag or integer)
-	  If specified, pagination links will be shown as page numbers instead of
-	  regular prev/next links. Defaults to 6 links, specify another number
-	  (minimum 6) if more numbers are wanted.
+renderhtml
+Outputs the complete record listing. Calls renderheader, renderlisting and renderfooter as well. \
+			If 10 records or more are shown, renderfooter is added also just below the header.\n\
+			Parameters:\n\
+			-inlinename (optional) If not specified, inlinename from the connected database object is used\n\
+			-numbered (optional flag or integer) If specified, pagination links will be shown as page numbers instead of regular prev/next links. Defaults to 6 links, specify another number (minimum 6) if more numbers are wanted.
 **/
-	public renderhtml(inlinename = '', xhtml::boolean = false, numbered::any = false, startwithfooter::boolean = false) => {
+	public renderhtml(
+		inlinename = string,
+		xhtml::boolean = false,
+		numbered::any = false,
+		startwithfooter::boolean = false,
+		bootstrap::boolean = false
+	) => {
 
-		local('output' = string)
-		local('db' = .'database')
 
-		if(#numbered)
-			local('numberedpaging' = (#numbered !== false ? integer(#numbered) | false))
+		local(output = string)
+		local(db = .database)
+
+		if(#numbered) => {
+			local(numberedpaging = (#numbered !== false ? integer(#numbered) | false))
 		else
-			local('numberedpaging' = (.'numbered' !== false ? integer(.'numbered') | false))
-		/if
+			local(numberedpaging = (.numbered !== false ? integer(.numbered) | false))
+		}
 
-		.'footer' = .renderfooter(false, #numberedpaging, #xhtml )
+		.footer = .renderfooter(false, #numberedpaging, #xhtml )
 
-		#output += .renderheader(true, #xhtml, #startwithfooter)
+		#output -> append( .renderheader(true, #xhtml, #startwithfooter, #bootstrap))
 
-		#db -> shown_count >= 10 && !#startwithfooter ? #output += .'footer'
+		#db -> shown_count >= 10 && !#startwithfooter ? #output -> append( .footer)
 
-		#output += (.renderlisting(#inlinename, #xhtml))
+		#output -> append(.renderlisting(#inlinename, #xhtml))
 
-		#output += (.'footer' + '</table>\n')
+		#output -> append(.footer + '</table>\n')
+
 
 		return #output
 	}
 
-	public renderhtml(-inlinename = '', -xhtml::boolean = false, -numbered::any = false, -startwithfooter::boolean = false) => .renderhtml(#inlinename, #xhtml, #numbered, #startwithfooter)
+	public renderhtml(
+		-inlinename = string,
+		-xhtml::boolean = false,
+		-numbered::any = false,
+		-startwithfooter::boolean = false,
+		-bootstrap::boolean = false
+	) => .renderhtml(#inlinename, #xhtml, #numbered, #startwithfooter, #bootstrap)
 
 /**!
-Outputs just the actual record listing. Is called by renderhtml.
-
-Parameters:
-	- inlinename (optional)
-	  If not specified, inlinename from the connected database object is used
+renderlisting
+Outputs just the actual record listing. Is called by renderhtml. \
+			Parameters:\n\
+			-inlinename (optional) If not specified, inlinename from the connected database object is used
 **/
-	public renderlisting(inlinename = '', xhtml::boolean = false) => {
+	public renderlisting(
+		inlinename = string,
+		xhtml::boolean = false
+	) => {
 
-		local('_inlinename' = string)
-		local('output' = string)
-		local('fields' = .'fields')
-		local('field' = string)
-		local('keyfield' = null)
-		local('affectedrecord_keyvalue' = null)
-		local('record_loop_count' = integer)
-		local('db' = .'database')
-		local('nav' = .'nav')
-		local('dbfieldmap' = .'dbfieldmap')
-		local('classarray' = array)
-		local('fieldname' = string)
-		local('value' = string)
-		local('keyparamname')
-		local('url')
-		local('url_cached_temp')
-		local('lang' = .'lang')
 
-		if(#inlinename -> size > 0)
+		local(_inlinename = string)
+		local(output = string)
+		local(fields = .fields)
+		local(field = string)
+		local(keyfield = null)
+		local(affectedrecord_keyvalue = null)
+		local(record_loop_count = integer)
+		local(db = .database)
+		local(nav = .nav)
+		local(dbfieldmap = .dbfieldmap)
+		local(classarray = array)
+		local(fieldname = string)
+		local(value = string)
+		local(keyparamname)
+		local(url)
+		local(url_cached_temp)
+		local(lang = .lang)
+
+		if(#inlinename -> size > 0) => {
 			#_inlinename = #inlinename
-		else(#db -> type == 'knop_database')
+		else(#db -> isa(::knop_database))
 			#_inlinename = #db -> 'inlinename'
 			#keyfield = #db -> 'keyfield'
 			#affectedrecord_keyvalue = #db -> 'affectedrecord_keyvalue'
-		/if
-		#output += '\n<tbody>\n'
-		if(#nav -> isa('knop_nav'))
-			iterate(#fields, #field)
+		}
+		#output -> append( '\n<tbody>\n')
+		if(#nav -> isa('knop_nav')) => {
+			with field in #fields do {
 				if(#field -> find('url') != void) => {
 					#url = string(#field -> find('url'))
 					#keyparamname = #field -> find('keyparamname')
@@ -735,449 +699,417 @@ Parameters:
 				else
 					#url = string
 				}
-			/iterate
-		/if
+			}
+		}
 
 		records(-inlinename = #_inlinename) => {
 			#record_loop_count = loop_count
 
-			#output += '\n<tr' + (.'rowsorting' ? ' class="rowsortable" ref="' + string(field(#keyfield)) + '"') + '>'
-			iterate(#fields, #field)
+			#output -> append( '\n<tr' + (.rowsorting ? ' class="rowsortable" ref="' + string(field(#keyfield)) + '"') + '>')
+			with field in #fields do {
 				#fieldname = #dbfieldmap -> find(#field -> find('name'))
 				#keyparamname = #field -> find('keyparamname')
 				#value = field(#fieldname)
-				if(#field -> find('template') -> type == 'map')
-					#value = string(#value)
-					if(#field -> find('template') >> #value)
-						#value = #field -> find('template') -> find(#value)
-					else(#field -> find('template') >> '-default')
-						#value = #field -> find('template') -> find('-default')
-					else
-						// show fieldvalue as is
-					/if
-					// substitute field value in the display template
-					#value -> replace('#value#', string(field(#fieldname)))
-				else(#field -> find('template') -> isa('tag'))
-					#value = #field -> find('template') -> run(-params = #value)
-				else(#field -> find('template') -> isa('capture'))
-					#value = #field -> find('template') -> detach( )->invoke( )
-//					#value = #field -> find('template') -> run(#value)
-				/if
+				match(#field -> find('template') -> type) => {
+					case(::capture)
+						#value = #field -> find('template') -> detach( )->invoke( )
+					case(::map)
+						#value = string(#value)
+						if(#field -> find('template') >> #value) => {
+							#value = #field -> find('template') -> find(#value)
+						else(#field -> find('template') >> '-default')
+							#value = #field -> find('template') -> find('-default')
+						else
+							// show fieldvalue as is
+						}
+						// substitute field value in the display template
+						#value -> replace('#value#', string(field(#fieldname)))
+					case(::tag)
+						#value = #field -> find('template') -> run(-params = #value)
+				}
 				#classarray = array
-				if(#affectedrecord_keyvalue == field(#keyfield) && field(#keyfield) != '')
+				if(#affectedrecord_keyvalue == field(#keyfield) && field(#keyfield) != '') => {
 					// hightlight affected row
 					#classarray -> insert('highlight')
 				else
 					(#record_loop_count - 1)  % 2 == 0 ? #classarray -> insert('even')
-				/if
+				}
 				// Added by JC 081127 to handle td specific classes
 				#field -> find('class') -> size ? #classarray -> insert( #field -> find('class'))
-				#output += '<td'
-				if(#classarray -> size)
-					#output += (' class="' + #classarray -> join(' ') + '"')
-				/if
-				if(#field -> find('raw') -> size) => {
-					#output += (' ' + #field -> find('raw'))
+				#output -> append( '<td')
+				if(#classarray -> size) => {
+					#output -> append(' class="' + #classarray -> join(' ') + '"')
 				}
-				#output += '>'
-				if(#field -> find('url') != void)
+				if(#field -> find('raw') -> size) => {
+					#output -> append(' ' + #field -> find('raw'))
+				}
+				#output -> append( '>')
+				if(#field -> find('url') != void) => {
 					#url = string(#field -> find('url'))
-stdoutnl('grid field url ' + #field -> find('url_cached'))
-					if(#field -> find('url_cached') -> size > 0 && #url !>> '#value#')
+
+					if(#field -> find('url_cached') -> size > 0 && #url !>> '#value#') => {
 						#url_cached_temp = #field -> find('url_cached') -> ascopy
 						#url_cached_temp -> replace('###keyvalue###', string(field(#keyfield)))
-						#output += ('<a href="' + #url_cached_temp)
-						#output += ('">' +  #value
+						#output -> append('<a href="' + #url_cached_temp)
+						#output -> append('">' +  #value
 							// show something to click on even if the field is empty
 							+ (string_findregexp(#value, -find = '\\w*') -> size == 0 ? #lang -> getstring('linktext_edit'))
 							+ '</a>')
 					else
 						#url -> replace('#value#', string(field(#fieldname)))
-						#output += ('<a href="' + #url + '"')
-						#url -> beginswith('http://') || #url -> beginswith('https://') || #url -> beginswith('mailto:') ? #output += ' class="ext"'
-						#output += ('>' +  #value + '</a>')
-					/if
+						#output -> append('<a href="' + #url + '"')
+						#url -> beginswith('http://') || #url -> beginswith('https://') || #url -> beginswith('mailto:') ? #output -> append(' class="ext"')
+						#output -> append('>' +  #value + '</a>')
+					}
 				else
-					#output += #value
-				/if
-				#output += '</td>\n'
-			/iterate
-			#output += '</tr>\n'
+					#output -> append( #value)
+				}
+				#output -> append( '</td>\n')
+			}
+			#output -> append( '</tr>\n')
 
 		}
 
-		#output += '\n</tbody>\n'
+		#output -> append( '\n</tbody>\n')
+
 
 		return #output
 	}
 
 /**!
-Outputs the header of the grid with the column headings.
-Automatically included by ->renderhtml.
-
-Parameters:
-	- start (optional flag)
-	  Also output opening <table> tag
+renderheader
+Outputs the header of the grid with the column headings. \
+			Automatically included by ->renderhtml. \n\
+			Parameters:\n\
+			-start (optional flag) Also output opening <table> tag
 **/
-	public renderheader(start::boolean = false, xhtml::boolean = false, startwithfooter::boolean = false) => {
+	public renderheader(start::boolean = false, xhtml::boolean = false, startwithfooter::boolean = false, bootstrap::boolean = false) => {
 
-		local('output' = string)
-		local('db' = .'database')
-		local('nav' = .'nav')
-		local('fields' = .'fields')
-		local('field' = string)
-		local('classarray' = array)
-		local('lang' = .'lang')
 
-		#start ? #output += ('<table id="' + .'tbl_id' + '" class="grid' + (.'class' -> size > 0 ? (' ' + .'class')) + '">')
-		#output += '<thead>\n<tr>'
-		if(.'quicksearch_form' -> type == 'knop_form')
-			#output += ('<th colspan="' + #fields -> size + '" class="quicksearch')
-			.'quicksearch_form' -> getvalue('-q') != '' ? #output += ' highlight'
-			#output += '">'
+		local(output = string)
+		local(db = .database)
+		local(nav = .nav)
+		local(fields = .fields)
+		local(field = string)
+		local(classarray = array)
+		local(lang = .lang)
 
-			if(.'rawheader' -> size > 0 )
-				#output += .'rawheader'
-			/if
+		#start ? #output -> append('<table id="' + .tbl_id + '" class="grid' + (.class -> size > 0 ? (' ' + .class)) + '">')
+		#output -> append('<thead>\n<tr>')
+		if(.quicksearch_form -> isa(::knop_form)) => {
+			#output -> append('<th colspan="' + #fields -> size + '" class="quicksearch')
+			.quicksearch_form -> getvalue('-q') != '' ? #output -> append( ' highlight')
+			#output -> append( '">')
 
-			#output += .'quicksearch_form' -> renderform(-xhtml = #xhtml)
-			if(.'quicksearch_form_reset' -> type == 'knop_form')
-				#output += .'quicksearch_form_reset' -> renderform(-xhtml = #xhtml)
-			/if
-			#output += '</th></tr>\n<tr>'
-		else(.'rawheader' -> size > 0);
-			#output += ('<th colspan="' + (#fields -> size) + '">' + .'rawheader' + '</th></tr>\n<tr>')
-		/if
+			if(.rawheader -> size > 0 ) => {
+				#output -> append( .rawheader)
+			}
+			#output -> append( .quicksearch_form -> renderform(-xhtml = #xhtml, -bootstrap = #bootstrap))
+			if(.quicksearch_form_reset -> isa(::knop_form)) => {
+				#output -> append( .quicksearch_form_reset -> renderform(-xhtml = #xhtml, -bootstrap = #bootstrap))
+			}
+			#output -> append( '</th></tr>\n<tr>')
+		else(.rawheader -> size > 0)
+			#output -> append('<th colspan="' + (#fields -> size) + '">' + .rawheader + '</th></tr>\n<tr>')
+		}
 
-		if(#startwithfooter);
-			#output += .'footer'
-		/if;
+		if(#startwithfooter) => {
+			#output -> append( .footer)
+		}
 
-		iterate(#fields, #field)
+		with field in #fields do {
 			#classarray = array
-			//(.'quicksearch_form') -> type == 'knop_form' ? #classarray -> (insert: 'notopborder');
-			if(!.'nosort')
-				(.'sortfield' == #field -> find('name')
+			//(.quicksearch_form) -> isa(::knop_form) ? #classarray -> (insert: 'notopborder')
+			if(!.nosort) => {
+				(.sortfield == #field -> find('name')
 					&& !#field -> find('nosort')) ? #classarray -> insert('sort')
-			/if
-			#output += '<th'
-			if(#field -> find('width') > 0)
-				#output += (' style="width: ' + integer(#field -> find('width')) + 'px;"')
-			/if
+			}
+			#output -> append( '<th')
+			if(#field -> find('width') > 0) => {
+				#output -> append(' style="width: ' + integer(#field -> find('width')) + 'px;"')
+			}
 			// Added by Jolle 081127 to handle td specific classes
 			#field -> find('class') -> size > 0 ? #classarray -> insert( #field -> find('class'))
-			#classarray -> size > 0 ? #output += (' class="' + #classarray -> join(' ') + '"')
+			#classarray -> size > 0 ? #output -> append(' class="' + #classarray -> join(' ') + '"')
 
-			#output += '>'
-			if(#field -> find('nosort') || .'nosort')
-				#output += ('<div>' + #field -> find('label')+ '</div>')
+			#output -> append( '>')
+			if(#field -> find('nosort') || .nosort) => {
+				#output -> append('<div>' + #field -> find('label')+ '</div>')
 			else
-				if(#classarray >> 'sort' && .'sortdescending' && .'defaultsort' == '')
+				if(#classarray >> 'sort' && .sortdescending && .defaultsort == '') => {
 					// create link to change to unsorted
-					if(#nav -> isa('knop_nav'))
-						#output += ('<a href="' + #nav -> url(-autoparams, -getargs, -except = array('-sort', '-desc', '-page', '-path')) + '"'
+					if(#nav -> isa(::knop_nav)) => {
+						#output -> append('<a href="' + #nav -> url(-autoparams, -getargs, -except = array('-sort', '-desc', '-page', '-path')) + '"'
 							+ ' title="' + #lang -> getstring('linktitle_showunsorted') + '">')
 					else
-						#output += ('<a href="./'
+						#output -> append('<a href="./'
 							+ .urlargs(-except = array('-sort', '-desc', '-page'), -prefix = '?') + '"'
 							+ ' title="' + #lang -> getstring('linktitle_showunsorted') + '">')
-					/if
+					}
 				else
 					// create link to toggle sort mode
-					if(#nav -> isa('knop_nav'))
-						#output += ('<a href="' + #nav -> url(-autoparams, -getargs, -except = array('-sort', '-desc', '-page', '-path'), -urlargs = ('-sort=' + #field -> find('name')
-								+ (#classarray >> 'sort' && !(.'sortdescending') ? '&amp;-desc'))) + '"'+ ' title="'
+					if(#nav -> isa('knop_nav')) => {
+						#output -> append('<a href="' + #nav -> url(-autoparams, -getargs, -except = array('-sort', '-desc', '-page', '-path'), -urlargs = ('-sort=' + #field -> find('name')
+								+ (#classarray >> 'sort' && !(.sortdescending) ? '&amp;-desc'))) + '"'+ ' title="'
 								+ (#classarray >> 'sort' ?  (#lang -> getstring('linktitle_changesort') + ' '
-									+ (.'sortdescending' ? #lang -> getstring('linktitle_ascending') | #lang -> getstring('linktitle_descending')) ) | (#lang -> getstring('linktitle_sortascby') + ' ' + encode_html(#field -> find('label'))) ) + '">')
+									+ (.sortdescending ? #lang -> getstring('linktitle_ascending') | #lang -> getstring('linktitle_descending')) ) | (#lang -> getstring('linktitle_sortascby') + ' ' + encode_html(#field -> find('label'))) ) + '">')
 					else
-						#output += ('<a href="./?-sort=' + #field -> find('name')
-							+ (#classarray >> 'sort' && !(.'sortdescending') ? '&amp;-desc')
+						#output -> append('<a href="./?-sort=' + #field -> find('name')
+							+ (#classarray >> 'sort' && !(.sortdescending) ? '&amp;-desc')
 							+ .urlargs(-except = array('-sort', '-desc', '-page'), -prefix = '&amp;') + '"'
 							+ ' title="' + (#classarray >> 'sort' ?  (#lang -> getstring('linktitle_changesort') + ' '
-									+ (.'sortdescending' ? #lang -> getstring('linktitle_ascending') | #lang -> getstring('linktitle_descending'))) | (#lang -> getstring('linktitle_sortascby') + ' ' + encode_html(#field -> find('label'))) ) + '">')
-					/if
-				/if
-				#output += #field -> find('label')
-				if(string_findregexp(#field -> find('label'), -find = '\\S') -> size == 0)
-					#output += '&nbsp;' // to show sort link as block element properly even for empty label
-				/if
-				if(#classarray >> 'sort')
-					#output += (' <span class="sortmarker"> ' + (.'sortdescending' ? '&#9660;' | '&#9650;') + '</span>')
-				/if
-				#output += '</a>'
-			 /if
-			 #output += '</th>\n'
-		/iterate
-		#output += '</tr>\n</thead>\n'
+									+ (.sortdescending ? #lang -> getstring('linktitle_ascending') | #lang -> getstring('linktitle_descending'))) | (#lang -> getstring('linktitle_sortascby') + ' ' + encode_html(#field -> find('label'))) ) + '">')
+					}
+				}
+				#output -> append( #field -> find('label'))
+				if(string_findregexp(#field -> find('label'), -find = '\\S') -> size == 0) => {
+					#output -> append( '&nbsp;') // to show sort link as block element properly even for empty label
+				}
+				if(#classarray >> 'sort') => {
+					#output -> append(' <span class="sortmarker"> ' + (.sortdescending ? '&#9660;' | '&#9650;') + '</span>')
+				}
+				#output -> append( '</a>')
+			 }
+			 #output -> append( '</th>\n')
+		}
+		#output -> append( '</tr>\n</thead>\n')
+
 
 		return #output
 	}
 
-	public renderheader(-start::boolean = false, -xhtml::boolean = false, -startwithfooter::boolean = false) => .renderheader(#start, #xhtml, #startwithfooter)
+	public renderheader(
+		-start::boolean = false,
+		-xhtml::boolean = false,
+		-startwithfooter::boolean = false,
+		-bootstrap::boolean = false
+	) => .renderheader(#start, #xhtml, #startwithfooter, #bootstrap)
 
 /**!
-Outputs the footer of the grid with the prev/next links and information about
-found count. Automatically included by ->renderhtml
-
-Parameters:
-	- end (optional flag)
-	  Also output closing </table> tag\n\
-
-	- numbered (optional flag or integer)
-	  If specified, pagination links will be shown as page numbers instead of
-	  regular prev/next links. Defaults to 6 links, specify another number
-	  (minimum 6) if more numbers are wanted.
+renderfooter
+Outputs the footer of the grid with the prev/next links and information about found count. \
+			Automatically included by ->renderhtml\n\
+			Parameters:\n\
+			-end (optional flag) Also output closing </table> tag\n\
+			-numbered (optional flag or integer) If specified, pagination links will be shown as page numbers instead of regular prev/next links. Defaults to 6 links, specify another number (minimum 6) if more numbers are wanted.
 **/
 	public renderfooter(end::boolean = false, numbered::any = false, xhtml::boolean = false) => {
 
-		local('output' = string)
-		local('db' = .'database')
-		local('nav' = .'nav')
-		local('fields' = .'fields')
-		local('field' = string)
-			//'numberedpaging' = (((local_defined: 'numbered') && #numbered !== false) ? integer(#numbered) | false),
-		local('lang' = .'lang')
-		local('page' = .page)
-		local('lastpage' = .lastpage)
-		local('url_cached')
-		local('url_cached_temp')
-		if(#numbered)
-			local('numberedpaging' = (#numbered !== false ? integer(#numbered) | false))
-		else
-			local('numberedpaging' = (.'numbered' !== false ? integer(.'numbered') | false))
-		/if
 
-		if(#nav -> isa('knop_nav'))
+		local(output = string)
+		local(db = .database)
+		local(nav = .nav)
+		local(fields = .fields)
+			//'numberedpaging' = (((local_defined: 'numbered') && #numbered !== false) ? integer(#numbered) | false),
+		local(lang = .'lang')
+		local(page = .page)
+		local(lastpage = .lastpage)
+		local(url_cached)
+		local(url_cached_temp)
+		if(#numbered) => {
+			local(numberedpaging = (#numbered !== false ? integer(#numbered) | false))
+		else
+			local(numberedpaging = (.numbered !== false ? integer(.numbered) | false))
+		}
+
+		if(#nav -> isa(::knop_nav)) => {
 			#url_cached = #nav -> url(-autoparams, -getargs, -except = array('-page', '-path'),
 					-urlargs = '-page=###page###')
-		/if
-		if(#numberedpaging !== false && #numberedpaging < 6)
+		}
+		if(#numberedpaging !== false && #numberedpaging < 6) => {
 			// show 10 page numbers as default
 			#numberedpaging = 6
-		/if
-		if(#numberedpaging)
+		}
+		if(#numberedpaging) => {
 			// make sure we have an even number
 			#numberedpaging += (#numberedpaging % 2)
-		/if
+		}
 
-		#output += ('<tbody>\n<tr><th colspan="' + #fields -> size + '" class="footer first'  + '">')
-		/* not used
-		if: #nav -> isa('knop_nav');
-			local: 'url' = #nav -> url(-autoparams, -getargs, -except = (array: -page, '-path'), -urlargs = '-page='),
-				'url_prefix' = (#nav -> 'navmethod' == 'param' ? '&amp;' | '?');
-		else;
-			local: 'url' = './' + (.(urlargs: -except = (array: -page, '-path'), -suffix = '&amp;')),
-				'url_prefix' = '?';
-		/if;
-		*/
+		#output -> append('<tbody>\n<tr><th colspan="' + #fields -> size + '" class="footer first'  + '">')
 
-		if(#numberedpaging)
-			local('page_from' = 1)
-			local('page_to' = #lastpage)
-			if(#lastpage > #numberedpaging)
+
+		if(#numberedpaging) => {
+
+			local(page_from = 1)
+			local(page_to = #lastpage)
+			if(#lastpage > #numberedpaging) => {
 				#page_from = (#page - (#numberedpaging/2 - 1))
 				#page_to = (#page + (#numberedpaging/2))
-				if(#page_from < 1)
+				if(#page_from < 1) => {
 					#page_to += (1 - #page_from)
 					#page_from = 1
-				/if
-				if(#page_to > #lastpage)
+				}
+				if(#page_to > #lastpage) => {
 					#page_from = (#lastpage - (#numberedpaging - 1))
 					#page_to = #lastpage
-				/if
-			/if
+				}
+			}
 
-			#output += ('<span class="foundcount">' + #db -> found_count + ' ' + (#lang -> getstring('footer_found')) + '</span> <span class="pagination">')
+			#output -> append('<span class="foundcount">' + #db -> found_count + ' ' + (#lang -> getstring('footer_found')) + '</span> <span class="pagination">')
 
-			if(#page > 1)
-				if(#url_cached -> size > 0)
+			if(#page > 1) => {
+				if(#url_cached -> size > 0) => {
 					#url_cached_temp = #url_cached -> ascopy
 // old					#url_cached_temp -> replace('-page = ###page###', '-page = ' + (#page - 1))
-					#url_cached_temp -> replace('-page=###page###', '-page=' + 1);
+					#url_cached_temp -> replace('-page=###page###', '-page=' + 1)
 
-					/*#output += ' <a href="' + #nav -> url(-autoparams, -getargs, -except = (array: -page, '-path'),
-						-urlargs = '-page = ' + (#page - 1)) + '" class="prevnext prev"'
-						+ ' title="' + (#lang -> getstring('linktitle_goprev')) + '">' + (#lang -> getstring('linktext_prev')) + '</a> ';*/
-					#output += (' <a href="' + #url_cached_temp + '" class="prevnext first"'
+					#output -> append(' <a href="' + #url_cached_temp + '" class="prevnext first"'
 						+ ' title="' + (#lang -> getstring('linktitle_gofirst')) + '">' + (#lang -> getstring('linktext_first')) + '</a> ')
 
 					#url_cached_temp = #url_cached -> ascopy
-					#url_cached_temp -> replace('-page=###page###', '-page=' + (#page - 1));
-					#output += (' <a href="' + #url_cached_temp + '" class="prevnext prev"'
+					#url_cached_temp -> replace('-page=###page###', '-page=' + (#page - 1))
+					#output -> append(' <a href="' + #url_cached_temp + '" class="prevnext prev"'
 						+ ' title="' + #lang -> getstring('linktitle_goprev') + '">' + #lang -> getstring('linktext_prev') + '</a> ')
 				else
-					#output += (' <a href="./?' + .urlargs(-except = array('-page', '-path'), -suffix = '&amp;') + '-page=1" class="prevnext first"'
+					#output -> append(' <a href="./?' + .urlargs(-except = array('-page', '-path'), -suffix = '&amp;') + '-page=1" class="prevnext first"'
 						+ ' title="' + (#lang -> getstring('linktitle_gofirst')) + '">' + (#lang -> getstring('linktext_first')) + '</a> ')
-					#output += (' <a href="./?' + (.urlargs( -except = array('-page', '-path'), -suffix = '&amp;')) + '-page=' + (#page - 1) + '" class="prevnext prev"' + ' title="' + #lang -> getstring('linktitle_goprev') + '">' + #lang -> getstring('linktext_prev') + '</a> ')
-				/if
-			else
-				//#output += ' <span class="prevnext prev dim">' + (#lang -> getstring('linktext_prev')) + '</span> ';
-			/if
-			if(#page_from > 1)
-				if(#url_cached -> size > 0)
+					#output -> append(' <a href="./?' + (.urlargs( -except = array('-page', '-path'), -suffix = '&amp;')) + '-page=' + (#page - 1) + '" class="prevnext prev"' + ' title="' + #lang -> getstring('linktitle_goprev') + '">' + #lang -> getstring('linktext_prev') + '</a> ')
+				}
+			}
+			if(#page_from > 1) => {
+				if(#url_cached -> size > 0) => {
 					#url_cached_temp = #url_cached -> ascopy
 					#url_cached_temp -> replace('-page=###page###', '-page=' + 1)
-					/*#output += ' <a href="' + #nav -> url(-autoparams, -getargs, -except = (array: -page, '-path'),
-						-urlargs = '-page=1') + '" class="prevnext numbered first">1</a>';*/
-					#output += (' <a href="' + #url_cached_temp + '" class="prevnext numbered first">1</a>')
+					#output -> append(' <a href="' + #url_cached_temp + '" class="prevnext numbered first">1</a>')
 				else
-					#output += (' <a href="./?' + .urlargs(-except = array('-page', '-path'), -suffix = '&amp;') + '-page=1" class="prevnext numbered first">1</a> ')
-				/if
-				#page_from > 2 ? #output +='...'
+					#output -> append(' <a href="./?' + .urlargs(-except = array('-page', '-path'), -suffix = '&amp;') + '-page=1" class="prevnext numbered first">1</a> ')
+				}
+				#page_from > 2 ? #output -> append('...')
 
-			/if
+			}
 			loop(-from = #page_from, -to = #page_to)
-				if(loop_count == #page)
-					#output += (' <span class="numbered current">' + loop_count + '</span> ')
+				if(loop_count == #page) => {
+					#output -> append(' <span class="numbered current">' + loop_count + '</span> ')
 				else
-					if(#url_cached -> size > 0)
+					if(#url_cached -> size > 0) => {
 						#url_cached_temp = #url_cached -> ascopy
 						#url_cached_temp -> replace('-page=###page###', '-page=' + loop_count)
-						/*#output += ' <a href="' + #nav -> url(-autoparams, -getargs, -except=(array: -page, '-path'),
-							-urlargs='-page=' + loop_count) + '" class="prevnext numbered">' + loop_count + '</a> ';*/
-						#output += (' <a href="' + #url_cached_temp + '" class="prevnext numbered">' + loop_count + '</a> ')
+						#output -> append(' <a href="' + #url_cached_temp + '" class="prevnext numbered">' + loop_count + '</a> ')
 					else
-						#output += (' <a href="./?' + .urlargs(-except = array('-page', '-path'), -suffix = '&amp;') + '-page=' + loop_count + '" class="prevnext numbered">' + loop_count + '</a> ')
-					/if
-				/if
+						#output -> append(' <a href="./?' + .urlargs(-except = array('-page', '-path'), -suffix = '&amp;') + '-page=' + loop_count + '" class="prevnext numbered">' + loop_count + '</a> ')
+					}
+				}
 			/loop
-			if(#page_to < #lastpage)
-				#page_to < (#lastpage - 1) ? #output += '...';
+			if(#page_to < #lastpage) => {
+				#page_to < (#lastpage - 1) ? #output -> append('...')
 
-				if(#url_cached -> size > 0)
+				if(#url_cached -> size > 0) => {
 					#url_cached_temp = #url_cached -> ascopy
 					#url_cached_temp -> replace('-page=###page###', '-page=' + #lastpage)
-					/*#output += ' <a href="' + #nav -> url(-autoparams, -getargs, -except = (array: -page, '-path'),
-						-urlargs = '-page=' + #lastpage) + '" class="prevnext numbered last">' + #lastpage + '</a> ';*/
-					#output += (' <a href="' + #url_cached_temp + '" class="prevnext numbered last">' + #lastpage + '</a> ')
+					#output -> append(' <a href="' + #url_cached_temp + '" class="prevnext numbered last">' + #lastpage + '</a> ')
 				else
-					#output += (' <a href="./?' + .urlargs(-except = array('-page', '-path'), -suffix = '&amp;') + '-page=' + #lastpage + '" class="prevnext numbered last">' + #lastpage + '</a> ')
-				/if
-			/if
+					#output -> append(' <a href="./?' + .urlargs(-except = array('-page', '-path'), -suffix = '&amp;') + '-page=' + #lastpage + '" class="prevnext numbered last">' + #lastpage + '</a> ')
+				}
+			}
 
-			if( #page < #lastpage)
-				if(#url_cached -> size > 0)
+			if( #page < #lastpage) => {
+				if(#url_cached -> size > 0) => {
 					#url_cached_temp = #url_cached -> ascopy
 					#url_cached_temp -> replace('-page=###page###', '-page=' + (#page + 1))
-					/*#output += ' <a href="' + #nav -> url(-autoparams, -getargs, -except=(array: -page, '-path'),
-						-urlargs='-page=' + (#page + 1)) + '" class="prevnext next"'
-						+ ' title="' + (#lang -> getstring('linktitle_gonext')) + '">' + (#lang -> getstring('linktext_next')) + '</a> ';*/
-					#output += (' <a href="' + #url_cached_temp + '" class="prevnext next"'
+					#output -> append(' <a href="' + #url_cached_temp + '" class="prevnext next"'
 						+ ' title="' + #lang -> getstring('linktitle_gonext') + '">' + #lang -> getstring('linktext_next') + '</a> ')
 
 					#url_cached_temp = #url_cached -> ascopy
-					#url_cached_temp -> replace('-page=###page###', '-page=' + #lastpage);
-					#output += (' <a href="' + #url_cached_temp + '" class="prevnext last"'
+					#url_cached_temp -> replace('-page=###page###', '-page=' + #lastpage)
+					#output -> append(' <a href="' + #url_cached_temp + '" class="prevnext last"'
 						+ ' title="' + (#lang -> getstring('linktitle_golast')) + '">' + (#lang -> getstring('linktext_last')) + '</a> ')
 				else
-					#output += (' <a href="./?' + .urlargs(-except = array('-page', '-path'), -suffix = '&amp;') + '-page=' + (#page + 1) + '" class="prevnext next"'
+					#output -> append(' <a href="./?' + .urlargs(-except = array('-page', '-path'), -suffix = '&amp;') + '-page=' + (#page + 1) + '" class="prevnext next"'
 						+ ' title="' + #lang -> getstring('linktitle_gonext') + '">' + #lang -> getstring('linktext_next') + '</a> ')
-					#output += (' <a href="./?' + (.urlargs( -except = array( '-page', '-path'), -suffix = '&amp;'))
+					#output -> append(' <a href="./?' + (.urlargs( -except = array( '-page', '-path'), -suffix = '&amp;'))
 						+ '-page=' + #lastpage + '" class="prevnext last"'
 						+ ' title="' + (#lang -> getstring('linktitle_golast')) + '">' + (#lang -> getstring('linktext_last')) + '</a> ')
 
-				/if
-			else
-				//#output += ' <span class="prevnext next dim">' + (#lang -> getstring('linktext_next')) + '</span> ';
-			/if
+				}
+			}
 
-			#output += '</span> '
+			#output -> append('</span> ')
+
 
 		else  // regular prev/next links
 
-			if(#page > 1)
-				if(#url_cached -> size > 0)
+
+			if(#page > 1) => {
+				if(#url_cached -> size > 0) => {
 					#url_cached_temp = #url_cached -> ascopy
 					#url_cached_temp -> replace('-page=###page###', '-page=' + 1)
-					/*#output += ' <a href="' + #nav -> url(-autoparams, -getargs, -except=(array: -page, '-path'),
-						-urlargs='-page=1') + '" class="prevnext first"'
-						+ ' title="' + (#lang -> getstring('linktitle_gofirst')) + '">' + (#lang -> getstring('linktext_first')) + '</a> ';*/
-					#output += (' <a href="' + #url_cached_temp + '" class="prevnext first"'
+					#output -> append(' <a href="' + #url_cached_temp + '" class="prevnext first"'
 						+ ' title="' + #lang -> getstring('linktitle_gofirst') + '">' + #lang -> getstring('linktext_first') + '</a> ')
 
 					#url_cached_temp = #url_cached -> ascopy
 					#url_cached_temp -> replace('-page=###page###', '-page=' + (#page - 1))
-					#output += (' <a href="' + #url_cached_temp + '" class="prevnext prev"'
+					#output -> append(' <a href="' + #url_cached_temp + '" class="prevnext prev"'
 						+ ' title="' + #lang -> getstring('linktitle_goprev') + '">' + #lang -> getstring('linktext_prev') + '</a> ')
 				else
-					#output += (' <a href="./?' + .urlargs(-except = array('-page', '-path'), -suffix = '&amp;') + '-page=1" class="prevnext first"'
+					#output -> append(' <a href="./?' + .urlargs(-except = array('-page', '-path'), -suffix = '&amp;') + '-page=1" class="prevnext first"'
 						+ ' title="' + #lang -> getstring('linktitle_gofirst') + '">' + #lang -> getstring('linktext_first') + '</a> ')
 
-					#output += (' <a href="./?' + .urlargs(-except = array('-page', '-path'), -suffix = '&amp;') + '-page=' + (#page - 1) + '" class="prevnext prev"'
+					#output -> append(' <a href="./?' + .urlargs(-except = array('-page', '-path'), -suffix = '&amp;') + '-page=' + (#page - 1) + '" class="prevnext prev"'
 						+ ' title="' + #lang -> getstring('linktitle_goprev') + '">' + #lang -> getstring('linktext_prev') + '</a> ')
-				/if
+				}
 			else
-				#output += (' <span class="prevnext first dim">' + #lang -> getstring('linktext_first') + '</span> \
+				#output -> append(' <span class="prevnext first dim">' + #lang -> getstring('linktext_first') + '</span> \
 							<span class="prevnext prev dim">' + #lang -> getstring('linktext_prev') + '</span> ')
-			/if
+			}
 			#db -> found_count > #db -> shown_count ?
-				#output += (#lang -> getstring('footer_shown', -replace = array(string(#db -> shown_first), string(#db -> shown_last))) + ' ')
-			#output += (#db -> found_count + ' ' + #lang -> getstring('footer_found'))
-			if(#db -> shown_last < #db -> found_count)
-				if(#url_cached -> size > 0)
+				#output -> append(#lang -> getstring('footer_shown', -replace = array(string(#db -> shown_first), string(#db -> shown_last))) + ' ')
+			#output -> append(#db -> found_count + ' ' + #lang -> getstring('footer_found'))
+			if(#db -> shown_last < #db -> found_count) => {
+				if(#url_cached -> size > 0) => {
 					#url_cached_temp = #url_cached -> ascopy
 					#url_cached_temp -> replace('-page=###page###', '-page=' + (#page + 1))
-					/*#output += ' <a href="' + #nav -> url(-autoparams, -getargs, -except=(array: -page, '-path'),
-						-urlargs='-page=' + (#page + 1)) + '" class="prevnext next"'
-						+ ' title="' + (#lang -> getstring('linktitle_gonext')) + '">' + (#lang -> getstring('linktext_next')) + '</a> ';*/
-					#output += (' <a href="' + #url_cached_temp + '" class="prevnext next"'
+					#output -> append(' <a href="' + #url_cached_temp + '" class="prevnext next"'
 						+ ' title="' + #lang -> getstring('linktitle_gonext') + '">' + #lang -> getstring('linktext_next') + '</a> ')
 
 					#url_cached_temp = #url_cached -> ascopy
 					#url_cached_temp -> replace('-page=###page###', '-page=' + #lastpage)
-					#output += (' <a href="' + #url_cached_temp + '" class="prevnext last"'
+					#output -> append(' <a href="' + #url_cached_temp + '" class="prevnext last"'
 						+ ' title="' + #lang -> getstring('linktitle_golast') + '">' + #lang -> getstring('linktext_last') + '</a> ')
 				else
-					#output += (' <a href="./?' + .urlargs(-except = array('-page', '-path'), -suffix = '&amp;') + '-page=' + (#page + 1) + '" class="prevnext next"'
+					#output -> append(' <a href="./?' + .urlargs(-except = array('-page', '-path'), -suffix = '&amp;') + '-page=' + (#page + 1) + '" class="prevnext next"'
 						+ ' title="' + #lang -> getstring('linktitle_gonext') + '">' + #lang -> getstring('linktext_next') + '</a> ')
-					#output += (' <a href="./?' + .urlargs(-except = array('-page', '-path'), -suffix = '&amp;') + '-page=' + .lastpage + '" class="prevnext last"'
+					#output -> append(' <a href="./?' + .urlargs(-except = array('-page', '-path'), -suffix = '&amp;') + '-page=' + .lastpage + '" class="prevnext last"'
 						+ ' title="' + #lang -> getstring('linktitle_golast') + '">' + #lang -> getstring('linktext_last') + '</a> ')
-				/if
+				}
 			else
-				#output += (' <span class="prevnext next dim">' + #lang -> getstring('linktext_next') + '</span>  \
+				#output -> append(' <span class="prevnext next dim">' + #lang -> getstring('linktext_next') + '</span>  \
 							<span class="prevnext last dim">' + #lang -> getstring('linktext_last') + '</span> ')
-			/if
-		/if
-		#output += ('</th></tr>\n</tbody>')
-		#end ? #output += '</table>\n'
+			}
+		}
+		#output -> append('</th></tr>\n</tbody>')
+		#end ? #output -> append( '</table>\n')
+
 
 		return #output
 	}
 
 	public renderfooter(-end::boolean = false, -numbered::any = false, -xhtml::boolean = false) => .renderfooter(#end, #numbered, #xhtml)
 
-	public page() => {
-		local('description' = 'Returns the current page number')
-		return .'page'
-	}
-
 	public lastpage() => {
-		local('description'='Returns the number of the last page for the found records')
-		if(.'database' -> 'found_count' > 0)
-			return (((.'database' -> 'found_count' - 1) / .'database' -> 'maxrecords_value') + 1)
+		local(description = 'Returns the number of the last page for the found records')
+		if(.database -> 'found_count' > 0) => {
+			return (((.database -> 'found_count' - 1) / .database -> 'maxrecords_value') + 1)
 		else
 			return 1
-		/if
+		}
 	}
 
 /**!
-Converts current page value to a skiprecords value to use in a search.
-
-Parameters:
-	- maxrecords (required integer)
-	  Needed to be able to do the calculation. Maxrecords_value can not be taken
-	  from the database object since that value is not available until after
-	  performing the search
+page_skiprecords
+Converts current page value to a skiprecords value to use in a search. \n\
+			Parameters:\n\
+			-maxrecords (required integer) Needed to be able to do the calculation. Maxrecords_value can not be taken from the database object since taht value is not available until aftetr performing the search
 **/
 	public page_skiprecords(maxrecords::integer) => {
 		// TODO: maxrecords_value can be taken from the database object so should not be required
-		return ((.'page' - 1) * #maxrecords)
+		return ((.page - 1) * #maxrecords)
 	}
 
-	public addurlarg(field::string, value = '') => {
-		.'urlparams' -> insert(#value -> size > 0 ? (#field + '=' + #value) | #field)
+	public addurlarg(field::string, value = string) => {
+		.urlparams -> insert(#value -> size > 0 ? (#field + '=' + #value) | #field)
 	}
 
 }
+
 
 ?>

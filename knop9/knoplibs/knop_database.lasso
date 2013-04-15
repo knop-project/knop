@@ -1,5 +1,5 @@
 ﻿<?Lasso
-log_critical('loading knop_database from LassoApp')
+log_critical('loading knop_database')
 
 /**!
 Custom type to interact with databases. Supports both MySQL and FileMaker datasources
@@ -10,6 +10,9 @@ define knop_database => type {
 
 	CHANGE NOTES
 
+	2013-03-21	JC	Changed remaining iterate to query
+	2013-03-21	JC	Making sure that capturesearchvars run on the first resultset when called using select
+	2012-12-10	JC	Bug fix, making sure maxrecords is always an integer even when fed all or 'all'
 	2012-07-02	JC	Replaced all old style if, inline and loop with code blocks
 	2012-07-02	JC	Commented out method varname to be used from knop_base instead
 	2012-07-02	JC	Fixed erroneous handling of addlock and clearlocks
@@ -35,7 +38,7 @@ define knop_database => type {
 
 	parent knop_base
 
-	data public version = '2012-06-22'
+	data public version = '2013-03-21'
 
 	data public description::string = 'Custom type to interact with databases. Supports both MySQL and FileMaker datasources'
 
@@ -321,7 +324,7 @@ Parameters:
 		keyfield::string = '',
 		keyvalue::any = '',
 		inlinename::string = 'inline_' + knop_unique9 // inlinename defaults to a random string
-	) => {
+	) => debug => {
 
 //	debug => {
 
@@ -362,7 +365,9 @@ Parameters:
 
 			// store maxrecords and skiprecords for later use
 			if(#_search >> '-maxrecords') => {
-				.'maxrecords_value' = #_search -> find('-maxrecords') -> last -> value
+				local(maxrecords_value = #_search -> find('-maxrecords') -> last -> value)
+				#maxrecords_value == 'all' or #maxrecords_value == all ? #maxrecords_value = 4234980
+				.'maxrecords_value' = integer(#maxrecords_value)
 //				debug(tag_name + ': -maxrecords value found in search array ' + .'maxrecords_value')
 			}
 			if(#_search >> '-skiprecords') => {
@@ -402,12 +407,16 @@ Parameters:
 
 		// perform database query, put connection parameters last to override any provided by the search parameters
 		local(querytimer = knop_timer)
-		inline(#_search, .'db_connect') => {
-			.'querytime' = integer(#querytimer)
-			.'searchparams' = #_search
-//			debug -> sql(action_statement)
-//			debug(found_count + ' found')
-			.capturesearchvars
+		debug('Knop_database select inline') => {
+			inline(#_search, .'db_connect') => {
+				.'querytime' = integer(#querytimer)
+				.'searchparams' = #_search
+	//			debug -> sql(action_statement)
+	//			debug(found_count + ' found')
+				resultset(1) => {
+					.capturesearchvars
+				}
+			}
 		}
 
 //		debug(tag_name + ': found ' string(.'found_count') + ' records in ' + string(.'querytime') + ' ms, tag time, ' + .'error_msg' + ' ' + string(.'error_code'))
@@ -555,7 +564,7 @@ Parameters:
 
 **/
 	public getrecord(
-		keyvalue::string = string(.'keyvalue'),
+		keyvalue::any = .'keyvalue',
 		keyfield::string = string(.'keyfield'),
 		inlinename::string = 'inline_' + knop_unique9,
 		lock::boolean = false,
@@ -573,9 +582,9 @@ Parameters:
 		local(lock_user = null)
 		local(keyvalue_temp = null)
 
-		#keyfield = #keyfield -> ascopy
-		.'keyfield' = string(#keyfield)
-		#keyvalue = #keyvalue -> ascopy
+		#keyfield = string(#keyfield)
+		.'keyfield' = #keyfield
+		#keyvalue = string(#keyvalue)
 		.'keyvalue' = #keyvalue
 		#inlinename = #inlinename -> ascopy
 		local(id_user = string)
@@ -690,7 +699,7 @@ Parameters:
 								if(.'user' -> isa(::knop_user)) => {
 									// tell user it has locked a record in this db object
 									.'user' -> addlock(.varname)
-stdoutnl('knop_database getrecord lock ' + .'user' -> 'dblocks')
+//stdoutnl('knop_database getrecord lock ' + .'user' -> 'dblocks')
 								}
 							}
 						} // inline
@@ -704,7 +713,7 @@ stdoutnl('knop_database getrecord lock ' + .'user' -> 'dblocks')
 	} // END getrecord
 
 	public getrecord(
-		keyvalue::string = string(.'keyvalue'),
+		keyvalue::any = .'keyvalue',
 		-keyfield::string = string(.'keyfield'),
 		-inlinename::string = 'inline_' + knop_unique9,
 		-lock::boolean = false,
@@ -713,7 +722,7 @@ stdoutnl('knop_database getrecord lock ' + .'user' -> 'dblocks')
 	) => .getrecord(#keyvalue, #keyfield, #inlinename, #lock, #user, #sql)
 
 	public getrecord(
-		-keyvalue::string = string(.'keyvalue'),
+		-keyvalue::any = .'keyvalue',
 		-keyfield::string = string(.'keyfield'),
 		-inlinename::string = 'inline_' + knop_unique9,
 		-lock::boolean = false,
@@ -1066,7 +1075,7 @@ Parameters:
 		error_push
 		handle => { error_pop }
 
-	local(id_user = #user)
+		local(id_user = #user)
 
 		fail_if(.'lockfield' -> size == 0, 7003,  .error_msg(7003)) //  Lockfield not specified
 		fail_if((#user -> size == 0 && !(#user -> isa(::knop_user))), 7004, .error_msg(7004)) // User not specified
@@ -1172,13 +1181,13 @@ A map containing all fields, only available for single record results.
 			return(.'recorddata')
 		else(.'records_array' -> size >= #recordindex)
 			local(recorddata = map)
-			iterate(.field_names)
-				#recorddata -> insert(loop_value  =  (.'records_array' -> get(#recordindex)
-					-> get(.'field_names_map' -> find(loop_value))))
-			/iterate
-			return(#recorddata)
+			with fieldname in .field_names do {
+				#recorddata -> insert(#fieldname = (.'records_array' -> get(#recordindex)
+					-> get(.'field_names_map' -> find(#fieldname))))
+			}
+			return #recorddata
 		else
-			return(map)
+			return map
 		}
 
 // 	} // end debug
@@ -1433,11 +1442,13 @@ capturesearchvars Internal.
 		!(.'maxrecords_value' > 0) ? .'maxrecords_value' = maxrecords_value
 		!(.'skiprecords_value' > 0) ? .'skiprecords_value' = skiprecords_value
 
-		lasso_tagexists('resultset_count') ? .'resultset_count_map' -> insert(.'inlinename' = resultset_count)
-		iterate(field_names)
-			.'field_names_map' !>> loop_value
-				? .'field_names_map' -> insert(loop_value = loop_count)
-		/iterate
+		.'resultset_count_map' -> insert(.'inlinename' = resultset_count)
+		local(loopcount = 1)
+		with fieldname in field_names do {
+			.'field_names_map' !>> #fieldname
+				? .'field_names_map' -> insert(#fieldname = #loopcount)
+			#loopcount++
+		}
 
 		.'error_code' = error_code
 		error_code && error_msg -> size ? .'error_msg' = error_msg
@@ -1483,10 +1494,10 @@ capturesearchvars Internal.
 
 		if(error_code == 0) => {
 			// populate recorddata with field values from the first found record
-			iterate(field_names)
-				.'recorddata' !>> loop_value
-					? .'recorddata' -> insert(loop_value  =  field(loop_value) )
-			/iterate
+			with fieldname in field_names do {
+				.'recorddata' !>> #fieldname
+					? .'recorddata' -> insert(#fieldname  =  field(#fieldname) )
+			}
 		else
 //			debug(tag_name + ': ' + error_msg)
 		}
@@ -1697,9 +1708,11 @@ Parameters:
 		.'field_names' = #field_names
 
 		// store indexes to first occurrence of each field name for faster access
-		iterate(#field_names) => {
-			.'field_names_map' !>> loop_value
-				? .'field_names_map' -> insert(loop_value = loop_count)
+		local(loopcount = 1)
+		with fieldname in #field_names do {
+			.'field_names_map' !>> #fieldname
+				? .'field_names_map' -> insert(#fieldname = #loopcount)
+			#loopcount++
 		}
 
 // 	} // end debug
@@ -1905,6 +1918,6 @@ Return an individual field value.
 
 } // END knop_databaserow
 
-log_critical('loading knop_database done')
+//log_critical('loading knop_database done')
 
 ?>
