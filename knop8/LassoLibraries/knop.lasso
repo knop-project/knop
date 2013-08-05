@@ -1,7 +1,7 @@
 ﻿[/* 
 
 	On-Demand library for namespace knop
-	Namespace file built date 2012-07-01 03:39:29 by http://knop/knop8/source/buildnamespace.lasso
+	Namespace file built date 2013-08-04 22:18:30 by http://knop-project/knop8/source/buildnamespace.lasso
 	Montania System AB
 
 */]
@@ -680,6 +680,10 @@ define_type: 'database',
 /*
 
 CHANGE NOTES
+2012-07-05	RL	knop_database -> clearlocks now accepts user object as in knop 9, (or userid - so existing code does not break).
+2012-07-04	RL	knop_database -> saverecord no longer copies user object.
+2012-07-03	RL	Yet another fix for Issue #53: knop_database -> getrecord does not clear stale lockvalue.
+2012-07-02	RL	Fix for Issue #53: knop_database -> deleterecord changes user object to string.
 2012-06-25	JC	Another fix for Issue #53: knop_database -> getrecord does not clear stale lockvalue.
 2012-06-22	JC	Fix for Issue #53: knop_database -> getrecord does not clear stale lockvalue.
 2012-06-10	SP	Fix for decimal precision bug in 8.6.0.1 in renderfooter.
@@ -1117,7 +1121,7 @@ datetime_create and datetime_mod, and also user_create and user_mod.
 		-optional='keyfield',
 		-optional='inlinename', -copy,
 		-optional='lock',
-		-optional='user', -copy,
+		-optional='user',
 		-optional='sql', -type='string';
 		local: 'timer'=knop_timer; 
 
@@ -1148,10 +1152,10 @@ datetime_create and datetime_mod, and also user_create and user_mod.
 			fail_if: (local: 'user') == '' && !((local: 'user') -> isa('user')), 7004, self -> error_msg(7004); // User must be specified to get record with lock
 			(self -> 'debug_trace') -> insert(tag_name ': user is type ' + (#user -> type) + ', isa(user) = ' + (#user -> isa('user')) );
 			if: #user -> isa('user');
-				#user= #user -> id_user;
-				fail_if: #user == '', 7004, self -> error_msg(7004); // User must be logged in to get record with lock
+				local: 'id_user' = #user -> id_user ? #user -> id_user | '';
+				fail_if: #id_user == '', 7004, self -> error_msg(7004); // User must be logged in to get record with lock
 			/if;
-			(self -> 'debug_trace') -> insert(tag_name ': user id is ' + #user);
+			(self -> 'debug_trace') -> insert(tag_name ': user id is ' + #id_user);
 		/if;
 		if: !(local_defined: 'keyfield') && (self -> 'keyfield') != '';
 			local: 'keyfield'=(self -> 'keyfield');
@@ -1192,7 +1196,7 @@ datetime_create and datetime_mod, and also user_create and user_mod.
 						local: 'lock_timestamp'=date: (#lockvalue->size > 1 ? #lockvalue -> (get: 2) | null);
 						local: 'lock_user'=#lockvalue -> first;
 						if: (date - #lock_timestamp) -> seconds < (self -> 'lock_expires')
-							&& #lock_user != #user;
+							&& #lock_user != #id_user;
 							// the lock is still valid and it is locked by another user
 							// this is not a real error, more a warning condition
 							(self -> 'error_code') = 7010; 
@@ -1203,7 +1207,7 @@ datetime_create and datetime_mod, and also user_create and user_mod.
 					/if;
 					if: (self -> 'error_code') == 0;
 						// go ahead and lock record
-						(self -> 'lockvalue') = #user + '|' + (date -> format: '%Q %T');
+						(self -> 'lockvalue') = #id_user + '|' + (date -> format: '%Q %T');
 						(self -> 'lockvalue_encrypted') = (encrypt_blowfish: (self -> 'lockvalue'), -seed=(self -> 'lock_seed'));
 						local: 'keyvalue_temp'=#keyvalue;
 						if: (self -> 'isfilemaker');
@@ -1231,9 +1235,9 @@ datetime_create and datetime_mod, and also user_create and user_mod.
 							else;
 								// lock was set ok
 								(self -> 'debug_trace') -> (insert: tag_name + ': set record lock ' + (self -> 'lockvalue') + ' ' + (self -> 'lockvalue_encrypted'));
-								if: (self -> 'user') -> isa('user');
+								if: #user -> isa('user');
 									// tell user it has locked a record in this db object
-									(self -> 'user') -> addlock(-dbname=self -> varname);
+									 #user -> addlock(-dbname=self -> varname);
 								/if;
 							/if;
 						/inline;
@@ -1262,7 +1266,7 @@ datetime_create and datetime_mod, and also user_create and user_mod.
 		-optional='keyvalue', -copy,
 		-optional='lockvalue', -copy,
 		-optional='keeplock',
-		-optional='user', -copy,
+		-optional='user',
 		-optional='inlinename', -copy;
 		
 		local: 'timer'=knop_timer; 
@@ -1286,10 +1290,10 @@ datetime_create and datetime_mod, and also user_create and user_mod.
 			fail_if: (local: 'user') == '' && !((local: 'user') -> isa('user')), 7004, self -> error_msg(7004); 
 			(self -> 'debug_trace') -> insert(tag_name ': user is type ' + (#user -> type) + ', isa(user) = ' + (#user -> isa('user')) );
 			if: #user -> isa('user');
-				#user= #user -> id_user;
-				fail_if: #user == '', 7004, self -> error_msg(7004); // User must be logged in to get record with lock
+				local: 'id_user' = #user -> id_user ? #user -> id_user | '';
+				fail_if: #id_user == '', 7004, self -> error_msg(7004); // User must be logged in to get record with lock
 			/if;
-			(self -> 'debug_trace') -> insert(tag_name ': user id is ' + #user);
+			(self -> 'debug_trace') -> insert(tag_name ': user id is ' + #id_user);
 		/if;
 		
 		!(local_defined: 'keyfield') ? local: 'keyfield'=self -> 'keyfield';
@@ -1313,7 +1317,7 @@ datetime_create and datetime_mod, and also user_create and user_mod.
 				local: 'lock_timestamp'=date: (#lock->size > 1 ? (#lock -> (get: 2)) | null);
 				local: 'lock_user'=#lock -> first;
 				if: (date - #lock_timestamp) -> seconds < (self -> 'lock_expires')
-					&& #lock_user != #user;
+					&& #lock_user != #id_user;
 					// the lock is still valid and it is locked by another user
 					(self -> 'error_code') = 7010; 
 					(self -> 'error_data') = (map: 'user' = #lock_user, 'timestamp' = #lock_timestamp);
@@ -1344,7 +1348,7 @@ datetime_create and datetime_mod, and also user_create and user_mod.
 					#_fields -> (removeall: (self -> 'lockfield'));
 					if: ((local_defined: 'keeplock') && #keeplock != false);
 						// update the lock timestamp
-						(self -> 'lockvalue') = #user + '|' + (date -> format: '%Q %T');
+						(self -> 'lockvalue') = #id_user + '|' + (date -> format: '%Q %T');
 						(self -> 'lockvalue_encrypted') = (encrypt_blowfish: (self -> 'lockvalue'), -seed=(self -> 'lock_seed'));
 						#_fields -> (insert: (self -> 'lockfield')=(self -> 'lockvalue'));
 					else;
@@ -1429,10 +1433,10 @@ datetime_create and datetime_mod, and also user_create and user_mod.
 			fail_if: (local: 'user') == '' && !((local: 'user') -> isa('user')), 7004, self -> error_msg(7004); 
 			(self -> 'debug_trace') -> insert(tag_name ': user is type ' + (#user -> type) + ', isa(user) = ' + (#user -> isa('user')) );
 			if: #user -> isa('user');
-				#user= #user -> id_user;
-				fail_if: #user == '', 7004, self -> error_msg(7004); // User must be logged in to get record with lock
+				local: 'id_user' = #user -> id_user ? #user -> id_user | '';
+				fail_if: #id_user == '', 7004, self -> error_msg(7004); // User must be logged in to get record with lock
 			/if;
-			(self -> 'debug_trace') -> insert(tag_name ': user id is ' + #user);
+			(self -> 'debug_trace') -> insert(tag_name ': user id is ' + #id_user);
 		/if;
 		
 		local: '_fields'=array;
@@ -1447,7 +1451,7 @@ datetime_create and datetime_mod, and also user_create and user_mod.
 				local: 'lock_timestamp'=date: (#lockvalue->size > 1 ? #lockvalue -> (get: 2) | null);
 				local: 'lock_user'=(#lockvalue -> first);
 				if: (date - #lock_timestamp) -> seconds < (self -> 'lock_expires')
-					&& #lock_user != #user;
+					&& #lock_user != #id_user;
 					// the lock is still valid and it is locked by another user
 					(self -> 'error_code') = 7010; // Delete failed, record locked 
 					(self -> 'error_data') = (map: 'user' = #lock_user, 'timestamp' = #lock_timestamp);
@@ -1528,14 +1532,17 @@ datetime_create and datetime_mod, and also user_create and user_mod.
 
 		fail_if: (self -> 'lockfield') == '', 7003,  self -> error_msg(7003); //  Lockfield not specified
 		fail_if: #user == '', 7004, self -> error_msg(7004); // User not specified
+		
+		// Fix: now accepts user object for consistency but falls back on userid
+		local: 'id_user' = #user -> isa('user') ? #user -> id_user | #user;
 	
 		if: (self -> 'isfilemaker');
 			inline: (self -> 'db_connect'),
 				-maxrecords=all,
-				(self -> 'lockfield')='"' + #user + '|"',
+				(self -> 'lockfield')='"' + #id_user + '|"',
 				-search;
 				if: found_count > 0;
-					(self -> 'debug_trace') -> (insert: tag_name + ': clearing locks for ' + #user + ' in ' + found_count + ' FileMaker records ' + error_msg + ' ' + error_code);
+					(self -> 'debug_trace') -> (insert: tag_name + ': clearing locks for ' + #id_user + ' in ' + found_count + ' FileMaker records ' + error_msg + ' ' + error_code);
 					records;
 						inline: -keyvalue=keyfield_value,
 							(self -> 'lockfield')='',
@@ -1556,13 +1563,13 @@ datetime_create and datetime_mod, and also user_create and user_mod.
 		else;
 			inline: (self -> 'db_connect'),
 				-sql='UPDATE `' + (self -> 'table_realname') + '` SET `' + (self -> 'lockfield') + '`=""  WHERE `' + (self -> 'lockfield') 
-					+ '` LIKE "' + (encode_sql: #user) + '|%"';
+					+ '` LIKE "' + (encode_sql: #id_user) + '|%"';
 				if: error_code != 0;
 					(self -> 'error_code') = 7013; // Clearlocks failed
 					(self -> 'error_data') = (map: 'error_code'=error_code, 'error_msg'=error_msg);
 				/if;
 			/inline;
-			(self -> 'debug_trace') -> (insert: tag_name + ': clearing all locks for ' + #user + ' ' + (self -> error_msg) + ' ' + (self -> error_code));
+			(self -> 'debug_trace') -> (insert: tag_name + ': clearing all locks for ' + #id_user + ' ' + (self -> error_msg) + ' ' + (self -> error_code));
 		/if;
 		self -> 'tagtime_tagname'=tag_name;
 		self -> 'tagtime'=integer: #timer; // cast to integer to trigger onconvert and to "stop timer"
@@ -5916,12 +5923,46 @@ define_type: 'nav',
 	-namespace='knop_';
 //	-prototype;
 
-	local: 'version'='2010-11-17',
+	local: 'version'='2013-08-04',
  		'description'='Custom type to handle site navigation menu';
 
 /*
 
 CHANGE NOTES
+2013-08-04	SP	Added optional -tbdropdown parameter to ->insert method.  It may be a flag or any type.  The following values for the parameter -tbdropdown are equivalent.
+
+    -tbdropdown
+    -tbdropdown=true
+    -tbdropdown=<any non-map type or expression that evaluates to true>
+    -tbdropdown=map(
+        'tbdd_liclass' = 'dropdown',
+        'tbdd_aclass' = 'dropdown-toggle',
+        'tbdd_araw' = ' data-toggle="dropdown"',
+        'tbdd_labelappend' = ' <span class="caret"></span>');
+
+All will generate HTML markup:
+
+  <li class="dropdown">
+    <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+      Dropdown <span class="caret"></span>
+    </a>
+
+If -tbdropdown is type map, then the values for the keys in the map will be used.  For example, using the Crisp theme <https://wrapbootstrap.com/theme/crisp-responsive-fluid-business-template-WB0F7FH2P>
+
+    -tbdropdown=map(
+        'tbdd_liclass' = 'parent',
+        'tbdd_aclass' = '',
+        'tbdd_araw' = '',
+        'tbdd_labelappend' = '<i></i><span class="dcjq-icon"></span>');
+
+Will generate HTML markup:
+
+  <li class="parent">
+    <a href="#">
+      Dropdown<i></i><span class="dcjq-icon"></span>
+    </a>
+2013-08-04	SP	Added optional -liclass parameter to ->insert method.  If the HTML template contains "<li>", either by setting it with -template or using the default value, then when the nav is rendered the classes will be inserted into the <li> tag.
+2013-08-02	SP	Added optional -ulclass parameter as an instance variable.  If the HTML template begins with "<ul>", either by setting it or using the default value, then when the nav is rendered the classes will be inserted into the <ul> tag.
 2010-11-17	JC	Fixed bug so that session links no longer gets added to urls by the nav -> url tag.
 2010-11-17	JC	Fixed a bug that would not convert local params to an array under certain situations
 2009-09-18	JS	Syntax adjustments for Lasso 9
@@ -6048,7 +6089,9 @@ Make it possible to use external URL for -url (make sure there is no / before ht
 		'dotrace'=false,
 		'actionconfigfile_didrun'=string,	// path to action config file that has been run for the current page load
 											// used to not load the same config again
-		'error_lang'=(knop_lang: -default='en', -fallback);
+		'error_lang'=(knop_lang: -default='en', -fallback),
+		'ulclass'=string,   // class to insert into this nav's <ul> tag
+		'currentclasstags'=array;   // array of tags into which the current class as defined by -currentclass will be inserted
 
 	define_tag: 'oncreate', -description='Parameters:\n\
 			-default (optional) Key of default navigation item\n\
@@ -6060,7 +6103,8 @@ Make it possible to use external URL for -url (make sure there is no / before ht
 			-template (optional) html template used to render the navigation menu\n\
 			-class (optional) default class for all navigation links\n\
 			-currentclass (optional) class added for the currently active link\n\
-			-currentmarker (optional) character(s) show to the right link of current nav (typically &raquo;)',
+			-currentmarker (optional) character(s) show to the right link of current nav (typically &raquo;)\n\
+			-ulclass (optional) Accepts a string of classes separated by spaces.  If the HTML template begins with "<ul>", either by setting it or using the default value, then when the nav is rendered the classes will be inserted into the <ul> tag.',
 		-optional='template',
 		-optional='class',
 		-optional='currentclass',
@@ -6070,7 +6114,9 @@ Make it possible to use external URL for -url (make sure there is no / before ht
 		-optional='fileroot',
 		-optional='navmethod',
 		-optional='filenaming',
-		-optional='trace';
+		-optional='trace',
+		-optional='ulclass',
+		-optional='currentclasstags', -type='array';
 		local: 'timer'=knop_timer, 'dotrace'=(self -> 'dotrace');
 		// TODO: check if we are in an inline, in that case use -key, -label etc as field names and loop through records to fill nav		
 		
@@ -6082,6 +6128,8 @@ Make it possible to use external URL for -url (make sure there is no / before ht
 		local_defined('currentclass') ? (self -> 'currentclass') = #currentclass;
 		local_defined('currentmarker') ? (self -> 'currentmarker') = #currentmarker;
 		local_defined('filenaming') ? (self -> 'filenaming') = #filenaming;
+		local_defined('ulclass') ? (self -> 'ulclass') = #ulclass;
+		local_defined('currentclasstags') ? (self -> 'currentclasstags') = #currentclasstags;
 
 		(self -> 'dotrace') = (local_defined: 'trace') && #trace != false;
 		// normalize slashes
@@ -6133,7 +6181,41 @@ Make it possible to use external URL for -url (make sure there is no / before ht
 			-disabled (optional flag) Makes the menu item dimmed and non-clickable\n\ 
 			-hide (optional flag) Makes the location valid without showing a menu item for it\n\ 
 			-after (optional) After which navitem to insert this navitem (key or numeric index)\n\ 
-			-data (optional) Arbitrary data object (variable, map, array, compound expression) that can be returned for the location by calling ->data',
+			-data (optional) Arbitrary data object (variable, map, array, compound expression) that can be returned for the location by calling ->data\n\
+			-liclass (optional) If the HTML template contains "<li>", either by setting it with -template or using the default value, then when the nav is rendered the classes will be inserted into the <li> tag.\n\
+			-tbdropdown (optional flag or map) It may be a flag or any type.  The following values for the parameter -tbdropdown are equivalent.
+
+    -tbdropdown
+    -tbdropdown=true
+    -tbdropdown=<any non-map type or expression that evaluates to true>
+    -tbdropdown=map(
+        \'tbdd_liclass\' = \'dropdown\',
+        \'tbdd_aclass\' = \'dropdown-toggle\',
+        \'tbdd_araw\' = \' data-toggle="dropdown"\',
+        \'tbdd_labelappend\' = \' <span class="caret"></span>\');
+
+All will generate HTML markup:
+
+  <li class="dropdown">
+    <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+      Dropdown <span class="caret"></span>
+    </a>
+
+If -tbdropdown is type map, then the values for the keys in the map will be used.  For example, using the Crisp theme <https://wrapbootstrap.com/theme/crisp-responsive-fluid-business-template-WB0F7FH2P>
+
+    -tbdropdown=map(
+        \'tbdd_liclass\' = \'parent\',
+        \'tbdd_aclass\' = \'\',
+        \'tbdd_araw\' = \'\',
+        \'tbdd_labelappend\' = \'<i></i><span class="dcjq-icon"></span>\');
+
+Will generate HTML markup:
+
+  <li class="parent">
+    <a href="#">
+      Dropdown<i></i><span class="dcjq-icon"></span>
+    </a>
+',
 		-required='key',
 		-optional='label',
 		-optional='default',
@@ -6147,7 +6229,9 @@ Make it possible to use external URL for -url (make sure there is no / before ht
 		-optional='disabled',
 		-optional='hide',
 		-optional='after',
-		-optional='data';
+		-optional='data',
+		-optional='liclass',
+		-optional='tbdropdown';
 		local: 'timer'=knop_timer, 'dotrace'=(self -> 'dotrace'); 
 		
 		fail_if: !(local_defined: 'hide') && (local: 'label') == '', -1, 'Insert requires a label';
@@ -6188,8 +6272,9 @@ Make it possible to use external URL for -url (make sure there is no / before ht
 		local_defined('title') && #title != '' ? #navitem -> insert('title' = #title); 
 		local_defined('template') && #template != '' ? #navitem -> insert('template' = #template); 
 		local_defined('children') && #children != '' ? #navitem -> insert('children' = #children); 
-		local_defined('class') && #class != '' ? #navitem -> insert('class' = #class); 
+		local_defined('class') && #class != '' ? #navitem -> insert('class' = #class);
 		local_defined('filename') && #filename != '' ? #navitem -> insert('filename' = #filename);
+		local_defined('liclass') && #liclass != '' ? #navitem -> insert('liclass' = #liclass);
 
 		if(local_defined('default') && #default != '' && #pathmapchildren >> #default);
 			// only add default that exists in children
@@ -6206,6 +6291,22 @@ Make it possible to use external URL for -url (make sure there is no / before ht
 		/if;
 		#navitem -> (insert: 'disabled'=(local_defined: 'disabled') && #disabled != false);
 		#navitem -> (insert: 'hide'=(local_defined: 'hide') && #hide != false);
+
+        if(local_defined('tbdropdown'));
+            // initiate values for the Twitter Bootstrap dropdown #item#
+            if(#tbdropdown -> isa('map'));
+                // use the custom key values in the map
+                #navitem -> insert('tbdropdown' = #tbdropdown);
+            else(#tbdropdown != false);
+                // set default values
+                #navitem -> insert('tbdropdown' = map(
+                    'tbdd_liclass' = 'dropdown',
+                    'tbdd_aclass' = 'dropdown-toggle',
+                    'tbdd_araw' = ' data-toggle="dropdown"',
+                    'tbdd_labelappend' = ' <span class="caret"></span>'));
+            /if;
+        /if;
+
 		#dotrace ? (self -> 'debug_trace') -> (insert: tag_name + ': #key=' + #key);
 		local: 'index'=(self -> 'navitems') -> size + 1;
 		if: (local_defined: 'after') && (string: #after) -> size;
@@ -6530,8 +6631,8 @@ Make it possible to use external URL for -url (make sure there is no / before ht
 	define_tag: 'setformat', -description='Sets html template for the nav object, use #items# #item# #/items# or more elaborate #items# #link##label##current##/link##children# #/items# as placeholders.\n\
 			Parameters:\n\
 			-template (optional string) Html template, defaults to <ul>#items#<li>#item#</li>#/items#</ul>\n\
-			-class (optional string) Css class name that will be used for every navigation link\n\
-			-currentclass (optional string) Css class name that will be added to the currently active navigation link (defaults to crnt)\n\
+			-class (optional string) CSS class name that will be used for every navigation link\n\
+			-currentclass (optional string) CSS class name that will be added to the currently active navigation link (defaults to crnt)\n\
 			-currentmarker (optional string) String that will be appended to menu text of currently active navigation link',
 		-optional='template', -type='string',
 		-optional='class', -type='string',
@@ -6596,6 +6697,7 @@ Make it possible to use external URL for -url (make sure there is no / before ht
 		local: '_expand' = (local_defined: 'expand') && #expand != false;
 		
 		local: 'template'=(self -> 'template' != '' ? self -> 'template' | #topself -> 'template');
+		local('ulclass' = self->'ulclass');
 		local: 'clientparams'=client_getparams;
 		#clientparams -> (merge: client_postparams);
 		
@@ -6615,7 +6717,20 @@ Make it possible to use external URL for -url (make sure there is no / before ht
 			'itemtemplate'=(string_findregexp: #template, -find='(?si)#items#(.*?)#/items#'),
 			'itemlinkstart'=string,
 			'itemlinkend'=string,
-			'itemlabel'=string;
+			'itemlabel'=string,
+            'ulclassarray'=array,
+            'liclassarray'=array,
+            'tbdd_liclass' = string,
+            'tbdd_aclass' = string,
+            'tbdd_araw' = string,
+            'tbdd_labelappend' = string;
+		// construct the array of classes for the current <ul>
+		if(#template->beginswith('<ul>') && #ulclass != '');
+		    #ulclassarray = #ulclass->split(' ');
+		/if;
+        if(#ulclassarray->size > 0);
+            #template = string_replaceregexp(#template, -find='<ul', -replace=('<ul class="' + #ulclassarray->join(' ') + '"'));
+        /if;
 		#itemtemplate = (#itemtemplate -> size >= 2 ? #itemtemplate -> (get: 2) | string);
 		
 		if: (local_defined: 'renderpath') && #renderpath != '' && #renderpath != '/';
@@ -6637,6 +6752,11 @@ Make it possible to use external URL for -url (make sure there is no / before ht
 				#itemlinkend=string;
 				#itemchildren = string;
 				#currentmarker=string;
+                
+                #tbdd_liclass = string;
+                #tbdd_aclass = string;
+                #tbdd_araw = string;
+                #tbdd_labelappend = string;
 
 				#thispath=#basepath + '/' + (#navitem -> (find: 'key'));
 				#thispath -> (removeleading: '/');
@@ -6646,17 +6766,46 @@ Make it possible to use external URL for -url (make sure there is no / before ht
 				else;
 					#itemrow = #itemtemplate;
 				/if;
+                #liclassarray = array;
+                if(#itemrow->beginswith('<li>') && #navitem->find('liclass') != '');
+                    #liclassarray = #navitem->find('liclass')->split(' ');
+                /if;
+
+                if(#navitem -> find('tbdropdown') -> isa('map'));
+                    #tbdd_liclass = #navitem -> find('tbdropdown') -> find('tbdd_liclass');
+                    #tbdd_aclass = #navitem -> find('tbdropdown') -> find('tbdd_aclass');
+                    #tbdd_araw = #navitem -> find('tbdropdown') -> find('tbdd_araw');
+                    #tbdd_labelappend = #navitem -> find('tbdropdown') -> find('tbdd_labelappend');
+                /if;
+
+                #tbdd_liclass != '' ? #liclassarray->insert(#tbdd_liclass);
+
+                if: (((#topself -> 'path') + '/') -> (beginswith: #thispath + '/'));
+                    if(#topself -> 'currentclasstags' >> 'li');
+                        // add the current class to the <li> tag
+                        #liclassarray -> (insert: ((#topself -> 'currentclass') != '' ? (#topself -> 'currentclass') | 'crnt') );
+                    /if;
+                /if;
+
+                if(#liclassarray->size > 0);
+                    #itemrow = string_replaceregexp(#itemrow, -find='<li', -replace=('<li class="' + #liclassarray->join(' ') + '"'));
+                /if;
 				#classarray = array;
 				(#topself -> 'class') != '' ? #classarray -> (insert: (#topself -> 'class'));
 				(#navitem -> (find: 'class')) != '' ? #classarray -> (insert: (#navitem -> (find: 'class')));
+
+                #tbdd_aclass != '' ? #classarray->insert('dropdown-toggle');
+
 				if: #navitem -> (find: 'disabled');
 					#itemlinkstart='<span';
 					if: #classarray -> size;
 						#itemlinkstart += ' class="' + #classarray -> (join: ' ') + '"';
 					/if;
+                    #tbdd_araw != '' ? #itemlinkstart += #tbdd_araw;
 					#itemlinkstart += '>';
 					#itemlabel=(#navitem -> (find: 'label'));
-					#itemlinkend='</span>';
+                    #tbdd_labelappend != '' ? #itemlinkend = #tbdd_labelappend;
+					#itemlinkend += '</span>';
 				else;
 					/* this code is moved into ->url
 					if: (#navitem -> (find: 'params')) -> type == 'array';
@@ -6677,18 +6826,21 @@ Make it possible to use external URL for -url (make sure there is no / before ht
 						//#dotrace ? (self -> 'debug_trace') -> (insert: tag_name + ': no params for ' + #thispath);
 						#link = (self -> (url: -path=#thispath, -topself=#topself));
 					///if;
-					
-										
+
 					#itemlinkstart = '<a href="' + #link + '"';
 					if: (#navitem -> (find: 'title')) != '';
 						#itemlinkstart += ' title="' + (encode_html: (#navitem -> (find: 'title'))) + '"';
 					/if;
 					if: (((#topself -> 'path') + '/') -> (beginswith: #thispath + '/'));
-						#classarray -> (insert: ((#topself -> 'currentclass') != '' ? (#topself -> 'currentclass') | 'crnt') );
+					    if(#topself -> 'currentclasstags' >> 'a' || #topself -> 'currentclasstags' -> size == 0);
+					        // add the current class to the <a> tag
+    						#classarray -> (insert: ((#topself -> 'currentclass') != '' ? (#topself -> 'currentclass') | 'crnt') );
+					    /if;
 					/if;
 					if: #classarray -> size;
 						#itemlinkstart += ' class="' + #classarray -> (join: ' ') + '"';
 					/if;
+                    #tbdd_araw != '' ? #itemlinkstart += #tbdd_araw;
 					#itemlinkstart += '>';
 					#itemlabel=(#navitem -> (find: 'label'));
 					if: #thispath == (#topself -> 'path');
@@ -6698,7 +6850,8 @@ Make it possible to use external URL for -url (make sure there is no / before ht
 							#currentmarker = (#topself -> 'currentmarker');
 						/if;
 					/if;
-					#itemlinkend = '</a>';
+                    #tbdd_labelappend != '' ? #itemlinkend = #tbdd_labelappend;
+					#itemlinkend += '</a>';
 					if: ( (((#topself -> 'path') + '/') -> (beginswith: #thispath + '/')) || #_expand)
 						&& self -> (haschildren: #navitem)
 						&& !#_flat;
@@ -6736,7 +6889,6 @@ Make it possible to use external URL for -url (make sure there is no / before ht
 		self -> 'tagtime'=integer: #timer; // cast to integer to trigger onconvert and to "stop timer"
 		#dotrace ? (self -> 'debug_trace') -> (insert: tag_name + ': render done in ' (self -> 'tagtime') + ' ms');
 		return: @#output;
-
 	/define_tag;
 
 	define_tag: 'renderbreadcrumb', -description='Shows the current navigation as breadcrumb trail. \n\
@@ -7844,9 +7996,43 @@ Permissions can be read, create, update, delete, or application specific (for ex
 //##################################################################
 
 ][define_tag('changenotes', -description='This tag is created on the fly by buildnamespace.lasso',
-		-namespace='knop_',
-		-optional='type', -optional='date', -copy);
-		local('output'=string, 'changenotes'=map('knop_nav'='2010-11-17	JC	Fixed bug so that session links no longer gets added to urls by the nav -> url tag.
+                -namespace='knop_',
+                -optional='type', -optional='date', -copy);
+                local('output'=string, 'changenotes'=map('knop_nav'='2013-08-04	SP	Added optional -tbdropdown parameter to ->insert method.  It may be a flag or any type.  The following values for the parameter -tbdropdown are equivalent.
+
+    -tbdropdown
+    -tbdropdown=true
+    -tbdropdown=<any non-map type or expression that evaluates to true>
+    -tbdropdown=map(
+        \'tbdd_liclass\' = \'dropdown\',
+        \'tbdd_aclass\' = \'dropdown-toggle\',
+        \'tbdd_araw\' = \' data-toggle="dropdown"\',
+        \'tbdd_labelappend\' = \' <span class="caret"></span>\');
+
+All will generate HTML markup:
+
+  <li class="dropdown">
+    <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+      Dropdown <span class="caret"></span>
+    </a>
+
+If -tbdropdown is type map, then the values for the keys in the map will be used.  For example, using the Crisp theme <https://wrapbootstrap.com/theme/crisp-responsive-fluid-business-template-WB0F7FH2P>
+
+    -tbdropdown=map(
+        \'tbdd_liclass\' = \'parent\',
+        \'tbdd_aclass\' = \'\',
+        \'tbdd_araw\' = \'\',
+        \'tbdd_labelappend\' = \'<i></i><span class="dcjq-icon"></span>\');
+
+Will generate HTML markup:
+
+  <li class="parent">
+    <a href="#">
+      Dropdown<i></i><span class="dcjq-icon"></span>
+    </a>
+2013-08-04	SP	Added optional -liclass parameter to ->insert method.  If the HTML template contains "<li>", either by setting it with -template or using the default value, then when the nav is rendered the classes will be inserted into the <li> tag.
+2013-08-02	SP	Added optional -ulclass parameter as an instance variable.  If the HTML template begins with "<ul>", either by setting it or using the default value, then when the nav is rendered the classes will be inserted into the <ul> tag.
+2010-11-17	JC	Fixed bug so that session links no longer gets added to urls by the nav -> url tag.
 2010-11-17	JC	Fixed a bug that would not convert local params to an array under certain situations
 2009-09-18	JS	Syntax adjustments for Lasso 9
 2009-09-04	JS	->linkparams: Multiple paramaters with the same name (typically checkboxes) are now passed properly
@@ -8047,7 +8233,11 @@ tbody is used in renderfooter, which is not semantically correct. can\'t use tfo
 Move templates to a member tag to be make it easier to subclass
 Change ->addfield to ->insert and make ->addfield deprecated
 
-','knop_database'='2012-06-25	JC	Another fix for Issue #53: knop_database -> getrecord does not clear stale lockvalue.
+','knop_database'='2012-07-05	RL	knop_database -> clearlocks now accepts user object as in knop 9, (or userid - so existing code does not break).
+2012-07-04	RL	knop_database -> saverecord no longer copies user object.
+2012-07-03	RL	Yet another fix for Issue #53: knop_database -> getrecord does not clear stale lockvalue.
+2012-07-02	RL	Fix for Issue #53: knop_database -> deleterecord changes user object to string.
+2012-06-25	JC	Another fix for Issue #53: knop_database -> getrecord does not clear stale lockvalue.
 2012-06-22	JC	Fix for Issue #53: knop_database -> getrecord does not clear stale lockvalue.
 2012-06-10	SP	Fix for decimal precision bug in 8.6.0.1 in renderfooter.
 2012-01-15	SP	Add support for inline host method.  Thanks to Ric Lewis.
@@ -8342,16 +8532,16 @@ Option for -> renderhtml to output without html encoding
 ->renderhtml should never html encode fields of type html
 
 ',));
-		if(local_defined('type'));return(#changenotes -> find(#type));else;
-		!local_defined('date') ? local('date'=date('1900-01-01')) | #date = date(#date);
-		iterate(#changenotes, local('changenote'));
-			#output += #changenote -> name + '\n';
-			iterate(#changenote ->value -> split('\n'), local('changenote_row'));
-				if(date(#changenote_row -> split(regexp('\\s')) -> first) >= #date);
-					#output += #changenote_row + '\n';
-				/if;
-			/iterate;
-			#output += '\n';
-		/iterate;
-		return(@#output);/if;
-		/define_tag]
+                if(local_defined('type'));return(#changenotes -> find(#type));else;
+                !local_defined('date') ? local('date'=date('1900-01-01')) | #date = date(#date);
+                iterate(#changenotes, local('changenote'));
+                    #output += #changenote -> name + '\n';
+                    iterate(#changenote ->value -> split('\n'), local('changenote_row'));
+                        if(date(#changenote_row -> split(regexp('\\s')) -> first) >= #date);
+                            #output += #changenote_row + '\n';
+                        /if;
+                    /iterate;
+                    #output += '\n';
+                /iterate;
+                return(@#output);/if;
+                /define_tag]

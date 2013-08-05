@@ -5,12 +5,46 @@ define_type: 'nav',
 	-namespace='knop_';
 //	-prototype;
 
-	local: 'version'='2010-11-17',
+	local: 'version'='2013-08-04',
  		'description'='Custom type to handle site navigation menu';
 
 /*
 
 CHANGE NOTES
+2013-08-04	SP	Added optional -tbdropdown parameter to ->insert method.  It may be a flag or any type.  The following values for the parameter -tbdropdown are equivalent.
+
+    -tbdropdown
+    -tbdropdown=true
+    -tbdropdown=<any non-map type or expression that evaluates to true>
+    -tbdropdown=map(
+        'tbdd_liclass' = 'dropdown',
+        'tbdd_aclass' = 'dropdown-toggle',
+        'tbdd_araw' = ' data-toggle="dropdown"',
+        'tbdd_labelappend' = ' <span class="caret"></span>');
+
+All will generate HTML markup:
+
+  <li class="dropdown">
+    <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+      Dropdown <span class="caret"></span>
+    </a>
+
+If -tbdropdown is type map, then the values for the keys in the map will be used.  For example, using the Crisp theme <https://wrapbootstrap.com/theme/crisp-responsive-fluid-business-template-WB0F7FH2P>
+
+    -tbdropdown=map(
+        'tbdd_liclass' = 'parent',
+        'tbdd_aclass' = '',
+        'tbdd_araw' = '',
+        'tbdd_labelappend' = '<i></i><span class="dcjq-icon"></span>');
+
+Will generate HTML markup:
+
+  <li class="parent">
+    <a href="#">
+      Dropdown<i></i><span class="dcjq-icon"></span>
+    </a>
+2013-08-04	SP	Added optional -liclass parameter to ->insert method.  If the HTML template contains "<li>", either by setting it with -template or using the default value, then when the nav is rendered the classes will be inserted into the <li> tag.
+2013-08-02	SP	Added optional -ulclass parameter as an instance variable.  If the HTML template begins with "<ul>", either by setting it or using the default value, then when the nav is rendered the classes will be inserted into the <ul> tag.
 2010-11-17	JC	Fixed bug so that session links no longer gets added to urls by the nav -> url tag.
 2010-11-17	JC	Fixed a bug that would not convert local params to an array under certain situations
 2009-09-18	JS	Syntax adjustments for Lasso 9
@@ -137,7 +171,9 @@ Make it possible to use external URL for -url (make sure there is no / before ht
 		'dotrace'=false,
 		'actionconfigfile_didrun'=string,	// path to action config file that has been run for the current page load
 											// used to not load the same config again
-		'error_lang'=(knop_lang: -default='en', -fallback);
+		'error_lang'=(knop_lang: -default='en', -fallback),
+		'ulclass'=string,   // class to insert into this nav's <ul> tag
+		'currentclasstags'=array;   // array of tags into which the current class as defined by -currentclass will be inserted
 
 	define_tag: 'oncreate', -description='Parameters:\n\
 			-default (optional) Key of default navigation item\n\
@@ -149,7 +185,8 @@ Make it possible to use external URL for -url (make sure there is no / before ht
 			-template (optional) html template used to render the navigation menu\n\
 			-class (optional) default class for all navigation links\n\
 			-currentclass (optional) class added for the currently active link\n\
-			-currentmarker (optional) character(s) show to the right link of current nav (typically &raquo;)',
+			-currentmarker (optional) character(s) show to the right link of current nav (typically &raquo;)\n\
+			-ulclass (optional) Accepts a string of classes separated by spaces.  If the HTML template begins with "<ul>", either by setting it or using the default value, then when the nav is rendered the classes will be inserted into the <ul> tag.',
 		-optional='template',
 		-optional='class',
 		-optional='currentclass',
@@ -159,7 +196,9 @@ Make it possible to use external URL for -url (make sure there is no / before ht
 		-optional='fileroot',
 		-optional='navmethod',
 		-optional='filenaming',
-		-optional='trace';
+		-optional='trace',
+		-optional='ulclass',
+		-optional='currentclasstags', -type='array';
 		local: 'timer'=knop_timer, 'dotrace'=(self -> 'dotrace');
 		// TODO: check if we are in an inline, in that case use -key, -label etc as field names and loop through records to fill nav		
 		
@@ -171,6 +210,8 @@ Make it possible to use external URL for -url (make sure there is no / before ht
 		local_defined('currentclass') ? (self -> 'currentclass') = #currentclass;
 		local_defined('currentmarker') ? (self -> 'currentmarker') = #currentmarker;
 		local_defined('filenaming') ? (self -> 'filenaming') = #filenaming;
+		local_defined('ulclass') ? (self -> 'ulclass') = #ulclass;
+		local_defined('currentclasstags') ? (self -> 'currentclasstags') = #currentclasstags;
 
 		(self -> 'dotrace') = (local_defined: 'trace') && #trace != false;
 		// normalize slashes
@@ -222,7 +263,41 @@ Make it possible to use external URL for -url (make sure there is no / before ht
 			-disabled (optional flag) Makes the menu item dimmed and non-clickable\n\ 
 			-hide (optional flag) Makes the location valid without showing a menu item for it\n\ 
 			-after (optional) After which navitem to insert this navitem (key or numeric index)\n\ 
-			-data (optional) Arbitrary data object (variable, map, array, compound expression) that can be returned for the location by calling ->data',
+			-data (optional) Arbitrary data object (variable, map, array, compound expression) that can be returned for the location by calling ->data\n\
+			-liclass (optional) If the HTML template contains "<li>", either by setting it with -template or using the default value, then when the nav is rendered the classes will be inserted into the <li> tag.\n\
+			-tbdropdown (optional flag or map) It may be a flag or any type.  The following values for the parameter -tbdropdown are equivalent.
+
+    -tbdropdown
+    -tbdropdown=true
+    -tbdropdown=<any non-map type or expression that evaluates to true>
+    -tbdropdown=map(
+        \'tbdd_liclass\' = \'dropdown\',
+        \'tbdd_aclass\' = \'dropdown-toggle\',
+        \'tbdd_araw\' = \' data-toggle="dropdown"\',
+        \'tbdd_labelappend\' = \' <span class="caret"></span>\');
+
+All will generate HTML markup:
+
+  <li class="dropdown">
+    <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+      Dropdown <span class="caret"></span>
+    </a>
+
+If -tbdropdown is type map, then the values for the keys in the map will be used.  For example, using the Crisp theme <https://wrapbootstrap.com/theme/crisp-responsive-fluid-business-template-WB0F7FH2P>
+
+    -tbdropdown=map(
+        \'tbdd_liclass\' = \'parent\',
+        \'tbdd_aclass\' = \'\',
+        \'tbdd_araw\' = \'\',
+        \'tbdd_labelappend\' = \'<i></i><span class="dcjq-icon"></span>\');
+
+Will generate HTML markup:
+
+  <li class="parent">
+    <a href="#">
+      Dropdown<i></i><span class="dcjq-icon"></span>
+    </a>
+',
 		-required='key',
 		-optional='label',
 		-optional='default',
@@ -236,7 +311,9 @@ Make it possible to use external URL for -url (make sure there is no / before ht
 		-optional='disabled',
 		-optional='hide',
 		-optional='after',
-		-optional='data';
+		-optional='data',
+		-optional='liclass',
+		-optional='tbdropdown';
 		local: 'timer'=knop_timer, 'dotrace'=(self -> 'dotrace'); 
 		
 		fail_if: !(local_defined: 'hide') && (local: 'label') == '', -1, 'Insert requires a label';
@@ -277,8 +354,9 @@ Make it possible to use external URL for -url (make sure there is no / before ht
 		local_defined('title') && #title != '' ? #navitem -> insert('title' = #title); 
 		local_defined('template') && #template != '' ? #navitem -> insert('template' = #template); 
 		local_defined('children') && #children != '' ? #navitem -> insert('children' = #children); 
-		local_defined('class') && #class != '' ? #navitem -> insert('class' = #class); 
+		local_defined('class') && #class != '' ? #navitem -> insert('class' = #class);
 		local_defined('filename') && #filename != '' ? #navitem -> insert('filename' = #filename);
+		local_defined('liclass') && #liclass != '' ? #navitem -> insert('liclass' = #liclass);
 
 		if(local_defined('default') && #default != '' && #pathmapchildren >> #default);
 			// only add default that exists in children
@@ -295,6 +373,22 @@ Make it possible to use external URL for -url (make sure there is no / before ht
 		/if;
 		#navitem -> (insert: 'disabled'=(local_defined: 'disabled') && #disabled != false);
 		#navitem -> (insert: 'hide'=(local_defined: 'hide') && #hide != false);
+
+        if(local_defined('tbdropdown'));
+            // initiate values for the Twitter Bootstrap dropdown #item#
+            if(#tbdropdown -> isa('map'));
+                // use the custom key values in the map
+                #navitem -> insert('tbdropdown' = #tbdropdown);
+            else(#tbdropdown != false);
+                // set default values
+                #navitem -> insert('tbdropdown' = map(
+                    'tbdd_liclass' = 'dropdown',
+                    'tbdd_aclass' = 'dropdown-toggle',
+                    'tbdd_araw' = ' data-toggle="dropdown"',
+                    'tbdd_labelappend' = ' <span class="caret"></span>'));
+            /if;
+        /if;
+
 		#dotrace ? (self -> 'debug_trace') -> (insert: tag_name + ': #key=' + #key);
 		local: 'index'=(self -> 'navitems') -> size + 1;
 		if: (local_defined: 'after') && (string: #after) -> size;
@@ -619,8 +713,8 @@ Make it possible to use external URL for -url (make sure there is no / before ht
 	define_tag: 'setformat', -description='Sets html template for the nav object, use #items# #item# #/items# or more elaborate #items# #link##label##current##/link##children# #/items# as placeholders.\n\
 			Parameters:\n\
 			-template (optional string) Html template, defaults to <ul>#items#<li>#item#</li>#/items#</ul>\n\
-			-class (optional string) Css class name that will be used for every navigation link\n\
-			-currentclass (optional string) Css class name that will be added to the currently active navigation link (defaults to crnt)\n\
+			-class (optional string) CSS class name that will be used for every navigation link\n\
+			-currentclass (optional string) CSS class name that will be added to the currently active navigation link (defaults to crnt)\n\
 			-currentmarker (optional string) String that will be appended to menu text of currently active navigation link',
 		-optional='template', -type='string',
 		-optional='class', -type='string',
@@ -685,6 +779,7 @@ Make it possible to use external URL for -url (make sure there is no / before ht
 		local: '_expand' = (local_defined: 'expand') && #expand != false;
 		
 		local: 'template'=(self -> 'template' != '' ? self -> 'template' | #topself -> 'template');
+		local('ulclass' = self->'ulclass');
 		local: 'clientparams'=client_getparams;
 		#clientparams -> (merge: client_postparams);
 		
@@ -704,7 +799,20 @@ Make it possible to use external URL for -url (make sure there is no / before ht
 			'itemtemplate'=(string_findregexp: #template, -find='(?si)#items#(.*?)#/items#'),
 			'itemlinkstart'=string,
 			'itemlinkend'=string,
-			'itemlabel'=string;
+			'itemlabel'=string,
+            'ulclassarray'=array,
+            'liclassarray'=array,
+            'tbdd_liclass' = string,
+            'tbdd_aclass' = string,
+            'tbdd_araw' = string,
+            'tbdd_labelappend' = string;
+		// construct the array of classes for the current <ul>
+		if(#template->beginswith('<ul>') && #ulclass != '');
+		    #ulclassarray = #ulclass->split(' ');
+		/if;
+        if(#ulclassarray->size > 0);
+            #template = string_replaceregexp(#template, -find='<ul', -replace=('<ul class="' + #ulclassarray->join(' ') + '"'));
+        /if;
 		#itemtemplate = (#itemtemplate -> size >= 2 ? #itemtemplate -> (get: 2) | string);
 		
 		if: (local_defined: 'renderpath') && #renderpath != '' && #renderpath != '/';
@@ -726,6 +834,11 @@ Make it possible to use external URL for -url (make sure there is no / before ht
 				#itemlinkend=string;
 				#itemchildren = string;
 				#currentmarker=string;
+                
+                #tbdd_liclass = string;
+                #tbdd_aclass = string;
+                #tbdd_araw = string;
+                #tbdd_labelappend = string;
 
 				#thispath=#basepath + '/' + (#navitem -> (find: 'key'));
 				#thispath -> (removeleading: '/');
@@ -735,17 +848,46 @@ Make it possible to use external URL for -url (make sure there is no / before ht
 				else;
 					#itemrow = #itemtemplate;
 				/if;
+                #liclassarray = array;
+                if(#itemrow->beginswith('<li>') && #navitem->find('liclass') != '');
+                    #liclassarray = #navitem->find('liclass')->split(' ');
+                /if;
+
+                if(#navitem -> find('tbdropdown') -> isa('map'));
+                    #tbdd_liclass = #navitem -> find('tbdropdown') -> find('tbdd_liclass');
+                    #tbdd_aclass = #navitem -> find('tbdropdown') -> find('tbdd_aclass');
+                    #tbdd_araw = #navitem -> find('tbdropdown') -> find('tbdd_araw');
+                    #tbdd_labelappend = #navitem -> find('tbdropdown') -> find('tbdd_labelappend');
+                /if;
+
+                #tbdd_liclass != '' ? #liclassarray->insert(#tbdd_liclass);
+
+                if: (((#topself -> 'path') + '/') -> (beginswith: #thispath + '/'));
+                    if(#topself -> 'currentclasstags' >> 'li');
+                        // add the current class to the <li> tag
+                        #liclassarray -> (insert: ((#topself -> 'currentclass') != '' ? (#topself -> 'currentclass') | 'crnt') );
+                    /if;
+                /if;
+
+                if(#liclassarray->size > 0);
+                    #itemrow = string_replaceregexp(#itemrow, -find='<li', -replace=('<li class="' + #liclassarray->join(' ') + '"'));
+                /if;
 				#classarray = array;
 				(#topself -> 'class') != '' ? #classarray -> (insert: (#topself -> 'class'));
 				(#navitem -> (find: 'class')) != '' ? #classarray -> (insert: (#navitem -> (find: 'class')));
+
+                #tbdd_aclass != '' ? #classarray->insert('dropdown-toggle');
+
 				if: #navitem -> (find: 'disabled');
 					#itemlinkstart='<span';
 					if: #classarray -> size;
 						#itemlinkstart += ' class="' + #classarray -> (join: ' ') + '"';
 					/if;
+                    #tbdd_araw != '' ? #itemlinkstart += #tbdd_araw;
 					#itemlinkstart += '>';
 					#itemlabel=(#navitem -> (find: 'label'));
-					#itemlinkend='</span>';
+                    #tbdd_labelappend != '' ? #itemlinkend = #tbdd_labelappend;
+					#itemlinkend += '</span>';
 				else;
 					/* this code is moved into ->url
 					if: (#navitem -> (find: 'params')) -> type == 'array';
@@ -766,18 +908,21 @@ Make it possible to use external URL for -url (make sure there is no / before ht
 						//#dotrace ? (self -> 'debug_trace') -> (insert: tag_name + ': no params for ' + #thispath);
 						#link = (self -> (url: -path=#thispath, -topself=#topself));
 					///if;
-					
-										
+
 					#itemlinkstart = '<a href="' + #link + '"';
 					if: (#navitem -> (find: 'title')) != '';
 						#itemlinkstart += ' title="' + (encode_html: (#navitem -> (find: 'title'))) + '"';
 					/if;
 					if: (((#topself -> 'path') + '/') -> (beginswith: #thispath + '/'));
-						#classarray -> (insert: ((#topself -> 'currentclass') != '' ? (#topself -> 'currentclass') | 'crnt') );
+					    if(#topself -> 'currentclasstags' >> 'a' || #topself -> 'currentclasstags' -> size == 0);
+					        // add the current class to the <a> tag
+    						#classarray -> (insert: ((#topself -> 'currentclass') != '' ? (#topself -> 'currentclass') | 'crnt') );
+					    /if;
 					/if;
 					if: #classarray -> size;
 						#itemlinkstart += ' class="' + #classarray -> (join: ' ') + '"';
 					/if;
+                    #tbdd_araw != '' ? #itemlinkstart += #tbdd_araw;
 					#itemlinkstart += '>';
 					#itemlabel=(#navitem -> (find: 'label'));
 					if: #thispath == (#topself -> 'path');
@@ -787,7 +932,8 @@ Make it possible to use external URL for -url (make sure there is no / before ht
 							#currentmarker = (#topself -> 'currentmarker');
 						/if;
 					/if;
-					#itemlinkend = '</a>';
+                    #tbdd_labelappend != '' ? #itemlinkend = #tbdd_labelappend;
+					#itemlinkend += '</a>';
 					if: ( (((#topself -> 'path') + '/') -> (beginswith: #thispath + '/')) || #_expand)
 						&& self -> (haschildren: #navitem)
 						&& !#_flat;
@@ -825,7 +971,6 @@ Make it possible to use external URL for -url (make sure there is no / before ht
 		self -> 'tagtime'=integer: #timer; // cast to integer to trigger onconvert and to "stop timer"
 		#dotrace ? (self -> 'debug_trace') -> (insert: tag_name + ': render done in ' (self -> 'tagtime') + ' ms');
 		return: @#output;
-
 	/define_tag;
 
 	define_tag: 'renderbreadcrumb', -description='Shows the current navigation as breadcrumb trail. \n\
