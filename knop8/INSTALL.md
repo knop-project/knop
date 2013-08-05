@@ -78,6 +78,7 @@ To help manage the single namespace file, `source/buildnamespace.lasso` can be u
 Lasso needs permission to write to the LassoLibraries directory in the current site, and to do this Lasso needs write permission outside of root, i.e. the path '///' must be added in server admin.
 
 To build `knop.lasso` from source:
+
 1. Put the directory `source` somewhere in the web root.
 2. Run `source/buildnamespace.lasso` in the web browser. This will create `knop.lasso` in the LassoLibraries folder of the current LassoSite.
 
