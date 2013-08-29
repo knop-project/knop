@@ -1,5 +1,5 @@
-﻿<?LassoScript
-log_critical('loading knop_grid')
+<?LassoScript
+
 
 /**!
 knop_grid
@@ -8,14 +8,18 @@ Custom type to handle data grids (record listings).
 define knop_grid => type {
 	parent knop_base
 
-	data public version = '2012-10-30'
+	data public version = '2013-05-09'
 
 /*
 
 CHANGE NOTES
 
+	2013-06-07	JC	Restoring usage of quicksearch_form_reset'<br>'
+	2013-06-03	JC	Changed quicksearch handling removing need for quicksearch_form_reset
+	2013-05-09	JC	Changed handling of tbody and tfoot
+	2013-05-09	JC	Removed all xhtml handling. Will from now on assume this is for HTML 5. Should give some miniscule speed gain.
 	2012-10-30	JC	Fixed bug preventing quicksearch hint and input field to work properly
-	2012-10-21	JC	Changed old style if to Lasso 9 proper. Removed quotes from local declarations. Replaced .'xxx' with 'xxx. Replaced iterate with query expression. Replaced += with append.
+	2012-10-21	JC	Changed old style if to Lasso 9 proper. Removed quotes from local declarations. Replaced .'xxx' with .xxx. Replaced iterate with query expression. Replaced += with append.
 	2012-10-21	JC	Added support for bootstrap quicksearch form
 	2012-10-21	JC	Changed -> type == 'xxx' to -> isa(::xxx)
 	2012-05-19	JC	Added -getargs = false when creating url_cached
@@ -36,7 +40,6 @@ CHANGE NOTES
 TODO
 Make it possible for knop_grid to work independently of a knop_database object so other types of listings can be created.
 Language of quicksearch buttons can't be changed after the grid has been created
-tbody is used in renderfooter, which is not semantically correct. can't use tfoot though since the footer is rendered twice.
 Move templates to a member tag to be make it easier to subclass
 
 */
@@ -203,9 +206,9 @@ Parameters:\n\
 			.quicksearch_form -> addfield(-type = 'submit', -name = 's', -class = #quicksearch_btnclass, -value = #lang -> getstring('quicksearch_search'))
 			if(#clientparams >> '-q') => {
 				.quicksearch_form -> setvalue('-q' = #clientparams -> find('-q') -> first -> value)
-				.quicksearch_form_reset -> addfield(-type = 'submit', -name = 'a', -class = #quicksearch_btnclass, -value = #lang -> getstring('quicksearch_showall'))
+				.quicksearch_form_reset -> addfield(-type = 'submit', -name = '-a', -class = #quicksearch_btnclass + ' btn-prepend', -value = #lang -> getstring('quicksearch_showall'))
 			else
-				.quicksearch_form_reset -> addfield(-type = 'submit', -name = 'a', -class = #quicksearch_btnclass, -value = #lang -> getstring('quicksearch_showall'), -disabled)
+				.quicksearch_form_reset -> addfield(-type = 'submit', -name = '-a', -class = #quicksearch_btnclass + ' btn-prepend', -value = #lang -> getstring('quicksearch_showall'), -disabled)
 			}
 
 
@@ -436,10 +439,12 @@ Returns a pair array with fieldname = value to use in a search inline. If you sp
 		fail_if(#_sql && .database -> 'isfilemaker', 7009, '-sql can not be used with FileMaker')
 
 		if(not .quicksearch_form -> isa(::knop_form)) => {
-			#_sql ? return string | return array
+			return #value || #_sql ? string | array
 
 		}
-		#value ? return(string(.quicksearch_form -> getvalue('-q')))
+
+		boolean(web_request -> param('-a')) ? return #value || #_sql ? string | array
+		#value ? return string(.quicksearch_form -> getvalue('-q'))
 
 		if(#fieldvalue != '') => {
 
@@ -608,7 +613,7 @@ Outputs the complete record listing. Calls renderheader, renderlisting and rende
 **/
 	public renderhtml(
 		inlinename = string,
-		xhtml::boolean = false,
+//		xhtml::boolean = false,
 		numbered::any = false,
 		startwithfooter::boolean = false,
 		bootstrap::boolean = false
@@ -624,15 +629,15 @@ Outputs the complete record listing. Calls renderheader, renderlisting and rende
 			local(numberedpaging = (.numbered !== false ? integer(.numbered) | false))
 		}
 
-		.footer = .renderfooter(false, #numberedpaging, #xhtml )
+		.footer = .renderfooter(#numberedpaging)
 
-		#output -> append( .renderheader(true, #xhtml, #startwithfooter, #bootstrap))
+		#output -> append( .renderheader(true, #startwithfooter, #bootstrap) + '\n<tbody>\n')
 
 		#db -> shown_count >= 10 && !#startwithfooter ? #output -> append( .footer)
 
-		#output -> append(.renderlisting(#inlinename, #xhtml))
+		#output -> append(.renderlisting(#inlinename))
 
-		#output -> append(.footer + '</table>\n')
+		#output -> append('\n</tbody>\n<tfoot>\n' + .footer + '\n</tfoot>\n</table>\n')
 
 
 		return #output
@@ -640,11 +645,11 @@ Outputs the complete record listing. Calls renderheader, renderlisting and rende
 
 	public renderhtml(
 		-inlinename = string,
-		-xhtml::boolean = false,
+//		-xhtml::boolean = false,
 		-numbered::any = false,
 		-startwithfooter::boolean = false,
 		-bootstrap::boolean = false
-	) => .renderhtml(#inlinename, #xhtml, #numbered, #startwithfooter, #bootstrap)
+	) => .renderhtml(#inlinename, #numbered, #startwithfooter, #bootstrap)
 
 /**!
 renderlisting
@@ -653,8 +658,8 @@ Outputs just the actual record listing. Is called by renderhtml. \
 			-inlinename (optional) If not specified, inlinename from the connected database object is used
 **/
 	public renderlisting(
-		inlinename = string,
-		xhtml::boolean = false
+		inlinename = string
+//		xhtml::boolean = false
 	) => {
 
 
@@ -683,8 +688,7 @@ Outputs just the actual record listing. Is called by renderhtml. \
 			#keyfield = #db -> 'keyfield'
 			#affectedrecord_keyvalue = #db -> 'affectedrecord_keyvalue'
 		}
-		#output -> append( '\n<tbody>\n')
-		if(#nav -> isa('knop_nav')) => {
+		if(#nav -> isa(::knop_nav)) => {
 			with field in #fields do {
 				if(#field -> find('url') != void) => {
 					#url = string(#field -> find('url'))
@@ -770,9 +774,6 @@ Outputs just the actual record listing. Is called by renderhtml. \
 
 		}
 
-		#output -> append( '\n</tbody>\n')
-
-
 		return #output
 	}
 
@@ -783,7 +784,7 @@ Outputs the header of the grid with the column headings. \
 			Parameters:\n\
 			-start (optional flag) Also output opening <table> tag
 **/
-	public renderheader(start::boolean = false, xhtml::boolean = false, startwithfooter::boolean = false, bootstrap::boolean = false) => {
+	public renderheader(start::boolean = false, startwithfooter::boolean = false, bootstrap::boolean = false) => {
 
 
 		local(output = string)
@@ -804,18 +805,25 @@ Outputs the header of the grid with the column headings. \
 			if(.rawheader -> size > 0 ) => {
 				#output -> append( .rawheader)
 			}
-			#output -> append( .quicksearch_form -> renderform(-xhtml = #xhtml, -bootstrap = #bootstrap))
+
+
+			#output -> append('<div class="qs_section input-prepend input-append">')
+
 			if(.quicksearch_form_reset -> isa(::knop_form)) => {
-				#output -> append( .quicksearch_form_reset -> renderform(-xhtml = #xhtml, -bootstrap = #bootstrap))
+				#output -> append( .quicksearch_form_reset -> renderform(-bootstrap = #bootstrap))
 			}
-			#output -> append( '</th></tr>\n<tr>')
+
+			#output -> append( .quicksearch_form -> renderform(-bootstrap = #bootstrap))
+			#output -> append( '</div></th></tr>\n')
 		else(.rawheader -> size > 0)
-			#output -> append('<th colspan="' + (#fields -> size) + '">' + .rawheader + '</th></tr>\n<tr>')
+			#output -> append('<th colspan="' + (#fields -> size) + '">' + .rawheader + '</th></tr>\n')
 		}
 
 		if(#startwithfooter) => {
 			#output -> append( .footer)
 		}
+
+		#output -> append('\n<tr>')
 
 		with field in #fields do {
 			#classarray = array
@@ -848,7 +856,7 @@ Outputs the header of the grid with the column headings. \
 					}
 				else
 					// create link to toggle sort mode
-					if(#nav -> isa('knop_nav')) => {
+					if(#nav -> isa(::knop_nav)) => {
 						#output -> append('<a href="' + #nav -> url(-autoparams, -getargs, -except = array('-sort', '-desc', '-page', '-path'), -urlargs = ('-sort=' + #field -> find('name')
 								+ (#classarray >> 'sort' && !(.sortdescending) ? '&amp;-desc'))) + '"'+ ' title="'
 								+ (#classarray >> 'sort' ?  (#lang -> getstring('linktitle_changesort') + ' '
@@ -880,10 +888,10 @@ Outputs the header of the grid with the column headings. \
 
 	public renderheader(
 		-start::boolean = false,
-		-xhtml::boolean = false,
+//		-xhtml::boolean = false,
 		-startwithfooter::boolean = false,
 		-bootstrap::boolean = false
-	) => .renderheader(#start, #xhtml, #startwithfooter, #bootstrap)
+	) => .renderheader(#start, #startwithfooter, #bootstrap)
 
 /**!
 renderfooter
@@ -893,7 +901,7 @@ Outputs the footer of the grid with the prev/next links and information about fo
 			-end (optional flag) Also output closing </table> tag\n\
 			-numbered (optional flag or integer) If specified, pagination links will be shown as page numbers instead of regular prev/next links. Defaults to 6 links, specify another number (minimum 6) if more numbers are wanted.
 **/
-	public renderfooter(end::boolean = false, numbered::any = false, xhtml::boolean = false) => {
+	public renderfooter(numbered::any = false) => {
 
 
 		local(output = string)
@@ -925,7 +933,7 @@ Outputs the footer of the grid with the prev/next links and information about fo
 			#numberedpaging += (#numberedpaging % 2)
 		}
 
-		#output -> append('<tbody>\n<tr><th colspan="' + #fields -> size + '" class="footer first'  + '">')
+		#output -> append('\n<tr><th colspan="' + #fields -> size + '" class="footer first'  + '">')
 
 
 		if(#numberedpaging) => {
@@ -1076,14 +1084,12 @@ Outputs the footer of the grid with the prev/next links and information about fo
 							<span class="prevnext last dim">' + #lang -> getstring('linktext_last') + '</span> ')
 			}
 		}
-		#output -> append('</th></tr>\n</tbody>')
-		#end ? #output -> append( '</table>\n')
-
+		#output -> append('</th></tr>\n')
 
 		return #output
 	}
 
-	public renderfooter(-end::boolean = false, -numbered::any = false, -xhtml::boolean = false) => .renderfooter(#end, #numbered, #xhtml)
+	public renderfooter(-numbered::any = false) => .renderfooter(#numbered)
 
 	public lastpage() => {
 		local(description = 'Returns the number of the last page for the found records')

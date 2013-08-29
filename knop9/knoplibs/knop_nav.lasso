@@ -1,5 +1,5 @@
-﻿<?LassoScript
-log_critical('loading knop_nav')
+<?LassoScript
+//log_critical('loading knop_nav from LassoApp')
 
 /**!
 knop_nav

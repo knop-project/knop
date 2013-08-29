@@ -1,9 +1,11 @@
 <?Lasso
-log_critical('loading knop_form')
+//log_critical('loading knop_form from LassoApp')
 
 define knop_form => type {
 /*
 
+	2013-06-27	JC	Fixed bug that prevented captures from being used as filters. Fixed bug that prevented captures from being used for validate
+	2013-05-09	JC	Removed all xhtml handling. Will from now on assume this is for HTML 5. Should give some miniscule speed gain.
 	2013-03-12	JC	Changed encode_html(#requiredmarker) to #requiredmarker
 	2013-03-12	JC	Changed renderform to use #labelstart##labelend# instead of #label#. This to enable #required# to be part of the <label>text</label> code
 	2013-03-12	JC	Fixes in renderhtml that contained tracking code no longer needed. Also changed replace #label# calls that should have been #required#
@@ -43,7 +45,7 @@ define knop_form => type {
 */
 	parent knop_base
 
-	data public version = '2013-03-12'
+	data public version = '2013-05-09'
 
 	// instance variables
 	data public fields::array = array
@@ -606,8 +608,12 @@ Overwrites all field values with values from either database, action_params or e
 					}
 				}
 				// apply filtering of field value (do this for all instances of the same field name, so outside of the #fieldnames_done check)
-				if(#fieldpair -> value -> find('filter') -> isa(::tag)) => {
-					#fieldpair -> value -> insert('value'= #fieldpair -> value -> find('filter') -> run(-params = #fieldpair -> value -> find('value')))
+				match(#fieldpair -> value -> find('filter') -> type) => {
+					case(::tag)
+						#fieldpair -> value -> insert('value'= #fieldpair -> value -> find('filter') -> run(-params = #fieldpair -> value -> find('value')))
+					case(::capture)
+						#fieldpair -> value -> insert('value'= #fieldpair -> value -> find('filter') -> detach( )->invoke(#fieldpair -> value -> find('value')))
+
 				}
 			}
 		}
@@ -728,17 +734,29 @@ Performs validation and fills a transient array with field names that have input
 					if(#fieldvalue -> value -> find('required') && #fieldvalue -> value -> find('value') == '') => {
 						.'errors' -> insert(#fieldvalue-> value -> find('name') )
 					}
-					if(#fieldvalue -> value -> find('validate') -> isa(::tag)) => {
-						// perform validation expression on the field value
-						local(result = #fieldvalue -> value -> find('validate') -> run(-params = #fieldvalue -> value -> find('value')))
-						if(#result === true || #result === 0) => {
-							// validation was ok
-						else(#result != 0 || #result -> size)
-							// validation result was an error code or message
-							.'errors'-> insert(#fieldvalue -> value -> find('name') = #result)
-						else
-							.'errors' -> insert(#fieldvalue -> value -> find('name') )
-						}
+					match(#fieldvalue -> value -> find('validate') -> type) => {
+					// perform validation expression on the field value
+						case(::capture)
+
+							local(result = #fieldvalue -> value -> find('validate') -> detach( )->invoke(#fieldvalue -> value -> find('value')))
+							if(#result === true || #result === 0) => {
+								// validation was ok
+							else(#result != 0 || #result -> size)
+								// validation result was an error code or message
+								.'errors'-> insert(#fieldvalue -> value -> find('name') = #result)
+							else
+								.'errors' -> insert(#fieldvalue -> value -> find('name') )
+							}
+						case(::tag)
+							local(result = #fieldvalue -> value -> find('validate') -> run(-params = #fieldvalue -> value -> find('value')))
+							if(#result === true || #result === 0) => {
+								// validation was ok
+							else(#result != 0 || #result -> size)
+								// validation result was an error code or message
+								.'errors'-> insert(#fieldvalue -> value -> find('name') = #result)
+							else
+								.'errors' -> insert(#fieldvalue -> value -> find('name') )
+							}
 					}
 				}
 			}
@@ -1157,7 +1175,7 @@ Automatically handles a form submission and handles add, update, or delete.
 	}
 	public setformat(-template::string = .'template', -buttontemplate::string = .'buttontemplate', -required::string = .'required', -legend::string = .'legend', -class::string = .'class', -errorclass::string = .'errorclass', -unsavedmarker::string = .'unsavedmarker', -unsavedmarkerclass::string = .'unsavedmarkerclass', -unsavedwarning::string = .'unsavedwarning') => .setformat(#template, #buttontemplate, #required, #legend, #class, #errorclass, #unsavedmarker, #unsavedmarkerclass, #unsavedwarning)
 
-	public renderformstart(xhtml::boolean = false) => {
+	public renderformstart(...) => {
 // debug => {
 
 		.'start_rendered' ? return
@@ -1169,7 +1187,7 @@ Automatically handles a form submission and handles add, update, or delete.
 		local(nowarning = false)
 
 		// local var that adjust tag endings if rendered for XHTML
-		local(endslash = (.xhtml(params) ? ' /' | ''))
+//		local(endslash = (.xhtml(params) ? ' /' | ''))
 
 		// page var to keep track of the number of forms that has been rendered on a page
 		!var_defined('knop_form_renderform_counter') ? var('knop_form_renderform_counter' = 0)
@@ -1237,7 +1255,8 @@ Automatically handles a form submission and handles add, update, or delete.
 
 		if(.'actionpath' != '' && !.'noautoparams' && .'fields' !>> '-action') => {
 			// auto-add -action unless there is already an -action field in the form
-			#output -> append('<input type="hidden" name="-action" value="' + encode_html(.'actionpath') + '"' + #endslash + '>\n')
+//			#output -> append('<input type="hidden" name="-action" value="' + encode_html(.'actionpath') + '"' + #endslash + '>\n')
+			#output -> append('<input type="hidden" name="-action" value="' + encode_html(.'actionpath') + '" />\n')
 		}
 		if(.'fieldset') => {
 			#output -> append('<fieldset>\n')
@@ -1252,7 +1271,8 @@ Automatically handles a form submission and handles add, update, or delete.
 						&& #cp_pair -> name != '-session'
 						&& .'fields' !>> #cp_pair -> name
 						&& string_findregexp(.'formaction', -find = ('[?;&][' + #cp_pair-> name -> split('') -> join('][') + ']([&=]|$)'), -ignorecase) -> size == 0) => {
-						#output -> append(('<input type="hidden" name="' + #cp_pair-> name + '" value="' + encode_html(#cp_pair-> value) + '"' + #endslash + '>\n'))
+//						#output -> append(('<input type="hidden" name="' + #cp_pair-> name + '" value="' + encode_html(#cp_pair-> value) + '"' + #endslash + '>\n'))
+						#output -> append(('<input type="hidden" name="' + #cp_pair-> name + '" value="' + encode_html(#cp_pair-> value) + '" />\n'))
 					}
 				// check if param appears in form action
 				// turn param into [p][a][r][a][m] to avoid problems with most reserved regex characters like .
@@ -1260,16 +1280,16 @@ Automatically handles a form submission and handles add, update, or delete.
 					&& #cp_pair -> beginswith('-')
 					&& .'fields' !>> #cp_pair
 					&& string_findregexp(.'formaction', -find = ('[?;&][' + #cp_pair -> split('') ->join('][') + ']([&=]|$)'), -ignorecase) -> size == 0)
-					#output -> append('<input type="hidden" name="' + #cp_pair + '"' + #endslash + '>\n')
+					#output -> append('<input type="hidden" name="' + #cp_pair + '" />\n')
 				}
 			}
 		}
 
 		if(.'database' -> isa(::knop_database)) => {
 			if(string(.'database' -> lockfield) -> size > 0 && string(.'db_lockvalue') -> size > 0) => {
-				#output -> append('<input type="hidden" name="-lockvalue" value="' + encode_html(.'db_lockvalue') + '"' + #endslash + '>\n')
+				#output -> append('<input type="hidden" name="-lockvalue" value="' + encode_html(.'db_lockvalue') + '" />\n')
 			else(.'database' -> keyfield != '' && .'db_keyvalue' != '' && .'db_keyvalue' != null)
-				#output -> append('<input type="hidden" name="' + .'keyparamname' + '" value="' + encode_html(.'db_keyvalue') + '"' + #endslash + '>\n')
+				#output -> append('<input type="hidden" name="' + .'keyparamname' + '" value="' + encode_html(.'db_keyvalue') + '" />\n')
 			}
 		}
 
@@ -1279,7 +1299,7 @@ Automatically handles a form submission and handles add, update, or delete.
 // 	} // end debug
 	}
 
-	public renderformend(xhtml::boolean = false) => {
+	public renderformend() => {
 // debug => {
 
 		local(output = string)
@@ -1309,7 +1329,6 @@ Outputs HTML for the form fields, a specific field, a range of fields or all fie
 			-legend (optional) Groups the rendered fields in a fieldset and outputs a legend for the fieldset\n\
 			-start (optional) Only render the starting <form> tag\n\
 			-end (optional) Only render the ending </form> tag\n\
-			-xhtml (optional flag) XHTML valid output
 **/
 	public renderform(
 		name::string = '',
@@ -1318,7 +1337,7 @@ Outputs HTML for the form fields, a specific field, a range of fields or all fie
 		type = '',
 		excludetype = '',
 		legend::string = '',
-		xhtml::boolean = false,
+//		xhtml::boolean = false,
 		onlyformcontent::boolean = false,
 		bootstrap::boolean = false
 	) => debug => {
@@ -1328,7 +1347,6 @@ Outputs HTML for the form fields, a specific field, a range of fields or all fie
 		type = '',	// only output fields of this or these types (string or array)
 		excludetype = '',	// output fields except of this or these types (string or array)
 		legend::string = '', // groups the rendered fields in a fieldset and outputs a legend for the fieldset
-		xhtml::boolean = false   // xhtml =  boolean, if set to true adjust output for XHTML
 		*/
 
 		/*
@@ -1361,7 +1379,7 @@ Outputs HTML for the form fields, a specific field, a range of fields or all fie
 		local(_type = #type -> ascopy)
 		local(linebreak = false)
 
-		local(endslash = (.xhtml(params) ? ' /' | ''))
+//		local(endslash = (.xhtml(params) ? ' /' | ''))
 
 		#onlyformcontent ? .'start_rendered' = true
 
@@ -1558,7 +1576,7 @@ Outputs HTML for the form fields, a specific field, a range of fields or all fie
 					case('hidden')
 						#renderfield -> append('<input type="hidden"'
 							+ #renderfield_base
-							+ ' value="' + encode_html(#fieldvalue) + '"' + #endslash + '>')
+							+ ' value="' + encode_html(#fieldvalue) + '" />')
 						#renderrow = ''
 						#output -> append((#renderfield + '\n'))
 					case('text', 'url', 'email', 'number', 'tel')
@@ -1576,7 +1594,7 @@ Outputs HTML for the form fields, a specific field, a range of fields or all fie
 						if(!.'noscript' && !#nowarning) => {
 							#renderfield -> append(' onkeydown="dirtyvalue(this)" onkeyup="makedirty(this)"')
 						}
-						#renderfield -> append(#endslash + '>')
+						#renderfield -> append(' />')
 					case('search')
 						#renderfield -> append('<input type="search"'
 							+ #renderfield_base
@@ -1588,7 +1606,7 @@ Outputs HTML for the form fields, a specific field, a range of fields or all fie
 						if(!.'noscript' && !#nowarning) => {
 							#renderfield -> append(' onkeydown="dirtyvalue(this)" onkeyup="makedirty(this)"')
 						}
-						#renderfield -> append(#endslash + '>')
+						#renderfield -> append(' />')
 					case('password')
 						#renderfield -> append('<input type="password"'
 							+ #renderfield_base
@@ -1597,7 +1615,7 @@ Outputs HTML for the form fields, a specific field, a range of fields or all fie
 						if(!.'noscript' && !#nowarning) => {
 							#renderfield -> append(' onkeydown="dirtyvalue(this)" onkeyup="makedirty(this)"')
 						}
-						#renderfield -> append(#endslash + '>')
+						#renderfield -> append(' />')
 					case('textarea')
 						#renderfield -> append('<textarea'
 							+ #renderfield_base
@@ -1637,7 +1655,7 @@ Outputs HTML for the form fields, a specific field, a range of fields or all fie
 									if(#optionitem -> name != '' && #fieldvalue_array >> #optionitem -> name) => {
 										#renderfield -> append(' checked="checked"')
 									}
-									#renderfield -> append(#endslash + '> ' + #optionitem -> value + '</label>\n')
+									#renderfield -> append(' /> ' + #optionitem -> value + '</label>\n')
 								}
 							}
 							#renderfield -> append('</div>\n')
@@ -1668,7 +1686,7 @@ Outputs HTML for the form fields, a specific field, a range of fields or all fie
 									if(!.'noscript' && !#nowarning) => {
 										#renderfield -> append(' onclick="makedirty();"')
 									}
-									#renderfield -> append(#endslash + '> <label for="' + #id + '_' + #optioncount
+									#renderfield -> append(' /> <label for="' + #id + '_' + #optioncount
 										+ '" id="' + #id + '_' + #optioncount + '_label"')
 									if(.'noscript' && !#nowarning) => {
 										#renderfield -> append(' onclick="makedirty();"')
@@ -1705,7 +1723,7 @@ Outputs HTML for the form fields, a specific field, a range of fields or all fie
 									if(#optionitem -> name != '' && #fieldvalue_array >> #optionitem -> name) => {
 										#renderfield -> append(' checked="checked"')
 									}
-									#renderfield -> append(#endslash + '> ' + #optionitem -> value + '</label>\n')
+									#renderfield -> append(' /> ' + #optionitem -> value + '</label>\n')
 								}
 							}
 							#renderfield -> append('</div>\n')
@@ -1737,7 +1755,7 @@ Outputs HTML for the form fields, a specific field, a range of fields or all fie
 									if(!.'noscript' && !#nowarning) => {
 										#renderfield -> append(' onclick="makedirty();"')
 									}
-									#renderfield -> append(#endslash + '> <label for="' + #id + '_' + #optioncount
+									#renderfield -> append(' /> <label for="' + #id + '_' + #optioncount
 										+ '" id="' + #id + '_' + #optioncount + '_label"')
 									if(!.'noscript' && !#nowarning) => {
 										#renderfield -> append(' onclick="makedirty();"')
@@ -1819,7 +1837,7 @@ Outputs HTML for the form fields, a specific field, a range of fields or all fie
 								#confirmmessage ->replace('\'', '\\\'')
 								#renderfield -> append(' onclick="return confirm(\'' + #confirmmessage +  '\')"')
 							}
-							#renderfield -> append(#endslash + '>')
+							#renderfield -> append(' />')
 						}
 					case('reset')
 						#renderfield -> append('<input type="reset"'
@@ -1834,7 +1852,7 @@ Outputs HTML for the form fields, a specific field, a range of fields or all fie
 						else(!.'noscript')
 							#renderfield -> append(' onclick="makeundirty();"')
 						}
-						#renderfield -> append(#endslash + '>')
+						#renderfield -> append(' />')
 					case('image')
 						#renderfield -> append('<input type="image"'
 							+ #renderfield_base
@@ -1854,7 +1872,7 @@ Outputs HTML for the form fields, a specific field, a range of fields or all fie
 							#confirmmessage ->replace('\'', '\\\'')
 							#renderfield -> append(' onclick="return confirm(\'' + #confirmmessage +  '\')"')
 						}
-						#renderfield -> append(#endslash + '>')
+						#renderfield -> append(' />')
 					case('file')
 						#renderfield -> append('<input type="file"' + #renderfield_base)
 						if(!.'noscript' && !#nowarning) => {
@@ -1864,7 +1882,7 @@ Outputs HTML for the form fields, a specific field, a range of fields or all fie
 								#renderfield -> append(' onchange="makedirty()"')
 							}
 						}
-						#renderfield -> append(#endslash + '>')
+						#renderfield -> append(' />')
 				}
 
 				#renderrow ->replace('#field#', #renderfield)
@@ -2201,14 +2219,14 @@ Outputs HTML for the form fields, a specific field, a range of fields or all fie
 		-start::boolean = false,
 		-end::boolean = false,
 		-onlyformcontent::boolean = false,
-		-bootstrap::boolean = false,
-		-xhtml::boolean = false   // xhtml =  boolean, if set to true adjust output for XHTML
+		-bootstrap::boolean = false
+//		-xhtml::boolean = false   // xhtml =  boolean, if set to true adjust output for XHTML
 
 		) => {
 
-		#start ? return(.renderformstart(#xhtml))	// only output the starting <form> tag
-		#end ? return(.renderformend(#xhtml))	// only output the end </form> tag
-		return .renderform(#name, #from, #to, #type, #excludetype, #legend, #xhtml, #onlyformcontent, #bootstrap)
+		#start ? return(.renderformstart)	// only output the starting <form> tag
+		#end ? return(.renderformend)	// only output the end </form> tag
+		return .renderform(#name, #from, #to, #type, #excludetype, #legend, #onlyformcontent, #bootstrap)
 	}
 
 /**!
@@ -2223,15 +2241,14 @@ Outputs form data as plain HTML, a specific field, a range of fields or all fiel
 		-type (optional) Only render fields of this or these types (string or array)\n\
 		-excludetype (optional) Render fields except of this or these types (string or array)\n\
 		-legend (optional) Groups the rendered fields in a fieldset and outputs a legend for the fieldset\n\
-		-xhtml (optional flag) XHTML valid output
 **/
 	public renderhtml(name::string = '',	// field name
 			from = 0, 	// number index or field name
 			to = 0, 			// number index or field name
 			type::any = '',			// only output fields of this or these types (string or array)
 			excludetype::any = '',	// do not output fields of this or these types (string or array)
-			legend::string = '',		// groups the rendered fields in a fieldset and outputs a legend for the fieldset
-			xhtml::boolean = false			// boolean, if set to true adjust output for XHTML
+			legend::string = ''		// groups the rendered fields in a fieldset and outputs a legend for the fieldset
+	//		xhtml::boolean = false			// boolean, if set to true adjust output for XHTML
 			) => {
 // debug => {
 
@@ -2249,7 +2266,7 @@ Outputs form data as plain HTML, a specific field, a range of fields or all fiel
 		local(linebreak = false)
 
 		// local var that adjust tag endings if rendered for XHTML
-		local(endslash = (.xhtml(params) ? ' /' | ''))
+//		local(endslash = (.xhtml(params) ? ' /' | ''))
 
 		#name -> size > 0 && .'fields' !>> #name ? return
 
@@ -2403,9 +2420,9 @@ Outputs form data as plain HTML, a specific field, a range of fields or all fiel
 			-to = 0, 			// number index or field name
 			-type::any = '',			// only output fields of this or these types (string or array)
 			-excludetype::any = '',	// do not output fields of this or these types (string or array)
-			-legend::string = '',		// groups the rendered fields in a fieldset and outputs a legend for the fieldset
-			-xhtml::boolean = false			// boolean, if set to true adjust output for XHTML
-			) => .renderhtml(#name, #from, #to, #type, #excludetype, #legend, #xhtml)
+			-legend::string = ''		// groups the rendered fields in a fieldset and outputs a legend for the fieldset
+//			-xhtml::boolean = false			// boolean, if set to true adjust output for XHTML
+			) => .renderhtml(#name, #from, #to, #type, #excludetype, #legend)
 
 /**!
 getvalue

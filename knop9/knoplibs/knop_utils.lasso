@@ -1,8 +1,10 @@
-﻿<?Lasso
-log_critical('loading knop_utils')
+<?Lasso
+//log_critical('loading knop_utils from LassoApp')
 /*
 	CHANGE NOTES
 
+	2013-08-19	JC	Slightly more effektive version of knop_affected_count
+	2013-05-02	JC	date -> knop_format. Faster date formatting without backwards compatibility with Lasso pre 9. Code from Ke Carlton
 	2012-11-03	JC	Cleaned up code for knop_crypthash making sure it can take bytes as input for string value and made it look better
 	2012-06-25	JC	Added knop_response_filepath
 	2012-06-24	JC	Enhancing knop_stripbackticks to deal with more than strings
@@ -62,6 +64,19 @@ if(!tag_exists('knop_debug')) => {
 */
 
 /**!
+date -> knop_format
+Faster date format (removes backwards compatibility). Code from Ke Carlton on lasso talk 2013-05-02
+**/
+define date -> knop_format(
+	format::string = .'format',
+	-locale::locale = locale_default
+) => {
+	not #format ? #format = (string(var(__date_format__)) or 'yyyy-MM-dd HH:mm:ss')
+	return ..format(#format, #locale)
+}
+
+
+/**!
 knop_response_filepath
 Safer than using Lasso 9 response_filepath when dealing with one-file systems on Apache
 **/
@@ -72,7 +87,7 @@ knop_affected_count
 Adding a affected_count method pending a native implementation in Lasso 9
 Used in sql updates, deletes etc returning number of rows affected by the change
 **/
-define knop_affected_count => var_defined('__updated_count__') ? integer($__updated_count__) | 0
+define knop_affected_count => integer(var('__updated_count__'))
 
 
 
@@ -100,7 +115,7 @@ define knop_unique => {
 	local('base' = #charlist -> size)
 
 	// start with the current date and time in a mixed up format as seed
-	#seed = integer(date -> format('%S%y%m%d%H%M'))
+	#seed = integer(date -> knop_format(`ssyyMMddHHmm`))
 	// convert this integer to a string using base conversion
 	while(#seed > 0)
 		#output = #charlist -> get( (#seed % #base) + 1) + #output
@@ -326,7 +341,7 @@ define knop_timer => type {
 
 	*/
 
-	data public version::date = date('2009-11-27') -> format('%Q')
+	data public version = '2009-11-27'
 
 	data private timer::integer
 	data private micros::boolean = false

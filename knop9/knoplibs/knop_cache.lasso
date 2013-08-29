@@ -1,5 +1,5 @@
-﻿<?Lasso
-log_critical('loading knop_cache')
+<?Lasso
+//log_critical('loading knop_cache from LassoApp')
 
 /**!
 knop_cache
@@ -30,13 +30,14 @@ define knop_cache => thread {
 	/*
 
 	CHANGE NOTES
+	2013-04-15	JC	Added debug to all method calls
 	2012-06-11	JC	Replaced all iterate with query expr. Other minor code changes. Fixed misplaced curly brackets around named signature calls
 	2010-08-04	JC	Minor code cleaning
 	2009-11-25	JC	First experimental version with all functions in place. Still lacks debug and timer functions. Introduces the new thread object knop_cache instead of global vars
 
 	*/
 
-	data public version::date = date('2010-08-04') -> format('%Q')
+	data public version = '2013-04-15'
 
 	data private caches = map
 	data public purged
@@ -79,7 +80,7 @@ define knop_cachestore(
 	expires::integer = -1,
 	session::string = '',
 	name::string = ''
-) => {
+) => debug => {
 //log_critical('knop_cachestore  called')
 
 	local(data = map)
@@ -135,7 +136,7 @@ define knop_cachefetch(
 	session::string = '',
 	name::string = '',
 	maxage::date = date('1970-01-01')
-) => {
+) => debug => {
 
 	local(data = null)
 	if(#session -> size > 0) => {
@@ -192,7 +193,7 @@ define knop_cachedelete(
 	type::string,
 	session::string = '',
 	name::string = ''
-) => {
+) => debug => {
 	if(#session -> size > 0) => {
 		//fail_if(session_id( -name=#session) -> size == 0, -1, 'Cachestore with -session requires that the specified session is started');
 		local(cache_name = '_knop_cache_' + #name)
