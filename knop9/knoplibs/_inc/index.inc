@@ -18,7 +18,7 @@ $pagescripts -> insert('<script language="javascript" type="text/javascript">
 			event.preventDefault();
 			$("#message").html("Reload request sent").show();
 			var cnt = $(this).serializeArray();
-			$("#message").load("' + lassoapp_link('/ajax.xhr') + '",cnt
+			$("#message").load("' + lassoapp_link('/ajax.lasso') + '",cnt
 			,function() {
 				$.each($("#reloadForm :checkbox"), function() {
 					$(this).removeAttr("checked");
