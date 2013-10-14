@@ -20,21 +20,21 @@ Installation and configuration of Knop
 For installation and configuration of Knop for each version of Lasso, please see its appropriate directory.
 
 * [Knop for Lasso 8.x](https://github.com/knop-project/knop/tree/master/knop8)
-* [Knop for Lasso 9.x](/knop-project/knop/tree/master/knop9)
+* [Knop for Lasso 9.x](https://github.com/knop-project/knop/tree/master/knop9)
 
 Documentation
 =============
-Documentation is available in the "[docs](/knop-project/knop/blob/master/docs/)" folder of the Knop Project.
+Documentation is available in the "[docs](https://github.com/knop-project/knop/blob/master/docs/)" folder of the Knop Project.
 
-If you are new to git or GitHub, start with the [Git and GitHub Installation and Configuration Guide](/knop-project/knop/blob/master/docs/git_install_guide.md).
+If you are new to git or GitHub, start with the [Git and GitHub Installation and Configuration Guide](https://github.com/knop-project/knop/blob/master/docs/git_install_guide.md).
 
-If you already have git installed and a GitHub account, and want to use git for version control of your own repository of Knop, then start with [Using git with the Knop Project](/knop-project/knop/blob/master/docs/using_git_with_the_knop_project.md).
+If you already have git installed and a GitHub account, and want to use git for version control of your own repository of Knop, then start with [Using git with the Knop Project](https://github.com/knop-project/knop/blob/master/docs/using_git_with_the_knop_project.md).
 
-Alternatively, if you want to work with Eclipse or LassoLab, git, and GitHub, please see [How to install and configure the EGit plugin for Eclipse (and LassoLab) to work with the Knop Project on GitHub](/knop-project/knop/blob/master/docs/using_egit_with_the_knop_project.md).
+Alternatively, if you want to work with Eclipse or LassoLab, git, and GitHub, please see [How to install and configure the EGit plugin for Eclipse (and LassoLab) to work with the Knop Project on GitHub](https://github.com/knop-project/knop/blob/master/docs/using_egit_with_the_knop_project.md).
 
-The [Knop Manual](/knop-project/knop/blob/master/docs/knop_manual.md) provides a walk-through of Knop and some code examples.
+The [Knop Manual](https://github.com/knop-project/knop/blob/master/docs/knop_manual.md) provides a walk-through of Knop and some code examples.
 
-The [Knop API Reference](/knop-project/knop/blob/master/docs/help.lasso) describes all the Knop types and their methods.
+The [Knop API Reference](https://github.com/knop-project/knop/blob/master/docs/help.lasso) describes all the Knop types and their methods.
 
 Support
 =======
@@ -44,7 +44,7 @@ An email discussion list is provided by Montania SE.  To subscribe, send email t
 
 The Knop mailing list archive is available on [Nabble](http://lasso.2283332.n4.nabble.com/Knop-Framework-Discussion-f3157831.html).
 
-To file a bug report, please use the [Knop Project Issue Tracker](https://github.com/knop-project/knop/issues).
+To file a bug report, please use the [Knop Project Issue Tracker](https://github.comhttps://github.com/knop-project/knop/issues).
 
 Why "Knop"?
 ===========
