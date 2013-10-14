@@ -19,7 +19,7 @@ Installation and configuration of Knop
 ======================================
 For installation and configuration of Knop for each version of Lasso, please see its appropriate directory.
 
-* [Knop for Lasso 8.x](/knop-project/knop/tree/master/knop8)
+* [Knop for Lasso 8.x](https://github.com/knop-project/knop/tree/master/knop8)
 * [Knop for Lasso 9.x](/knop-project/knop/tree/master/knop9)
 
 Documentation
