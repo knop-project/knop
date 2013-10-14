@@ -1,6 +1,6 @@
 Knop Manual
 ===========
-![Knop Logo](https://github.com/knop-project/knop/raw/master/docs/img/knop_logo.png)
+![Knop Logo](https://github.com/knop-project/knop/raw/master/docs/img/knop_logo_800.png)
 
 Knop is an open source web application framework using Lasso 8 or 9.  Lasso is a programming language from [LassoSoft](http://www.lassosoft.com/).
 
