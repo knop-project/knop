@@ -5,12 +5,13 @@ define_type: 'form',
 	-namespace='knop_';
 //	-prototype; 
 
-	local: 'version'='2011-02-28',
+	local: 'version'='2013-10-20',
 		'description'='Custom type to handle forms.';
 
 /*
 
 CHANGE NOTES
+2013-10-20  SP  ->fields: Added new feature.  This method returns a map of all non-special type field names and their parameters.
 2011-02-28	JS	->addfield: Added -template to specify field specific template 
 2010-11-22	SP	->init: Correction of -lockvalue handling after L9 syntax adjustment
 2010-07-18	SP	Added support for series for -options
@@ -2210,6 +2211,20 @@ Option for -> renderhtml to output without html encoding
 		self -> 'tagtime'=integer: #timer; // cast to integer to trigger onconvert and to "stop timer"
 		return: #output;
 	/define_tag;
+
+
+    define_tag('fields', -description='Returns a map of all non-special type field names and their parameters');
+        local('timer' = knop_timer);
+        local('output' = map);
+        iterate((self -> 'fields'), local('fieldpair'));
+            if(array('html', 'fieldset', 'legend') !>> #fieldpair -> name);
+                #output -> insert(#fieldpair -> name = #fieldpair -> value);
+            /if;
+        /iterate;
+        self -> 'tagtime_tagname' = tag_name;
+        self -> 'tagtime' = integer(#timer); // cast to integer to trigger onconvert and to "stop timer"
+        return(#output);
+    /define_tag;
 
 
 	define_tag: 'keyvalue'; 			return: (self -> 'db_keyvalue');		/define_tag;
