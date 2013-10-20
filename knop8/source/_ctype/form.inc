@@ -375,7 +375,6 @@ Option for -> renderhtml to output without html encoding
 			-cols (optional) Used for textarea\n\
 			-focus (optional flag) The first text field with this parameter specified will get focus when page loads\n\
 			-class (optional)\n\
-			-errorclass (optional)\n\
 			-disabled (optional flag) The form field will be rendered as disabled\n\
 			-raw (optional) Raw attributes that will be put in the html tag\n\
 			-confirmmessage (optional) Message to show in submit/reset confirm dialog (delete button always shows confirm dialog)\n\
@@ -385,7 +384,9 @@ Option for -> renderhtml to output without html encoding
 			-nowarning (optional flag) If specified then changing the field will not trigger an unsaved warning\n\
 			-after (optional) Numeric index or name of field to insert after\n\
 			-template (optional) Format string that will override global template or buttontemplate\n\
-			-widget (optional) Name of a widget to use as a template for a given field.',
+			-widget (optional) Name of a widget to use as a template for a given field.\n\
+			-errorclass (optional) A class for custom widgets to indicate through CSS that the user caused an error.\n\
+			-placeholder (optional) Similar to -hint, but for custom widgets.  Adds placeholder text for fields using HTML5 standards.',
 		-required='type',
 		-optional='name',
 		-optional='id',	
@@ -403,7 +404,6 @@ Option for -> renderhtml to output without html encoding
 		-optional='cols',
 		-optional='focus',
 		-optional='class',
-		-optional='errorclass',
 		-optional='disabled',
 		-optional='raw',
 		-optional='confirmmessage',
@@ -413,7 +413,9 @@ Option for -> renderhtml to output without html encoding
 		-optional='nowarning',
 		-optional='after',
 		-optional='template',
-		-optional='widget';
+		-optional='widget',
+		-optional='errorclass',
+		-optional='placeholder';
 		// TODO: add optiontemplate to be able to format individual options
 		local: 'timer'=knop_timer; 
 		
@@ -472,12 +474,14 @@ Option for -> renderhtml to output without html encoding
 		local_defined('rows') ? #field -> insert('rows' = #rows); 
 		local_defined('cols') ? #field -> insert('cols' = #cols); 
 		local_defined('class') ? #field -> insert('class' = #class); 
-		local_defined('errorclass') ? #field -> insert('errorclass' = #errorclass); 
 		local_defined('raw') ? #field -> insert('raw' = #raw); 
 		local_defined('confirmmessage') ? #field -> insert('confirmmessage' = #confirmmessage);
 		local_defined('originaltype') ? #field -> insert('originaltype' = #originaltype);
 		(local_defined: 'template') ? #field -> (insert: 'template'=#template);
+        // the following params are for use in custom widgets only
 		local_defined('widget') ? #field -> insert('widget'=#widget);
+        local_defined('errorclass') ? #field -> insert('errorclass' = #errorclass);
+        local_defined('placeholder') ? #field -> insert('placeholder' = #placeholder);
 
 		#field -> (insert: 'dbfield'=( (local_defined: 'dbfield') ? #dbfield | #_name ) );
 		(local_defined: 'value') ? #field -> (insert: 'defaultvalue'=#value);
@@ -1669,11 +1673,12 @@ Option for -> renderhtml to output without html encoding
                             -params=array(
                                 -name = #onefield -> find('name'),
                                 -class = #onefield -> find('class'),
+                                -errmsg = #e,
                                 -errorclass = #onefield -> find('errorclass'),
                                 -id = #id,
                                 -label = #onefield -> find('label'),
+                                -placeholder = #onefield -> find('placeholder'),
                                 -value = encode_html(#fieldvalue),
-                                -errmsg = #e,
                                 -encodenone
                         ));
                     /if;
