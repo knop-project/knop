@@ -1668,6 +1668,7 @@ Option for -> renderhtml to output without html encoding
                         #renderrow = #tw->run(
                             -params=array(
                                 -name = #onefield -> find('name'),
+                                -class = #onefield -> find('class'),
                                 -errorclass = #onefield -> find('errorclass'),
                                 -id = #id,
                                 -label = #onefield -> find('label'),
