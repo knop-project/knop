@@ -1669,8 +1669,9 @@ Option for -> renderhtml to output without html encoding
                             /iterate;
                         /if;
                         // if field is required, use the required marker of the form
+                        local('required' = string);
                         if(#onefield -> find('required'));
-                            local('required' = self -> 'required');
+                             #required = self -> 'required';
                         /if;
                         local('tw') = \#widget;
                         #renderrow = #tw->run(
@@ -1681,8 +1682,10 @@ Option for -> renderhtml to output without html encoding
                                 -errorclass = #onefield -> find('errorclass'),
                                 -id = #id,
                                 -label = #onefield -> find('label'),
+                                -maxlength = #onefield -> find('maxlength'),
                                 -placeholder = #onefield -> find('placeholder'),
                                 -required = #required,
+                                -size = #onefield -> find('size'),
                                 -value = encode_html(#fieldvalue),
                                 -encodenone
                         ));
