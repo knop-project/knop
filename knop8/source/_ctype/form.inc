@@ -1678,6 +1678,7 @@ Option for -> renderhtml to output without html encoding
                             -params=array(
                                 -name = #onefield -> find('name'),
                                 -class = #onefield -> find('class'),
+                                -disabled = #onefield -> find('disabled'),
                                 -errmsg = #e,
                                 -errorclass = #onefield -> find('errorclass'),
                                 -id = #id,
