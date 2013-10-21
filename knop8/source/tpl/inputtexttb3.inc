@@ -10,6 +10,7 @@ define_tag('inputtexttb3',
     -optional='id',
     -optional='label',
     -optional='placeholder',
+    -optional='required',
 //    -optional='title',
     -optional='value'
 );
@@ -28,6 +29,7 @@ define_tag('inputtexttb3',
     /if;
     !local_defined('label') ? local('label') = #name;
     local_defined('placeholder') && #placeholder != '' ? local('t_placeholder' = ' placeholder="' + #placeholder + '"') | local('t_placeholder');
+    !local_defined('required') ? local('required');
     
 //    !local_defined('title') ? local('title');
     local_defined('value') ? local('t_value' = ' value="' + #value + '"') | local('t_value');
@@ -40,7 +42,7 @@ define_tag('inputtexttb3',
     // Generate the HTML output
     #output = '
 <div class="control-group'+ #ec + '">
-    <label class="control-label"' + #for + '>' + #label + '</label>
+    <label class="control-label"' + #for + '>' + #label + #required + '</label>
     <div class="controls">
         <input type="text"' + #t_name + #t_value + #t_id + #t_class + #t_placeholder + '>' + #em + '
     </div>

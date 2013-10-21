@@ -1668,6 +1668,10 @@ Option for -> renderhtml to output without html encoding
                                 #oe -> isa('pair') ? #e = #oe -> second;
                             /iterate;
                         /if;
+                        // if field is required, use the required marker of the form
+                        if(#onefield -> find('required'));
+                            local('required' = self -> 'required');
+                        /if;
                         local('tw') = \#widget;
                         #renderrow = #tw->run(
                             -params=array(
@@ -1678,6 +1682,7 @@ Option for -> renderhtml to output without html encoding
                                 -id = #id,
                                 -label = #onefield -> find('label'),
                                 -placeholder = #onefield -> find('placeholder'),
+                                -required = #required,
                                 -value = encode_html(#fieldvalue),
                                 -encodenone
                         ));
