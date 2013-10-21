@@ -9,8 +9,10 @@ define_tag('inputtexttb3',
     -optional='errorclass',
     -optional='id',
     -optional='label',
+    -optional='maxlength',
     -optional='placeholder',
     -optional='required',
+    -optional='size',
 //    -optional='title',
     -optional='value'
 );
@@ -28,8 +30,10 @@ define_tag('inputtexttb3',
         #t_id = ' id="' + #id + '"';
     /if;
     !local_defined('label') ? local('label') = #name;
+    local_defined('maxlength') && #maxlength != '' ? local('t_maxlength' = ' maxlength="' + #maxlength + '"') | local('t_maxlength');
     local_defined('placeholder') && #placeholder != '' ? local('t_placeholder' = ' placeholder="' + #placeholder + '"') | local('t_placeholder');
     !local_defined('required') ? local('required');
+    local_defined('size') && #size != '' ? local('t_size' = ' size="' + #size + '"') | local('t_size');
     
 //    !local_defined('title') ? local('title');
     local_defined('value') ? local('t_value' = ' value="' + #value + '"') | local('t_value');
@@ -44,7 +48,7 @@ define_tag('inputtexttb3',
 <div class="control-group'+ #ec + '">
     <label class="control-label"' + #for + '>' + #label + #required + '</label>
     <div class="controls">
-        <input type="text"' + #t_name + #t_value + #t_id + #t_class + #t_placeholder + '>' + #em + '
+        <input type="text"' + #t_name + #t_class + #t_id + #t_maxlength + #t_placeholder + #t_size + #t_value + '>' + #em + '
     </div>
 </div>
 ';
