@@ -5,6 +5,7 @@ define_tag('inputtexttb3',
     -description='This widget template renders an input of type text and uses Twitter Bootstrap 3 as its framework.',
     -required='name',
     -optional='class',
+    -optional='disabled',
     -optional='errmsg', -type='array',
     -optional='errorclass',
     -optional='id',
@@ -23,6 +24,7 @@ define_tag('inputtexttb3',
     local('t_id');
 
     local_defined('class') && #class != '' ? local('t_class' = ' class="' + #class + '"') | local('t_class');
+    local_defined('disabled') && #disabled != false ? local('t_disabled' = ' disabled="disabled"') | local('t_disabled');
     !local_defined('errmsg') ? local('errmsg' = array);
     !local_defined('errorclass') ? local('errorclass');
     if(local_defined('id'));
@@ -48,7 +50,7 @@ define_tag('inputtexttb3',
 <div class="control-group'+ #ec + '">
     <label class="control-label"' + #for + '>' + #label + #required + '</label>
     <div class="controls">
-        <input type="text"' + #t_name + #t_class + #t_id + #t_maxlength + #t_placeholder + #t_size + #t_value + '>' + #em + '
+        <input type="text"' + #t_name + #t_class + #t_disabled + #t_id + #t_maxlength + #t_placeholder + #t_size + #t_value + '>' + #em + '
     </div>
 </div>
 ';
