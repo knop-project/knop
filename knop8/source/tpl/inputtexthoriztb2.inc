@@ -1,8 +1,8 @@
 ﻿[
-log_critical('loading inputtexttb3');
-define_tag('inputtexttb3',
+log_critical('loading inputtexthoriztb2');
+define_tag('inputtexthoriztb2',
     -namespace='tpl_',
-    -description='This widget template renders an input of type text and uses Twitter Bootstrap 3 as its framework.',
+    -description='This widget template renders an input of type text horizontally and uses Twitter Bootstrap 2 as its framework.',
     -required='name',
     -optional='class',
     -optional='disabled',
@@ -52,8 +52,10 @@ define_tag('inputtexttb3',
     
     // Generate the HTML output
     #output = #go + '
-    <label' + #for + '>' + #label + #required + '</label>
-    <input type="text"' + #t_name + #t_class + #t_disabled + #t_id + #t_maxlength + #t_placeholder + #t_size + #t_value + '>' + #em + '
+    <label class="control-label"' + #for + '>' + #label + #required + '</label>
+    <div class="controls">
+        <input type="text"' + #t_name + #t_class + #t_disabled + #t_id + #t_maxlength + #t_placeholder + #t_size + #t_value + '>' + #em + '
+    </div>
 ' + #gc;
 
     return(#output);
