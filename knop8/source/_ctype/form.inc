@@ -11,6 +11,8 @@ define_type: 'form',
 /*
 
 CHANGE NOTES
+2013-11-03  SP  Added support for <select> to custom widget templates.
+2013-11-03  SP  Added -group and -groupclass options to ->addfield for custom widget templates.
 2013-10-20  SP  ->renderform and ->addfield(-widget=string): Added new feature.  Provide the name of a widget, which is a custom tag that serves as a template for the field.  All the features of ->renderform are supported.  More flexible than -template.  Idea obtained from Pyramid, a Python web application framework.
 2013-10-20  SP  ->fields: Added new feature.  This method returns a map of all non-special type field names and their parameters.
 2011-02-28	JS	->addfield: Added -template to specify field specific template 
@@ -386,7 +388,9 @@ Option for -> renderhtml to output without html encoding
 			-template (optional) Format string that will override global template or buttontemplate\n\
 			-widget (optional) Name of a widget to use as a template for a given field.\n\
 			-errorclass (optional) A class for custom widgets to indicate through CSS that the user caused an error.\n\
-			-placeholder (optional) Similar to -hint, but for custom widgets.  Adds placeholder text for fields using HTML5 standards.',
+			-placeholder (optional) Similar to -hint, but for custom widgets.  Adds placeholder text for fields using HTML5 standards.\n\
+			-group (optional) For custom widgets.  Wraps a widget—defined as a control, its label, and its messages—with HTML as defined in the widget template.  Twitter Bootstrap also uses the group markup for styling fields as inline.  Boolean.  Default is false.\n\
+			-groupclass (optional) A class for custom widgets.  Adds a class to the wrapper HTML of the widget.  Allows easier toggling of widget display between vertical, horizontal, and inline.  Requires -group=true.',
 		-required='type',
 		-optional='name',
 		-optional='id',	
@@ -415,7 +419,10 @@ Option for -> renderhtml to output without html encoding
 		-optional='template',
 		-optional='widget',
 		-optional='errorclass',
-		-optional='placeholder';
+		-optional='placeholder',
+		-optional='group',
+		-optional='groupclass'
+		;
 		// TODO: add optiontemplate to be able to format individual options
 		local: 'timer'=knop_timer; 
 		
@@ -482,6 +489,8 @@ Option for -> renderhtml to output without html encoding
 		local_defined('widget') ? #field -> insert('widget'=#widget);
         local_defined('errorclass') ? #field -> insert('errorclass' = #errorclass);
         local_defined('placeholder') ? #field -> insert('placeholder' = #placeholder);
+        local_defined('group') && #group != false ? #field -> insert('group' = #group);
+        local_defined('groupclass') ? #field -> insert('groupclass' = #groupclass);
 
 		#field -> (insert: 'dbfield'=( (local_defined: 'dbfield') ? #dbfield | #_name ) );
 		(local_defined: 'value') ? #field -> (insert: 'defaultvalue'=#value);
@@ -1678,12 +1687,18 @@ Option for -> renderhtml to output without html encoding
                             -params=array(
                                 -name = #onefield -> find('name'),
                                 -class = #onefield -> find('class'),
+                                -default = #onefield -> find('default'),
                                 -disabled = #onefield -> find('disabled'),
                                 -errmsg = #e,
                                 -errorclass = #onefield -> find('errorclass'),
+                                -fieldvalue_array = #fieldvalue_array,
+                                -group = #onefield -> find('group'),
+                                -groupclass = #onefield -> find('groupclass'),
                                 -id = #id,
                                 -label = #onefield -> find('label'),
                                 -maxlength = #onefield -> find('maxlength'),
+                                -multiple = #onefield -> find('multiple'),
+                                -options = #onefield -> find('options'),
                                 -placeholder = #onefield -> find('placeholder'),
                                 -required = #required,
                                 -size = #onefield -> find('size'),
