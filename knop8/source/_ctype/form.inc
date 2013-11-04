@@ -11,6 +11,7 @@ define_type: 'form',
 /*
 
 CHANGE NOTES
+2013-11-04  SP  Added support for buttons to custom widget templates.
 2013-11-04  SP  Added support for inputs of type radio and checkbox, and textarea to custom widget templates.
 2013-11-03  SP  Added support for <select> to custom widget templates.
 2013-11-03  SP  Added -group and -groupclass options to ->addfield for custom widget templates.
@@ -1705,6 +1706,7 @@ Option for -> renderhtml to output without html encoding
                                 -required = #required,
                                 -rows = #onefield -> find('rows'),
                                 -size = #onefield -> find('size'),
+                                -type = #onefield -> find('type'),
                                 -value = encode_html(#fieldvalue),
                                 -encodenone
                         ));
