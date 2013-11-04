@@ -11,6 +11,7 @@ define_type: 'form',
 /*
 
 CHANGE NOTES
+2013-11-04  SP  Added support for inputs of type radio and checkbox, and textarea to custom widget templates.
 2013-11-03  SP  Added support for <select> to custom widget templates.
 2013-11-03  SP  Added -group and -groupclass options to ->addfield for custom widget templates.
 2013-10-20  SP  ->renderform and ->addfield(-widget=string): Added new feature.  Provide the name of a widget, which is a custom tag that serves as a template for the field.  All the features of ->renderform are supported.  More flexible than -template.  Idea obtained from Pyramid, a Python web application framework.
@@ -1687,6 +1688,7 @@ Option for -> renderhtml to output without html encoding
                             -params=array(
                                 -name = #onefield -> find('name'),
                                 -class = #onefield -> find('class'),
+                                -cols = #onefield -> find('cols'),
                                 -default = #onefield -> find('default'),
                                 -disabled = #onefield -> find('disabled'),
                                 -errmsg = #e,
@@ -1701,6 +1703,7 @@ Option for -> renderhtml to output without html encoding
                                 -options = #options,
                                 -placeholder = #onefield -> find('placeholder'),
                                 -required = #required,
+                                -rows = #onefield -> find('rows'),
                                 -size = #onefield -> find('size'),
                                 -value = encode_html(#fieldvalue),
                                 -encodenone
