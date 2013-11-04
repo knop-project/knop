@@ -1698,7 +1698,7 @@ Option for -> renderhtml to output without html encoding
                                 -label = #onefield -> find('label'),
                                 -maxlength = #onefield -> find('maxlength'),
                                 -multiple = #onefield -> find('multiple'),
-                                -options = #onefield -> find('options'),
+                                -options = #options,
                                 -placeholder = #onefield -> find('placeholder'),
                                 -required = #required,
                                 -size = #onefield -> find('size'),
