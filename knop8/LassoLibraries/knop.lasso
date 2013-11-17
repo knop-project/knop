@@ -1,7 +1,7 @@
 ﻿[/* 
 
 	On-Demand library for namespace knop
-	Namespace file built date 2013-11-04 02:37:24 by http://knop-project/knop8/source/buildnamespace.lasso
+	Namespace file built date 2013-11-17 00:46:06 by http://knop-project/knop8/source/buildnamespace.lasso
 	Montania System AB
 
 */]
@@ -2063,6 +2063,8 @@ define_type: 'form',
 /*
 
 CHANGE NOTES
+2013-11-16  SP  removed file from exceptionfieldtypes because it prevented adding error messages to custom widgets
+2013-11-16  SP  ->renderform: avoid adding -contenttype parameters to post forms since it conflicts with file uploads
 2013-11-04  SP  Added support for buttons to custom widget templates.
 2013-11-04  SP  Added support for inputs of type radio and checkbox, and textarea to custom widget templates.
 2013-11-03  SP  Added support for <select> to custom widget templates.
@@ -2249,7 +2251,7 @@ Option for -> renderhtml to output without html encoding
 	local: 'validfieldtypes' = (map: 'text', 'password', 'checkbox', 'radio', 'textarea', 'select', 'file', 'search',
 				'submit', 'reset', 'image', 'hidden', 
 				'fieldset', 'legend', 'html'), // special types
-		'exceptionfieldtypes' = (map: 'file', 'submit', 'reset', 'image', 'addbutton', 'savebutton', 'deletebutton', 'cancelbutton',
+		'exceptionfieldtypes' = (map: /* 'file',  */'submit', 'reset', 'image', 'addbutton', 'savebutton', 'deletebutton', 'cancelbutton',
 				'fieldset', 'legend', 'html'); // special types
 	local: 'validfieldtypes_array'=array;
 	iterate: #validfieldtypes, (local: 'temp');
@@ -3233,6 +3235,7 @@ Option for -> renderhtml to output without html encoding
 							if: #clientparam -> name -> (beginswith: '-') 
 							    && !(#clientparam -> name -> (beginswith: '-upload.'))
 							    && !(#clientparam -> name -> (beginswith: '-upload2.'))
+							    && !(#clientparam -> name -> (beginswith: '-contenttype'))
 								&& #clientparam -> name != '-session'
 								&& (self -> 'fields') !>> #clientparam -> name
 								// check if param name appears in form action
@@ -8478,7 +8481,9 @@ Examples
 	$lang_messages -> (loggedin: -replace=(array: (field: \'firstname\'), (field: \'lastname\')));
 
 
-','knop_form'='2013-11-04  SP  Added support for buttons to custom widget templates.
+','knop_form'='2013-11-16  SP  removed file from exceptionfieldtypes because it prevented adding error messages to custom widgets
+2013-11-16  SP  ->renderform: avoid adding -contenttype parameters to post forms since it conflicts with file uploads
+2013-11-04  SP  Added support for buttons to custom widget templates.
 2013-11-04  SP  Added support for inputs of type radio and checkbox, and textarea to custom widget templates.
 2013-11-03  SP  Added support for <select> to custom widget templates.
 2013-11-03  SP  Added -group and -groupclass options to ->addfield for custom widget templates.
