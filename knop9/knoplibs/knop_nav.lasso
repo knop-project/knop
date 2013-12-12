@@ -10,6 +10,7 @@ define knop_nav => type {
 /*
 
 CHANGE NOTES
+	2013-08-31	JC	Added support for dropdownheader
 	2012-11-26	JC	Added support for divider list item in bootstrap
 	2012-11-26	JC	Added param raw
 	2012-11-26	JC	Fixes for bootstrap rendering
@@ -165,7 +166,8 @@ Inserts a nav item into the nav array
 		data::any = string,
 		hide::boolean = false,
 		raw::string = string,
-		divider::boolean = false
+		divider::boolean = false,
+		dropdownheader::boolean = false
 	) => {
 //	debug => {
 
@@ -190,7 +192,8 @@ Inserts a nav item into the nav array
 			'data' = string(#data),
 			'hide' = #hide,
 			'raw' = #raw,
-			'divider' = #divider
+			'divider' = #divider,
+			'dropdownheader' = #dropdownheader
  		))
 
 		if(#children -> isa('knop_nav')) => {
@@ -230,8 +233,9 @@ Inserts a nav item into the nav array
 		-data::any = string,
 		-hide::boolean = false,
 		-raw::string = string,
-		-divider::boolean = false
-	) => .insert(#key, #label, #default, #url, #title, #id, #template, #children, #param, #class, #filename, #disabled, #after, #target, #data, #hide, #raw, #divider)
+		-divider::boolean = false,
+		-dropdownheader::boolean = false
+	) => .insert(#key, #label, #default, #url, #title, #id, #template, #children, #param, #class, #filename, #disabled, #after, #target, #data, #hide, #raw, #divider, #dropdownheader)
 
 /**!
 Render hierarchial nav structure.\n\
@@ -310,6 +314,8 @@ Render hierarchial nav structure.\n\
 
 				if(#navitem -> find('divider')) => {
 					#output -> append('<li class="divider"></li>\r')
+				else(#navitem -> find('dropdownheader'))
+					#output -> append('<li class="' + #navitem -> find('class') + '">' + #navitem -> find('label') + '</li>\r')
 				else(not (#navitem -> find('hide')))
 
 					#li_class = array

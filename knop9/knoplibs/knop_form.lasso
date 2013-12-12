@@ -4,6 +4,7 @@
 define knop_form => type {
 /*
 
+	2013-11-26	JC	Added date to valid field types
 	2013-06-27	JC	Fixed bug that prevented captures from being used as filters. Fixed bug that prevented captures from being used for validate
 	2013-05-09	JC	Removed all xhtml handling. Will from now on assume this is for HTML 5. Should give some miniscule speed gain.
 	2013-03-12	JC	Changed encode_html(#requiredmarker) to #requiredmarker
@@ -102,7 +103,7 @@ define knop_form => type {
 	data public error_lang = knop_lang(-default = 'en', -fallback)
 	data public errors = null
 	//config vars
-	data public validfieldtypes::map = map('text' = '', 'password' = '', 'checkbox' = '', 'radio' = '', 'textarea' = '', 'select' = '', 'file' = '', 'search' = '', 'submit' = '', 'reset' = '', 'image' = '', 'hidden' = '', 'fieldset' = '', 'legend' = '', 'html' = '', 'url' = string, 'email' = string, 'number' = string, 'tel' = string)
+	data public validfieldtypes::map = map('text' = '', 'password' = '', 'checkbox' = '', 'radio' = '', 'textarea' = '', 'select' = '', 'file' = '', 'search' = '', 'submit' = '', 'reset' = '', 'image' = '', 'hidden' = '', 'fieldset' = '', 'legend' = '', 'html' = '', 'url' = string, 'email' = string, 'number' = string, 'tel' = string, 'date' = string)
 	//special types
 	data public exceptionfieldtypes::map = map('file' = '', 'submit' = '', 'reset' = '', 'image' = '', 'addbutton' = '', 'savebutton' = '', 'searchbutton' = '', 'deletebutton' = '', 'cancelbutton' = '', 'fieldset' = '', 'legend' = '', 'html' = '')
 
@@ -1579,7 +1580,7 @@ Outputs HTML for the form fields, a specific field, a range of fields or all fie
 							+ ' value="' + encode_html(#fieldvalue) + '" />')
 						#renderrow = ''
 						#output -> append((#renderfield + '\n'))
-					case('text', 'url', 'email', 'number', 'tel')
+					case('text', 'url', 'email', 'number', 'tel', 'date')
 						#renderfield -> append('<input type="' + #fieldtype + '"'
 							+ #renderfield_base
 							+ ' value="' + encode_html(#fieldvalue) + '"'

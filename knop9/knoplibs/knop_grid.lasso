@@ -8,12 +8,13 @@ Custom type to handle data grids (record listings).
 define knop_grid => type {
 	parent knop_base
 
-	data public version = '2013-05-09'
+	data public version = '2013-09-05'
 
 /*
 
 CHANGE NOTES
 
+	2013-09-5	JC	Fixed bug where with param in #navitem -> find('params') do would create an error if #navitem -> find('params') returned void
 	2013-06-07	JC	Restoring usage of quicksearch_form_reset'<br>'
 	2013-06-03	JC	Changed quicksearch handling removing need for quicksearch_form_reset
 	2013-05-09	JC	Changed handling of tbody and tfoot
@@ -583,14 +584,16 @@ Returns all get params that begin with - as a query string, for internal use in 
 		if(.nav -> isa(::knop_nav)) => {
 			// send params that have been defined as -params in nav
 			local(navitem = .nav -> getnav)
-			// add post params
-			#clientparams -> merge(client_postparams)
+			if(#navitem -> find('params')) => {
+				// add post params
+				#clientparams -> merge(client_postparams)
 
-			with param in #navitem -> find('params') do {
-				if(#clientparams >> #param && #clientparams -> find(#param) -> first -> isa(::pair)) => {
-					#output -> insert(encode_stricturl(string(#clientparams -> find(#param) -> first -> name)) + '=' + encode_stricturl(string(#clientparams -> find(#param) -> first -> value)))
-				else(#clientparams >> #param)
-					#output -> insert(encode_stricturl(string(#clientparams -> find(#param) -> first)))
+				with param in #navitem -> find('params') do {
+					if(#clientparams >> #param && #clientparams -> find(#param) -> first -> isa(::pair)) => {
+						#output -> insert(encode_stricturl(string(#clientparams -> find(#param) -> first -> name)) + '=' + encode_stricturl(string(#clientparams -> find(#param) -> first -> value)))
+					else(#clientparams >> #param)
+						#output -> insert(encode_stricturl(string(#clientparams -> find(#param) -> first)))
+					}
 				}
 			}
 		}
