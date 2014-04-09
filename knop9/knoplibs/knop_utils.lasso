@@ -3,6 +3,7 @@
 /*
 	CHANGE NOTES
 
+	2014-04-09	JC	Changed math_random to integer_random. Triggered by change in Lasso 9.2.7
 	2013-08-19	JC	Slightly more effektive version of knop_affected_count
 	2013-05-02	JC	date -> knop_format. Faster date formatting without backwards compatibility with Lasso pre 9. Code from Ke Carlton
 	2012-11-03	JC	Cleaned up code for knop_crypthash making sure it can take bytes as input for string value and made it look better
@@ -123,7 +124,7 @@ define knop_unique => {
 	/while
 	// start over with a new chunk as seed
 	#seed = string(1000 + (date -> millisecond))
-	#seed = #seed + string(math_random( -lower=1000, -upper=9999))
+	#seed = #seed + string(integer_random(9999, 1000))
 	#seed = integer(#seed)
 
 	// convert this integer to a string using base conversion
@@ -273,7 +274,7 @@ seed::string = ''
 	local('cryptvalue' = string)
 	#seed -> size == 0 ? #seed = knop_seed
 	Local('RandChars' = 'AaBbCcDdEeFfGgHhiJjKkLmNnoPpQqRrSsTtUuVvWwXxYyZz')
-	Local('anyChar' = (#RandChars -> Get(Math_Random( -lower = 1, -upper = (#RandChars -> Size)))))
+	Local('anyChar' = (#RandChars -> Get(integer_random((#RandChars -> Size, 1)))))
 	// taken from Bil Corry's [lp_string_getNumeric]
 	local('numericValue' = (string_findregexp(string( #value), -find = `\d`) -> join('')))
 
@@ -517,9 +518,9 @@ define knop_crypthash(
 		// code snippet from Bil Corrys lp_string_random
 		local('alphanumeric' = 'abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ')
 
-		#_saltLength < 1 ? #_saltLength = math_random(16, 32)
+		#_saltLength < 1 ? #_saltLength = integer_random(16, 32)
 		loop(#_saltLength) => {
-			#_salt += #alphanumeric -> get(math_random( -lower = 1, -upper = 62))
+			#_salt += #alphanumeric -> get(integer_random(62, 1))
 		}
 
 
