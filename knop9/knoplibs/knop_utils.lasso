@@ -274,7 +274,7 @@ seed::string = ''
 	local('cryptvalue' = string)
 	#seed -> size == 0 ? #seed = knop_seed
 	Local('RandChars' = 'AaBbCcDdEeFfGgHhiJjKkLmNnoPpQqRrSsTtUuVvWwXxYyZz')
-	Local('anyChar' = (#RandChars -> Get(integer_random((#RandChars -> Size, 1)))))
+	Local('anyChar' = (#RandChars -> Get(integer_random((#RandChars -> Size), 1))))
 	// taken from Bil Corry's [lp_string_getNumeric]
 	local('numericValue' = (string_findregexp(string( #value), -find = `\d`) -> join('')))
 
