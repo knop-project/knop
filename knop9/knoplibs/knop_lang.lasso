@@ -13,6 +13,7 @@ define knop_lang => type {
 	/*
 
 	CHANGE NOTES
+	2014-01-09	JC	Removed the keyword signatur oncreate since it collided with Lasso 9.2.7
 	2013-04-02	JC	Add log_critical for keys that wasn't found and if the -always flag is set
 	2013-01-29	JC	Minor cleanup. Should mean an ever so small speed gain.
 	2012-11-04	JC	Added param always to getstring. Will always return a value. If the key is not found will return the keyvalue itself
@@ -30,11 +31,10 @@ define knop_lang => type {
 
 	*/
 
-	data public version = '2013-04-02'
+	data public version = '2014-01-09'
 
 	data public strings::map = map
-	data fallback::boolean
-	data debug::boolean
+	data public fallback::boolean
 	data public defaultlanguage::string
 	data public currentlanguage::string = string
 	data public keys = null
@@ -48,17 +48,13 @@ define knop_lang => type {
 	**/
 	public onCreate(
 		default::string = string,
-		fallback::boolean = false,
-		debug::boolean = false
+		fallback::boolean = false
 	) => {
 
-		.'defaultlanguage' = #default
-		.'fallback' = #fallback
-		.'debug' = #debug
+		.defaultlanguage = #default
+		.fallback = #fallback
 
 	}
-
-	public onCreate(-default::string = string) => .onCreate(#default)
 
 	public onConvert() => (self -> listmethods)
 
@@ -163,9 +159,9 @@ define knop_lang => type {
 					#language = .browserlanguage
 				}
 			}
-			if(#language -> size == 0 && .validlanguage( .'defaultlanguage')) => {
+			if(#language -> size == 0 && .validlanguage( .defaultlanguage)) => {
 				// still no matching language, fall back to defaultlanguage
-				#language = .'defaultlanguage'
+				#language = .defaultlanguage
 			else(#language -> size == 0)
 				// still no matching language, fall back to the first language
 				#language = .'strings' -> keys -> first
@@ -173,11 +169,11 @@ define knop_lang => type {
 			if(.'strings' !>> #language
 				|| (.'strings' >> #language
 					&& .'strings' -> find( #language) !>> #key
-					&& .'fallback')) => {
+					&& .fallback)) => {
 				// key is not found in current language, switch to default language
-				if(.validlanguage( .'defaultlanguage')) => {
+				if(.validlanguage( .defaultlanguage)) => {
 					// still no matching language, fall back to defaultlanguage
-					#language = .'defaultlanguage'
+					#language = .defaultlanguage
 				else
 					// no default language to fall back to
 				}

@@ -4,6 +4,7 @@
 define knop_form => type {
 /*
 
+	2014-03-13	JC	Enhanced handling of required markup
 	2013-11-26	JC	Added date to valid field types
 	2013-06-27	JC	Fixed bug that prevented captures from being used as filters. Fixed bug that prevented captures from being used for validate
 	2013-05-09	JC	Removed all xhtml handling. Will from now on assume this is for HTML 5. Should give some miniscule speed gain.
@@ -100,7 +101,7 @@ define knop_form => type {
 	data public render_fieldset2_open = false
 	// when set to true, no scripts will be injected by renderform
 	data public noscript = false
-	data public error_lang = knop_lang(-default = 'en', -fallback)
+	data public error_lang = knop_lang('en', true)
 	data public errors = null
 	//config vars
 	data public validfieldtypes::map = map('text' = '', 'password' = '', 'checkbox' = '', 'radio' = '', 'textarea' = '', 'select' = '', 'file' = '', 'search' = '', 'submit' = '', 'reset' = '', 'image' = '', 'hidden' = '', 'fieldset' = '', 'legend' = '', 'html' = '', 'url' = string, 'email' = string, 'number' = string, 'tel' = string, 'date' = string)
@@ -732,7 +733,7 @@ Performs validation and fills a transient array with field names that have input
 
 			with fieldvalue in .'fields' do => {
 				if( .'exceptionfieldtypes' !>> #fieldvalue -> value -> find('type') ) => {
-					if(#fieldvalue -> value -> find('required') && #fieldvalue -> value -> find('value') == '') => {
+					if(#fieldvalue -> value -> find('required') && #fieldvalue -> value -> find('value') -> size == 0) => {
 						.'errors' -> insert(#fieldvalue-> value -> find('name') )
 					}
 					match(#fieldvalue -> value -> find('validate') -> type) => {
@@ -1379,6 +1380,7 @@ Outputs HTML for the form fields, a specific field, a range of fields or all fie
 		local(_to = #to -> ascopy)
 		local(_type = #type -> ascopy)
 		local(linebreak = false)
+		local(required_field = false)
 
 //		local(endslash = (.xhtml(params) ? ' /' | ''))
 
@@ -1524,8 +1526,10 @@ Outputs HTML for the form fields, a specific field, a range of fields or all fie
 				// set markers for required fields
 				if(#onefield -> find('required') && .'exceptionfieldtypes' !>> #fieldtype) => {
 					#renderrow -> replace('#required#', #requiredmarker)
+					#required_field = true
 				else
 					#renderrow -> replace('#required#', '')
+					#required_field = false
 				}
 				#renderfield = string
 				#renderfield_base = (' name="' + encode_html(#onefield ->find('name')) + '"'
@@ -1595,6 +1599,7 @@ Outputs HTML for the form fields, a specific field, a range of fields or all fie
 						if(!.'noscript' && !#nowarning) => {
 							#renderfield -> append(' onkeydown="dirtyvalue(this)" onkeyup="makedirty(this)"')
 						}
+						#required_field ? #renderfield -> append(' required="required"')
 						#renderfield -> append(' />')
 					case('search')
 						#renderfield -> append('<input type="search"'
@@ -1607,6 +1612,7 @@ Outputs HTML for the form fields, a specific field, a range of fields or all fie
 						if(!.'noscript' && !#nowarning) => {
 							#renderfield -> append(' onkeydown="dirtyvalue(this)" onkeyup="makedirty(this)"')
 						}
+						#required_field ? #renderfield -> append(' required="required"')
 						#renderfield -> append(' />')
 					case('password')
 						#renderfield -> append('<input type="password"'
@@ -1616,6 +1622,7 @@ Outputs HTML for the form fields, a specific field, a range of fields or all fie
 						if(!.'noscript' && !#nowarning) => {
 							#renderfield -> append(' onkeydown="dirtyvalue(this)" onkeyup="makedirty(this)"')
 						}
+						#required_field ? #renderfield -> append(' required="required"')
 						#renderfield -> append(' />')
 					case('textarea')
 						#renderfield -> append('<textarea'
@@ -1629,6 +1636,7 @@ Outputs HTML for the form fields, a specific field, a range of fields or all fie
 						if(!.'noscript' && !#nowarning) => {
 							#renderfield -> append(' onkeydown="dirtyvalue(this)" onkeyup="makedirty(this)"')
 						}
+						#required_field ? #renderfield -> append(' required="required"')
 						#renderfield -> append('>' + encode_html(#fieldvalue) + '</textarea>')
 					case('checkbox')
 						#linebreak = #onefield -> find('linebreak')
@@ -1724,6 +1732,7 @@ Outputs HTML for the form fields, a specific field, a range of fields or all fie
 									if(#optionitem -> name != '' && #fieldvalue_array >> #optionitem -> name) => {
 										#renderfield -> append(' checked="checked"')
 									}
+									#required_field ? #renderfield -> append(' required="required"')
 									#renderfield -> append(' /> ' + #optionitem -> value + '</label>\n')
 								}
 							}
@@ -1756,6 +1765,7 @@ Outputs HTML for the form fields, a specific field, a range of fields or all fie
 									if(!.'noscript' && !#nowarning) => {
 										#renderfield -> append(' onclick="makedirty();"')
 									}
+									#required_field ? #renderfield -> append(' required="required"')
 									#renderfield -> append(' /> <label for="' + #id + '_' + #optioncount
 										+ '" id="' + #id + '_' + #optioncount + '_label"')
 									if(!.'noscript' && !#nowarning) => {
@@ -1779,6 +1789,7 @@ Outputs HTML for the form fields, a specific field, a range of fields or all fie
 								#renderfield -> append(' onchange="makedirty()"')
 							}
 						}
+						#required_field ? #renderfield -> append(' required="required"')
 						#renderfield -> append('>\n')
 						if(#onefield -> find('default') -> size > 0 && #onefield ->find('size') <= 1) => {
 							#renderfield -> append('<option value="">' + encode_html(#onefield -> find('default')) + '</option>\n<option value=""></option>\n')
@@ -2569,11 +2580,7 @@ Returns an array of all field names
 	public lockvalue() => {return(.'db_lockvalue') }
 	public lockvalue_decrypted() => {
 		!.'database' -> isa(::knop_database) ? return string
-		return(string(decrypt_blowfish(decode_base64(.'db_lockvalue'), -seed = (.'database' -> 'lock_seed'))))
-
-
-
-
+		return .'db_lockvalue' -> size ? string(decrypt_blowfish(decode_base64(.'db_lockvalue' -> asstring), -seed = (.'database' -> 'lock_seed'))) | string
 	}
 
 	public database() => { return(.'database') }

@@ -68,8 +68,8 @@ Move templates to a member tag to be make it easier to subclass
 	data public quicksearch_fields::array = array
 	data public footer::string = string
 
-	data public lang = knop_lang(-default = 'en', -fallback)		// language strings object
-	data public error_lang = knop_lang(-default = 'en', -fallback)
+	data public lang = knop_lang('en', true)		// language strings object
+	data public error_lang = knop_lang('en', true)
 	data public numbered = false
 	data public nosort
 	data public rowsorting

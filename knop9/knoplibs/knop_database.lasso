@@ -1519,7 +1519,7 @@ varname Returns the name of the variable that this type instance is stored in.
 //debug => {
 
 		local('error_lang_custom' = .'error_lang')
-//pending		local('error_lang' = knop_lang(-default = 'en', -fallback))
+//pending		local('error_lang' = knop_lang('en', true))
 
 		local('errorcodes' = map(
 			0 = 'No error',

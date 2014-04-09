@@ -143,7 +143,7 @@ CHANGE NOTES
 	data private client_fingerprint::string = '' // combination of ip, useragent etc to be able to track sidejacking
 	data private allowsidejacking::boolean = false // when set to true no sidejacking control will be done. Default false
 	data public dblocks::set = set // a list of all database objects that have been locked by this user
-//	data public error_lang::knop_lang = knop_lang(-default = 'en', -fallback)
+//	data public error_lang::knop_lang = knop_lang('en', true)
 
 /**!
 Parameters:\n\

@@ -174,7 +174,7 @@ define knop_base => type {
 	public error_msg(error_code::integer = -1) =>{
 		#error_code < 0 ? #error_code = .error_code
 		local(error_lang_custom = .error_lang)
-		local(error_lang = knop_lang(-default = 'en', -fallback))
+		local(error_lang = knop_lang('en', true))
 
 		local(errorcodes = map(
 			0 = 'No error',

@@ -57,7 +57,7 @@ CHANGE NOTES
 	data public dotrace::boolean = false
 	data public actionconfigfile_didrun::string = string	// path to action config file that has been run for the current page load, used to not load the same config again
 	data public getlocation_didrun::boolean = false	// flag set when setlocation ran so that not having to do it twice
-	data public error_lang::knop_lang = knop_lang(-default = 'en', -fallback)
+	data public error_lang::knop_lang = knop_lang('en', true)
 
 /**!
 oncreate
