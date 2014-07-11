@@ -5,6 +5,8 @@ var: 'list'=(knop_grid:
 		-database=$d, 
 		-nav=$nav, 
 		-quicksearch=$lang_ui -> name,
+		-langobject=$lang_ui,
+		-language=$s_lang,
 		-numbered);
 
 // add columns to the list
