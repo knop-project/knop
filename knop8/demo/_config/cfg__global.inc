@@ -3,6 +3,10 @@
 // Uncomment the next line to activate l-debug, assuming you have installed it.
 // client_getparams >> 'debug' && server_name == 'knop8' ? debug->activate;
 
+// To make it easier to reload Knop, uncomment the following line,
+// then append the GET parameter string "?unload=true" to any URL.
+// action_param('unload') != '' ? namespace_unload('knop_');
+
 // general configuration
 var: 'maxrecords'=20, 
 	'skiprecords'=0,
