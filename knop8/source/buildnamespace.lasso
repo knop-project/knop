@@ -197,33 +197,33 @@ if(action_param('submit') == 'submit');
                 $path->removetrailing('/source/');
             /if;
             $path += '/LassoLibraries/' + $namespace + '.lasso';
-
-            // Look for new or modified change notes
-            var('oldfile' = file_read($path));
-            var('oldchangenotes' = string_findregexp($oldfile, -find='(?si)define_type[(:]\\s*\'(.*?)\'.*?/\\*\\s*CHANGE NOTES[\\n\\r](.*?)\\*/'));
-            var('oldchangenotes_map' = map,
-                'oldtype' = string,
-                'newchangenotes' = array);
-            iterate($oldchangenotes, var('oldchangenotes_item'));
-                if(loop_count % 3 == 2);
-                    $oldtype=$oldchangenotes_item;
-                else(loop_count % 3 == 0);
-                    $oldchangenotes_map -> insert('knop_' + $oldtype = $oldchangenotes_item -> split('\n'));
-                /if;
-            /iterate;
-           
-            iterate($changenotes_new, var('type_changenote'));
-                $type_changenote ->name; '<br>';
-                iterate($type_changenote -> value -> split('\n'), var('changenote'));
-                // 'comparing <br>' + $changenote + '<br>with<br>' + $oldchangenotes_map -> find($type_changenote -> name) -> get(loop_count)+ '<br>';
-                    if($oldchangenotes_map -> find($type_changenote -> name) !>> $changenote);
-                    // 'NEW: ' + $changenote ; '<br>';
+            if(file_exists($path));
+                // Look for new or modified change notes
+                var('oldfile' = file_read($path));
+                var('oldchangenotes' = string_findregexp($oldfile, -find='(?si)define_type[(:]\\s*\'(.*?)\'.*?/\\*\\s*CHANGE NOTES[\\n\\r](.*?)\\*/'));
+                var('oldchangenotes_map' = map,
+                    'oldtype' = string,
+                    'newchangenotes' = array);
+                iterate($oldchangenotes, var('oldchangenotes_item'));
+                    if(loop_count % 3 == 2);
+                        $oldtype=$oldchangenotes_item;
+                    else(loop_count % 3 == 0);
+                        $oldchangenotes_map -> insert('knop_' + $oldtype = $oldchangenotes_item -> split('\n'));
                     /if;
                 /iterate;
-                '<hr>';
-            /iterate;
-           
-            // End Look for new or modified change notes
+               
+                iterate($changenotes_new, var('type_changenote'));
+                    $type_changenote ->name; '<br>';
+                    iterate($type_changenote -> value -> split('\n'), var('changenote'));
+                    // 'comparing <br>' + $changenote + '<br>with<br>' + $oldchangenotes_map -> find($type_changenote -> name) -> get(loop_count)+ '<br>';
+                        if($oldchangenotes_map -> find($type_changenote -> name) !>> $changenote);
+                        // 'NEW: ' + $changenote ; '<br>';
+                        /if;
+                    /iterate;
+                    '<hr>';
+                /iterate;
+                // End Look for new or modified change notes
+            /if;
 
             '<p>Writing to file ' + $path + '</p>';
             file_create($path, -fileoverwrite);

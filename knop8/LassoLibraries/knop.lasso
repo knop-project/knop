@@ -1,7 +1,7 @@
 ﻿[/* 
 
 	On-Demand library for namespace knop
-	Namespace file built date 2013-11-17 00:46:06 by http://knop-project/knop8/source/buildnamespace.lasso
+	Namespace file built date 2014-07-10 19:52:58 by http://knop-project/knop8/source/buildnamespace.lasso
 	Montania System AB
 
 */]
@@ -4466,6 +4466,7 @@ define_type: 'grid',
 /*
 
 CHANGE NOTES
+2014-07-10  SP  Allow grid element language strings in the language configuration file to override the instance variables in the knop_grid type.
 2011-01-01	SP	Correction of invalid HTML in <thead> and <tr>
 2010-12-23	SP	Corrected pagination bug for -numbered.
 2010-11-17	JC	Added -startwithfooter flag to grid->renderhtml.  This moves the footer before the column titles in the table header.
@@ -4545,8 +4546,7 @@ CHANGE NOTES
 2007-01-17	JS	Added addfield: -template
 
 TODO
-Make it possible for knop_grid to work independently of a knop_database object so other types of listings can bre created. 
-Language of quicksearch buttons can't be changed after the grid has been created
+Make it possible for knop_grid to work independently of a knop_database object so other types of listings can be created.
 tbody is used in renderfooter, which is not semantically correct. can't use tfoot though since the footer is rendered twice. 
 Move templates to a member tag to be make it easier to subclass
 Change ->addfield to ->insert and make ->addfield deprecated
@@ -4590,8 +4590,8 @@ Change ->addfield to ->insert and make ->addfield deprecated
 		'linktitle_gofirst' = 'Go to first page',
 		'linktitle_goprev' = 'Go to previous page',
 		'footer_shown' = '#1# - #2# of',
-		'footer_found'='found',
-		'linktext_gotopage'='Go to page', // SP customization
+		'footer_found' = 'found',
+		'linktext_gotopage' = 'Go to page', // SP customization
 		'linktitle_gonext' = 'Go to next page',
 		'linktitle_golast' = 'Go to last page',
 
@@ -4614,8 +4614,8 @@ Change ->addfield to ->insert and make ->addfield deprecated
 		'linktitle_gofirst' = 'Gå till första sidan',
 		'linktitle_goprev' = 'Gå till föregående sida',
 		'footer_shown' = '#1# - #2# av',
-		'footer_found'='hittade',
-		'linktext_gotopage'='Gå till sida', // SP cüstømizätiøn
+		'footer_found' = 'hittade',
+		'linktext_gotopage' = 'Gå till sida', // SP cüstømizätiøn
 		'linktitle_gonext' = 'Gå till nästa sida',
 		'linktitle_golast' = 'Gå till sista sidan'
 	));
@@ -4629,6 +4629,7 @@ Change ->addfield to ->insert and make ->addfield deprecated
 			-id (optional) Creates a custom id used for table, quicksearch and quicksearch_reset\n\
 			-nosort (optional flag) Global setting for the entire grid (overrides column specific sort options)\n\
 			-language (optional) Language to use for the grid, defaults to the browser\'s preferred language\n\
+            -langobject (optional) Pass in a knop_lang object into the grid. Define the language strings in the language configuration file cfg__lang.inc, overriding the language strings defined as instance variables in the knop_lang type.\n\
 			-numbered (optional flag or integer) If specified, pagination links will be shown as page numbers instead of regular prev/next links. Defaults to 6 links, specify another number (minimum 6) if more numbers are wanted. Can be specified in ->renderhtml as well. ',
 		-required='database', -type='database',
 		-optional='nav', -type='nav',
@@ -4638,10 +4639,16 @@ Change ->addfield to ->insert and make ->addfield deprecated
 		-optional='id',
 		-optional='nosort',
 		-optional='language',
+		-optional='langobject', -type='lang',
 		-optional='numbered';
 		local: 'timer'=knop_timer; 
 		
-		local: 'lang'=@(self -> 'lang');
+        if(local_defined('langobject'));
+            local('lang') = #langobject;
+            self -> 'lang' = #lang;
+        else;
+            local('lang') = @(self -> 'lang');
+        /if;
 		
 		if: (local_defined: 'language');
 			#lang -> (setlanguage: #language);
@@ -8233,7 +8240,8 @@ TODO: ->help: add output option to format for Google Code Wiki
 ->xhtml is not working properly when site is run by atbegin handler and explicitly writing to content_body 
 
 
-','knop_grid'='2011-01-01	SP	Correction of invalid HTML in <thead> and <tr>
+','knop_grid'='2014-07-10  SP  Allow grid element language strings in the language configuration file to override the instance variables in the knop_grid type.
+2011-01-01	SP	Correction of invalid HTML in <thead> and <tr>
 2010-12-23	SP	Corrected pagination bug for -numbered.
 2010-11-17	JC	Added -startwithfooter flag to grid->renderhtml.  This moves the footer before the column titles in the table header.
 2010-11-17	JC	Changed rawheader inclusion to work even if there\'s no quicksearch for a grid
@@ -8312,8 +8320,7 @@ TODO: ->help: add output option to format for Google Code Wiki
 2007-01-17	JS	Added addfield: -template
 
 TODO
-Make it possible for knop_grid to work independently of a knop_database object so other types of listings can bre created. 
-Language of quicksearch buttons can\'t be changed after the grid has been created
+Make it possible for knop_grid to work independently of a knop_database object so other types of listings can be created.
 tbody is used in renderfooter, which is not semantically correct. can\'t use tfoot though since the footer is rendered twice. 
 Move templates to a member tag to be make it easier to subclass
 Change ->addfield to ->insert and make ->addfield deprecated

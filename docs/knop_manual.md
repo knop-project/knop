@@ -333,7 +333,7 @@ Quicksearch and the sort headings generate pair arrays or SQL snippets to intera
 
 `Knop_grid` supports the use of simple SQL JOINs.
 
-`Knop_grid` must interact with `knop_database` and can optionally interact with `knop_nav`.
+`Knop_grid` must interact with `knop_database` and can optionally interact with `knop_nav` and `knop_lang`.
 
 ####Example 5 - Knop grid
 
