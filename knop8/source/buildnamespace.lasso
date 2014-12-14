@@ -31,7 +31,7 @@ body {
             <li class="active"><a href="/knop8/source/buildnamespace.lasso">Build</a></li>
             <li><a href="https://github.com/knop-project/knop/">GitHub</a></li>
             <li><a href="https://github.com/knop-project/knop/issues/">Issue Tracker</a></li>
-            <li><a href="mailto:knop-feed@lists.montania.se">Subscribe to Mail List</a></li>
+            <li><a href="https://groups.google.com/forum/#!forum/knop-project">Subscribe to Mail List</a></li>
             <li><a href="http://lasso.2283332.n4.nabble.com/Knop-Framework-Discussion-f3157831.html">Mail List Archive</a></li>
             <li><a href="/docs/help.lasso">Help</a></li>
           </ul>

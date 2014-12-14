@@ -64,7 +64,7 @@ define_tag('radiohoriztb2',
 
     // Generate the HTML output
     #output = #go + '<div class="control-label">' + #label + #required + '</div>
-<div class="span3">
+<div class="span9">
 ' + #t_radios + #em + '
 </div>
 ' + #gc;
