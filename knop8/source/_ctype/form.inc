@@ -11,6 +11,7 @@ define_type: 'form',
 /*
 
 CHANGE NOTES
+2015-02-21  SP  Added -singlevalue flag to ->addfield so that checkboxes and selects which have values containing commas can be rendered "checked" or "selected" when those values have been checked or selected after loading the field.
 2013-11-16  SP  removed file from exceptionfieldtypes because it prevented adding error messages to custom widgets
 2013-11-16  SP  ->renderform: avoid adding -contenttype parameters to post forms since it conflicts with file uploads
 2013-11-04  SP  Added support for buttons to custom widget templates.
@@ -394,7 +395,8 @@ Option for -> renderhtml to output without html encoding
 			-errorclass (optional) A class for custom widgets to indicate through CSS that the user caused an error.\n\
 			-placeholder (optional) Similar to -hint, but for custom widgets.  Adds placeholder text for fields using HTML5 standards.\n\
 			-group (optional) For custom widgets.  Wraps a widget—defined as a control, its label, and its messages—with HTML as defined in the widget template.  Twitter Bootstrap also uses the group markup for styling fields as inline.  Boolean.  Default is false.\n\
-			-groupclass (optional) A class for custom widgets.  Adds a class to the wrapper HTML of the widget.  Allows easier toggling of widget display between vertical, horizontal, and inline.  Requires -group=true.',
+			-groupclass (optional) A class for custom widgets.  Adds a class to the wrapper HTML of the widget.  Allows easier toggling of widget display between vertical, horizontal, and inline.  Requires -group=true.\n\
+            -singlevalue (optional flag) The form field has only a single value and not multiple values separated by commas',
 		-required='type',
 		-optional='name',
 		-optional='id',	
@@ -425,7 +427,8 @@ Option for -> renderhtml to output without html encoding
 		-optional='errorclass',
 		-optional='placeholder',
 		-optional='group',
-		-optional='groupclass'
+		-optional='groupclass',
+		-optional='singlevalue'
 		;
 		// TODO: add optiontemplate to be able to format individual options
 		local: 'timer'=knop_timer; 
@@ -465,7 +468,8 @@ Option for -> renderhtml to output without html encoding
 			'linebreak'=(local_defined: 'linebreak') 	&& #linebreak != false,
 			'focus'=(local_defined: 'focus') 			&& #focus != false,
 			'nowarning'=(local_defined: 'nowarning') 	&& #nowarning != false,
-			'disabled'=(local_defined: 'disabled') 		&& #disabled != false
+			'disabled'=(local_defined: 'disabled') 		&& #disabled != false,
+            'singlevalue'=local_defined('singlevalue') && #singlevalue != false
 			);
 		if: (self -> 'exceptionfieldtypes') >> #_type;
 			// || (map: 'legend', 'fieldset', 'html') >> #_type;
@@ -1130,7 +1134,8 @@ Option for -> renderhtml to output without html encoding
 			'fieldvalue'=string,
 			'fieldvalue_array'=array,
 			'options'=array,
-			'focusfield';
+			'focusfield',
+			'singlevalue'=false;
 
 		local: 'clientparams'=client_getparams;
 		#clientparams -> (merge: client_postparams);
@@ -1321,10 +1326,11 @@ Option for -> renderhtml to output without html encoding
 				#onefield = #fieldpair -> value;
 				#fieldvalue = (#onefield -> (find: 'value'));
 				#fieldvalue_array = #fieldvalue;
+                #singlevalue = #onefield -> find('singlevalue');
 				if: #fieldvalue_array -> type != 'array';
 					if: #fieldvalue_array >> '\r'; // Filemaker value list with multiple checked
 						#fieldvalue_array = #fieldvalue_array -> (split: '\r');
-					else: #fieldvalue_array >> ','; // Other database with multiple checked
+					else(#fieldvalue_array >> ',' && !#singlevalue); // Other database with multiple checked
 						#fieldvalue_array = #fieldvalue_array -> (split: ',');
 					else;
 						#fieldvalue_array = array: #fieldvalue_array;
@@ -2119,10 +2125,11 @@ Option for -> renderhtml to output without html encoding
 			#onefield = #fieldpair -> value;
 			#fieldvalue = (#onefield -> (find: 'value'));
 			#fieldvalue_array = #fieldvalue;
+            #singlevalue = #onefield -> find('singlevalue');
 			if: #fieldvalue_array -> type != 'array';
 				if: #fieldvalue_array >> '\r'; // Filemaker value list with multiple checked
 					#fieldvalue_array = #fieldvalue_array -> (split: '\r');
-				else: #fieldvalue_array >> ','; // Other database with multiple checked
+				else(#fieldvalue_array >> ',' && !#singlevalue); // Other database with multiple checked
 					#fieldvalue_array = #fieldvalue_array -> (split: ',');
 				else;
 					#fieldvalue_array = array: #fieldvalue_array;
