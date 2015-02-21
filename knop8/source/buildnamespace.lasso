@@ -225,7 +225,7 @@ if(action_param('submit') == 'submit');
                 // End Look for new or modified change notes
             /if;
 
-            '<p>Writing to file ' + $path + '</p>';
+            '<p>Writing to file: ' + $path + '</p>';
             file_create($path, -fileoverwrite);
             '<p>create: ' + file_currenterror + ' ' + (error_code != 0 ? error_msg) + '</p>';
             file_write($path, $output, -fileoverwrite);
@@ -240,7 +240,7 @@ if(action_param('submit') == 'submit');
                 if(file_exists($fullpath + 'LassoLibraries/'));
                     // for development workflow - ignore
                     $path = $fullpath + 'LassoLibraries/' + $namespace + '.lasso';
-                    '<p>Writing to file ' + $path + '</p>';
+                    '<p>Writing to file: ' + $path + '</p>';
                     file_create($path, -fileoverwrite);
                     '<p>create: ' + file_currenterror + ' ' + (error_code != 0 ? error_msg) + '</p>';
                     file_write($path, $output, -fileoverwrite);
