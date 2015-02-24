@@ -2074,7 +2074,8 @@ Option for -> renderhtml to output without html encoding
 			'fieldvalue'=string,
 			'fieldvalue_array'=array,
 			'options'=array,
-			'usehint'=array;
+			'usehint'=array,
+			'singlevalue'=false;
 
 		
 		// local var that adjust tag endings if rendered for XHTML
