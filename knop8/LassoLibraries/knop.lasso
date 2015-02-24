@@ -1,7 +1,7 @@
 ﻿[/* 
 
 	On-Demand library for namespace knop
-	Namespace file built date 2015-02-21 04:53:04 by http://knop-project/knop8/source/buildnamespace.lasso
+	Namespace file built date 2015-02-23 15:49:53 by http://knop-project/knop8/source/buildnamespace.lasso
 	Montania System AB
 
 */]
@@ -4126,7 +4126,8 @@ Option for -> renderhtml to output without html encoding
 			'fieldvalue'=string,
 			'fieldvalue_array'=array,
 			'options'=array,
-			'usehint'=array;
+			'usehint'=array,
+			'singlevalue'=false;
 
 		
 		// local var that adjust tag endings if rendered for XHTML
