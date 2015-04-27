@@ -19,7 +19,7 @@ Installation of Knop demo for Lasso 9.x
 
 	For a __development__ or __testing__ environment, it is recommended to use the [directory of files](http://www.lassosoft.com/Language-Guide-Lasso-Apps#heading19) packaging method for the Knop LassoApp.  This is the slowest of the three packaging methods because the files must be compiled through the "just in time" (JIT) compiler, then loaded into memory.  However it provides the greatest flexibility and ease of use for developers who want to edit and redefine their types often, then reload them to test them.
 
-	For deployment into a __production__ environment, it is recommended to use the [compiled binary](http://www.lassosoft.com/Language-Guide-Lasso-Apps#heading21) method because it saves the JIT compiler step and significantly decreases loading time.  Furthermore, for security and to prevent someone from loading or reloading the Knop types through a web browser, you should secure the virtual URL `/lasso9/knoplibs/` and remove the file `knoplibs/index[html].lasso`.
+	For deployment into a __production__ environment, it is recommended to use the [compiled binary](http://www.lassosoft.com/Language-Guide-Lasso-Apps#heading21) method because it saves the JIT compiler step and significantly decreases loading time.  Furthermore, for security and to prevent someone from loading or reloading the Knop types through a web browser, you should secure the virtual URL `/lasso9/knoplibs/` and remove the file `knoplibs/index.lasso`.
 
 	Copy the directory `/knoplibs/` and its files into the LassoApps folder into any instance directory `/private/var/lasso/instances/INSTANCE_NAME/LassoApps`.
 
@@ -31,7 +31,7 @@ Installation of Knop demo for Lasso 9.x
 
 	To manually reload specific Knop types, visit the appropriate URL for your virtual host, e.g:
 
-	<http://myhostname/lasso9/knoplibs/>
+	<http://myhostname/lasso9/knoplibs/index.lasso>
 
 	Check the types that you want to load or reload, and submit the form.  The types that you selected to load will display in a list.
 	
@@ -81,9 +81,9 @@ Install L-Debug
 ===============
 __IMPORTANT:__ Do not run L-Debug in production environments or anywhere that critical information can be revealed to unauthorized persons.  Use some level of security.
 
-1. Download L-Debug by using SVN:
+1. Clone L-Debug with git:
 
-	`svn export svn://svn.zeroloop.com/l-debug/tags/9/stable/debug.type.lasso`
+	`git clone git@github.com:zeroloop/l-debug.git`
 
 2. Move the file into the LassoStartup folder for your Knop instance, e.g.:
 

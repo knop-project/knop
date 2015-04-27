@@ -5,9 +5,9 @@ Install Knop demo files
 -----------------------
 1. Copy `LassoLibraries/knop.lasso` to the LassoLibraries folder in either the LassoSite or in the Lasso application folder.
 
-	If you decide to experiment with modifications of Knop, then we recommend creating one Lasso site for each version of Knop, one for your original and one each for each experimental version.
+    If you decide to experiment with modifications of Knop, then we recommend creating one Lasso site for each version of Knop, one for your original and one each for each experimental version.
 
-	You do not need to restart Lasso server.
+    You do not need to restart Lasso server.
 
 2. Put `LassoStartup/urlhandler_atbegin.lasso` in LassoStartup at the same scope as in the previous step.
 
@@ -15,7 +15,7 @@ Install Knop demo files
 
 4. Copy the file `../docs/help.lasso` into the web root.  To view the Knop API, visit the URL for your virtual host, e.g.
 
-	<http://myhostname/help.lasso>
+    <http://myhostname/help.lasso>
 
 Web server configuration
 ------------------------
@@ -47,9 +47,9 @@ Default file
 ------------
 `demo/index.lasso` is the central hub file for the entire demo solution. Make sure Apache is configured such that `index.lasso` is a default file name.
 
-	<IfModule dir_module>
-		DirectoryIndex index.lasso index.las index.html index.htm
-	</IfModule>
+    <IfModule dir_module>
+        DirectoryIndex index.lasso index.las index.html index.htm
+    </IfModule>
 
 Lasso SiteAdmin configuration
 -----------------------------
@@ -63,7 +63,7 @@ Upgrading Knop
 --------------
 To upgrade Knop, overwrite the knop.lasso in the appropriate scope, then execute this Lasso code to use the new version without restarting Lasso:
 
-	namespace_unload('knop_');
+    namespace_unload('knop_');
 
 Alternative methods to install Knop
 ===================================
@@ -95,15 +95,17 @@ Install L-Debug
 ===============
 __IMPORTANT:__ Do not run L-Debug in production environments or anywhere that critical information can be revealed to unauthorized persons.  Use some level of security.
 
-1. Download L-Debug by using SVN:
+1. Clone L-Debug with git and checkout the `Lasso-8.6` branch:
 
-	`svn export svn://svn.zeroloop.com/L-Debug/tags/public/stable/debug.ctyp`
+        git clone git@github.com:zeroloop/l-debug.git
+        cd l-debug
+        git checkout Lasso-8.6
 
 2. Open the file and at the very top, add one line of code as indicated below.
 
-		define_type:'Debug','Array',-prototype,-priority='replace',
-			-namespace='knop_', // insert this line
-			-description = '
+        define_type:'Debug','Array',-prototype,-priority='replace',
+            -namespace='knop_', // insert this line
+            -description = '
 
 3. Save and close the file.
 
@@ -113,9 +115,9 @@ __IMPORTANT:__ Do not run L-Debug in production environments or anywhere that cr
 
 6. To activate L-Debug, use the following command:
 
-		[knop_debug->activate]
-	
-	The above line of code is in `demo/_config/cfg__global.inc`, and can be uncommented.
-	
-	Note that the typical Knop output for the trace method will be replaced by the L-Debug output.
+        [knop_debug->activate]
+
+    The above line of code is in `demo/_config/cfg__global.inc`, and can be uncommented.
+
+    Note that the typical Knop output for the trace method will be replaced by the L-Debug output.
 
