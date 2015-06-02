@@ -42,7 +42,7 @@ Support
 =======
 Technical support is provided by the community of Knop developers and users.
 
-An email discussion list is provided by Montania SE.  To subscribe, send email to <knop-feed@lists.montania.se>
+Subscribe and participate in the email discussion list [knop-project@googlegroups.com](https://groups.google.com/forum/#!forum/knop-project).
 
 The Knop mailing list archive is available on [Nabble](http://lasso.2283332.n4.nabble.com/Knop-Framework-Discussion-f3157831.html).
 
