@@ -1,6 +1,4 @@
-Donate via <script data-gratipay-username="KnopProject"
-        data-gratipay-widget="button"
-        src="//grtp.co/v1.js"></script> to support the Knop Project.
+Donate via [Gratipay](https://gratipay.com/KnopProject/) to support the Knop Project.
 
 Knop
 ====
