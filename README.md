@@ -1,3 +1,7 @@
+Donate via <script data-gratipay-username="KnopProject"
+        data-gratipay-widget="button"
+        src="//grtp.co/v1.js"></script> to support the Knop Project.
+
 Knop
 ====
 Knop is an open source web application framework using Lasso 8.x or 9.x.  Lasso is a programming language from [LassoSoft](http://www.lassosoft.com/).
