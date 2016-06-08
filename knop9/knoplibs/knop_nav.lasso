@@ -1480,7 +1480,7 @@ Returns data object that can be stored for the current nav location (or specifie
 			else
 // 				..'tagtime' = integer(#timer) // cast to integer to trigger onconvert and to "stop timer"
 				// return empty instance of the specified type
-				return((\#type)->astype)
+				return(\#type->invoke)
 			}
 		else
 // 			..'tagtime' = integer(#timer) // cast to integer to trigger onconvert and to "stop timer"
