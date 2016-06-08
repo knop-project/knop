@@ -15,6 +15,7 @@ define knop_base => type {
 	/*
 
 	CHANGE NOTES
+	2016-06-08	JS	Removed tagtime
 	2013-01-31	JC	Major code cleanup of minor details.
 					Removed all semicolons
 					Changed local('xyz' to local(xyz
@@ -47,12 +48,12 @@ define knop_base => type {
 
 	*/
 
-	data public version = '2013-01-31'
+	data public version = '2016-06-08'
 	data public debug_trace::array = array
 	data public _debug_trace::array = array
 	data public instance_unique = null
 	data public instance_varname = null
-	data public tagtime::integer				// time for entire tag in ms
+	// data public tagtime::integer				// time for entire tag in ms
 	data public tagtime_tagname::tag
 	data public error_code = 0
 	data public error_msg = string

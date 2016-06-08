@@ -10,6 +10,7 @@ define knop_nav => type {
 /*
 
 CHANGE NOTES
+	2016-06-08	JS	Removed tagtime
 	2016-06-08	JS	Changed onconvert to asString
 	2016-06-08	JS	Place oncreate signature for named keyword first (for no reason, really)
 	2013-08-31	JC	Added support for dropdownheader
@@ -1142,7 +1143,7 @@ Includes any of the files for the current path, fails silently if file does not 
 //			(self -> 'debug_trace') -> insert('Include ' + #file + ': ' + #filename + ' processed in ' + (_date_msec - #t) ' ms')
 			//knop_debug(self->type + ' -> ' + tag_name + ' ' + #file + ': ' + #filename + ' processed in ' + (_date_msec - #t) ' ms', -type=self->type)
 //			self -> 'tagtime_tagname'=tag_name
-			..'tagtime' = integer(#timer) // cast to integer to trigger onconvert and to "stop timer"
+//			..'tagtime' = integer(#timer) // cast to integer to trigger onconvert and to "stop timer"
 			return #result
 		else
 //			#dotrace ? (self -> 'debug_trace') -> insert('Include ' + #file + ': no matching filename found')
@@ -1280,7 +1281,7 @@ Return reference to the children of the current navigation object map, or for th
 		if(#nav !>> 'children') => {
 			#nav -> insert('children' = knop_nav)
 		}
-		..'tagtime' = integer(#timer) // cast to integer to trigger onconvert and to "stop timer"
+// 		..'tagtime' = integer(#timer) // cast to integer to trigger onconvert and to "stop timer"
 
 		return(#nav -> find('children'))
 
@@ -1315,7 +1316,7 @@ Add nav object as children to specified key path, replacing the current children
 		(self -> 'urlmap') = null
 
 */
-		..'tagtime' = integer(#timer) // cast to integer to trigger onconvert and to "stop timer"
+// 		..'tagtime' = integer(#timer) // cast to integer to trigger onconvert and to "stop timer"
 
 	}
 
@@ -1347,7 +1348,7 @@ Sets html template for the nav object, use #items# #item# #/items# or more elabo
 		#currentclass -> size > 0 ? .'currentclass' = #currentclass
 		#currentmarker -> size > 0 ? .'currentmarker' = #currentmarker
 
-		..'tagtime' = integer(#timer) // cast to integer to trigger onconvert and to "stop timer"
+// 		..'tagtime' = integer(#timer) // cast to integer to trigger onconvert and to "stop timer"
 
 	}
 
@@ -1474,15 +1475,15 @@ Returns data object that can be stored for the current nav location (or specifie
 		local('data' = .getnav(#path) -> find('data'))
 		if(#type -> size > 0) => {
 			if(#data -> isa(#type)) => {
-				..'tagtime' = integer(#timer) // cast to integer to trigger onconvert and to "stop timer"
+// 				..'tagtime' = integer(#timer) // cast to integer to trigger onconvert and to "stop timer"
 				return(#data)
 			else
-				..'tagtime' = integer(#timer) // cast to integer to trigger onconvert and to "stop timer"
+// 				..'tagtime' = integer(#timer) // cast to integer to trigger onconvert and to "stop timer"
 				// return empty instance of the specified type
 				return((\#type)->astype)
 			}
 		else
-			..'tagtime' = integer(#timer) // cast to integer to trigger onconvert and to "stop timer"
+// 			..'tagtime' = integer(#timer) // cast to integer to trigger onconvert and to "stop timer"
 			return(#data)
 		}
 
