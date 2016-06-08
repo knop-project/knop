@@ -1,7 +1,8 @@
-﻿<?LassoScript
-log_critical('loading knop_nav from LassoApp')
+<?LassoScript
+//log_critical('loading knop_nav from LassoApp')
 
 /**!
+knop_nav
 Experimental new leaner version of custom type to handle site navigation menu
 **/
 define knop_nav => type {
@@ -9,7 +10,12 @@ define knop_nav => type {
 /*
 
 CHANGE NOTES
-	2012-06-11	SP	Reinstate L-Debug calls
+	2013-08-31	JC	Added support for dropdownheader
+	2012-11-26	JC	Added support for divider list item in bootstrap
+	2012-11-26	JC	Added param raw
+	2012-11-26	JC	Fixes for bootstrap rendering
+	2012-09-11	JC	Minor tweak to getlocation adding knop_trim
+	2012-07-08	JC	Fixed bug that was using type as a reference instead of a copy in method filename
 	2012-06-10	JC	Changed += to append. Changed iterate to query expr. or loop.
 	2012-05-19	JC	Changed web_request->scriptURL to web_request->fcgiReq->requestParams->find(::REQUEST_URI)->asString -> split('?') -> first to make it consistent between different Apache platforms
 	2012-05-18	JC	Fixed bug in getnav that would change the supplied path param instead of copying it
@@ -24,7 +30,7 @@ CHANGE NOTES
 
 	parent knop_base
 
-	data public version = '2012-06-10'
+	data public version = '2012-11-26'
 
 	// instance variables
 	data public navitems::array = array
@@ -51,58 +57,27 @@ CHANGE NOTES
 	data public dotrace::boolean = false
 	data public actionconfigfile_didrun::string = string	// path to action config file that has been run for the current page load, used to not load the same config again
 	data public getlocation_didrun::boolean = false	// flag set when setlocation ran so that not having to do it twice
-	data public error_lang::knop_lang = knop_lang(-default = 'en', -fallback)
+	data public error_lang::knop_lang = knop_lang('en', true)
 
 /**!
-Parameters:
-	- default (optional)
-
-		Key of default navigation item
-
-	- root (optional)
-
-		The root path for the site section that this nav object is used for
-
-	- fileroot (optional)
-
-		The root for include files, to be able to use a different root for physical
-		files than the logical root of the site. Defaults to the value of -root. 
-
-	- navmethod (optional)
-
-		path or param. Path for "URL designed" URLs, otherwise a -path parameter
-		 will be used for the navigation. 
-
-	- filenaming (optional)
-
-		prefix (default), suffix or extension, specifies how include files are named
-
-	- trace (optional flag)
-
-		If specified debug_trace will be used. Defaults to disabled for performance reasons. 
-
-	- template (optional)
-
-		html template used to render the navigation menu
-
-	- class (optional)
-
-		default class for all navigation links
-
-	- currentclass (optional)
-
-		class added for the currently active link
-
-	- currentmarker (optional)
-
-		character(s) show to the right link of current nav (typically &raquo;)
-
+oncreate
+Parameters:\n\
+			-default (optional) Key of default navigation item\n\
+			-root (optional) The root path for the site section that this nav object is used for\n\
+			-fileroot (optional) The root for include files, to be able to use a different root for physical files than the logical root of the site. Defaults to the value of -root. \n\
+			-navmethod (optional) path or param. Path for "URL designed" URLs, otherwise a -path parameter will be used for the navigation. \n\
+			-filenaming (optional) prefix (default), suffix or extension, specifies how include files are named\n\
+			-trace (optional flag) If specified debug_trace will be used. Defaults to disabled for performance reasons. \n\
+			-template (optional) html template used to render the navigation menu\n\
+			-class (optional) default class for all navigation links\n\
+			-currentclass (optional) class added for the currently active link\n\
+			-currentmarker (optional) character(s) show to the right link of current nav (typically &raquo;)
 **/
 
 	public oncreate(
 		template::string = '',
 		class::string = '',
-		currentclass::string = '',
+		currentclass::string = 'crnt',
 		currentmarker::string = '',
 		default::string = '',
 		root::string = '/',
@@ -112,7 +87,7 @@ Parameters:
 		trace::boolean = false
 
 	) => {
-	debug => {
+//	debug => {
 
 		// protect input vars
 		#root = #root -> ascopy
@@ -143,13 +118,13 @@ Parameters:
 			.'fileroot' = #root
 		}
 
-	} // end debug
+//	} // end debug
 	}
 
 	public oncreate(
 		-template::string = '',
 		-class::string = '',
-		-currentclass::string = '',
+		-currentclass::string = 'crnt',
 		-currentmarker::string = '',
 		-default::string = '',
 		-root::string = '/',
@@ -189,7 +164,10 @@ Inserts a nav item into the nav array
 		after::any = string,
 		target::any = string,
 		data::any = string,
-		hide::boolean = false
+		hide::boolean = false,
+		raw::string = string,
+		divider::boolean = false,
+		dropdownheader::boolean = false
 	) => {
 //	debug => {
 
@@ -212,7 +190,10 @@ Inserts a nav item into the nav array
 			'after' = string(#after),
 			'target' = string(#after),
 			'data' = string(#data),
-			'hide' = #hide
+			'hide' = #hide,
+			'raw' = #raw,
+			'divider' = #divider,
+			'dropdownheader' = #dropdownheader
  		))
 
 		if(#children -> isa('knop_nav')) => {
@@ -250,28 +231,20 @@ Inserts a nav item into the nav array
 		-after::any = string,
 		-target::any = string,
 		-data::any = string,
-		-hide::boolean = false
-	) => .insert(#key, #label, #default, #url, #title, #id, #template, #children, #param, #class, #filename, #disabled, #after, #target, #data, #hide)
+		-hide::boolean = false,
+		-raw::string = string,
+		-divider::boolean = false,
+		-dropdownheader::boolean = false
+	) => .insert(#key, #label, #default, #url, #title, #id, #template, #children, #param, #class, #filename, #disabled, #after, #target, #data, #hide, #raw, #divider, #dropdownheader)
 
 /**!
-Render hierarchial nav structure.
+Render hierarchial nav structure.\n\
+			Parameters:\n\
+			-renderpath (optional) Only render the children of the specified path (and below)\n\
+			-flat (optional flag) Only render one level\n\
+			-expand (optional flag) Render the entire expanded nav tree and not just the currently active branch\n\
+			-xhtml (optional) XHTML valid output
 
-Parameters:
-	- renderpath (optional)
-
-		Only render the children of the specified path (and below)
-
-	- flat (optional flag)
-
-		Only render one level
-
-	- expand (optional flag)
-
-		Render the entire expanded nav tree and not just the currently active branch
-
-	- xhtml (optional)
-
-		XHTML valid output
 **/
 	public renderhtml(
 		items::array = array,
@@ -280,68 +253,171 @@ Parameters:
 		toplevel::boolean = true,
 		xhtml::boolean = false,
 		patharray = .'patharray' -> ascopy,
-		levelcount::integer = 1
+		levelcount::integer = 1,
+		bootstrap::boolean = false
 	) => debug => {
-//	debug => {
 
 		local(output = string)
-
 		#items -> size == 0 ? #items = .'navitems'
 
 		local(localkeyval = #keyval -> ascopy)
 		local(navitem = null)
 		local(levelcounted = false)
 		.'renderhtml_levels' = #levelcount -> ascopy
-		#output -> append('<ul' + (#toplevel && .'class' -> size > 0 ? ' class="' + .'class' + '"') + '>\r')
 
-		with itemtmp in #items do => {
-			#navitem = #itemtmp -> value
-			#localkeyval -> insert(#navitem -> find('key'))
+		if(#bootstrap) => {
 
-			if(!(#navitem -> find('hide'))) => {
-				#output -> append('<li' + (#navitem -> find('class') -> size > 0 ? ' class="' + #navitem -> find('class') + '"') + '>\r')
-
-				if(#navitem -> find('disabled')) => {
-					#output -> append('<span' + (#navitem -> find('class') -> size > 0 ? ' class="' + #navitem -> find('class') + '"') + ' disabled="disabled">' + #navitem -> find('label') + '</span>')
-
-				else
-/* code from original nav
-		if((#topself -> 'navmethod') == 'param') => {
-			#url = './?' + #url + (#urlparams -> size || (local: 'urlargs') != '' ? '&amp;')
-		else  // path
-			#url = (#topself -> 'root') + #url +  (#urlparams -> size || (local: 'urlargs') != '' ? '?')
-		}
-TODO Still need to implement urlparams support
+/*
+<ul class="nav nav-pills">
+            <li class="active"><a href="#">Regular link</a></li>
+            <li class="dropdown">
+              <a href="#" data-toggle="dropdown" class="dropdown-toggle">Dropdown <b class="caret"></b></a>
+              <ul class="dropdown-menu" id="menu1">
+                <li><a href="#">Action</a></li>
+                <li><a href="#">Another action</a></li>
+                <li><a href="#">Something else here</a></li>
+                <li class="divider"></li>
+                <li><a href="#">Separated link</a></li>
+              </ul>
+            </li>
+            <li class="dropdown">
+              <a href="#" data-toggle="dropdown" class="dropdown-toggle">Dropdown 2 <b class="caret"></b></a>
+              <ul class="dropdown-menu" id="menu2">
+                <li><a href="#">Action</a></li>
+                <li><a href="#">Another action</a></li>
+                <li><a href="#">Something else here</a></li>
+                <li class="divider"></li>
+                <li><a href="#">Separated link</a></li>
+              </ul>
+            </li>
+            <li class="dropdown">
+              <a href="#" data-toggle="dropdown" class="dropdown-toggle">Dropdown 3 <b class="caret"></b></a>
+              <ul class="dropdown-menu" id="menu3">
+                <li><a href="#">Action</a></li>
+                <li><a href="#">Another action</a></li>
+                <li><a href="#">Something else here</a></li>
+                <li class="divider"></li>
+                <li><a href="#">Separated link</a></li>
+              </ul>
+            </li>
+          </ul>
 */
+			local(gotchildren = false)
+			local(li_class = array)
+			local(a_class = array)
 
-					#output -> append('<a href="' +
-						(.'navmethod' == 'param' ? './?') +
-						(#navitem -> find('url') -> size > 0 ? #navitem -> find('url') | '/' + #localkeyval -> join('/') + '/') +
-						'"' +
-						(#navitem -> find('id') -> size > 0 ? ' id="' + #navitem -> find('id') + '"') +
-						(#navitem -> find('class') -> size > 0 ? ' class="' + #navitem -> find('class') + '"') +
-						(#navitem -> find('title') -> size > 0 ? ' title="' + #navitem -> find('title') + '"') +
-						(#navitem -> find('target') -> size > 0 ? ' target="' + #navitem -> find('target') + '"') +
-						'>' + #navitem -> find('label') + '</a>'
-					)
+			#output -> append('<ul' + (#toplevel && .'class' -> size > 0 ? ' class="' + .'class' + '"' | ' class="dropdown-menu"') + '>\r')
 
-				} // (#navitem -> find('disabled'))
+			with itemtmp in #items do => {
+				#navitem = #itemtmp -> value
+				#localkeyval -> insert(#navitem -> find('key'))
 
-				if((!#flat || #patharray -> first == #navitem -> find('key')) && #navitem >> 'children' && #navitem -> find('children') -> isa('array') && #navitem -> find('children') -> size) => {
-					local(subpatharray = #patharray -> ascopy)
-					#subpatharray -> size > 0 ? #subpatharray -> removefirst
-					!#levelcounted ? #levelcount += 1
-					#levelcounted = true
-					#output -> append(.renderhtml(#navitem -> find('children'), #localkeyval -> ascopy, #flat, false, #xhtml, #subpatharray, #levelcount))
-				} // (!#flat || #patharray -> first == #navitem -> find('key')) && #navitem >> 'children' && #navitem -> find('children') -> isa('array') && #navitem -> find('children') -> size
-				#output -> append('</li>\r')
-			} // !(#navitem -> find('hide'))
-			#localkeyval = #keyval -> ascopy
-		} //with
-		#output -> append('</ul>\r')
+				if(#navitem -> find('divider')) => {
+					#output -> append('<li class="divider"></li>\r')
+				else(#navitem -> find('dropdownheader'))
+					#output -> append('<li class="' + #navitem -> find('class') + '">' + #navitem -> find('label') + '</li>\r')
+				else(not (#navitem -> find('hide')))
+
+					#li_class = array
+					#a_class = array
+					if(#navitem -> find('class') -> size > 0) => {
+						#li_class -> insert(#navitem -> find('class'))
+						#a_class -> insert(#navitem -> find('class'))
+					}
+
+					#gotchildren = (((not #flat || #patharray -> first == #navitem -> find('key')) && #navitem >> 'children' && #navitem -> find('children') -> isa('array') && #navitem -> find('children') -> size) ? true | false)
+
+					if(#gotchildren) => {
+						#li_class -> insert('dropdown')
+						#a_class -> insert('dropdown-toggle')
+					}
+
+					#output -> append('<li' + (#li_class -> size > 0 ? ' class="' + #li_class -> join(' ') + '"') + '>\r')
+
+					if(#navitem -> find('disabled')) => {
+						#output -> append('<a href="#"' + (#navitem -> find('class') -> size > 0 ? ' class="' + #navitem -> find('class') + '"') + ' disabled="disabled">' + #navitem -> find('label') + '</a>')
+
+					else
+
+						#output -> append('<a href="' +
+							(.'navmethod' == 'param' ? './?') +
+							(#navitem -> find('url') -> size > 0 ? #navitem -> find('url') | '/' + #localkeyval -> join('/') + '/') +
+							'"' +
+							(#navitem -> find('id') -> size > 0 ? ' id="' + #navitem -> find('id') + '"') +
+							(#a_class -> size > 0 ? ' class="' + #a_class -> join(' ') + '"') +
+							(#gotchildren ? ' data-toggle="dropdown"') +
+							(#navitem -> find('title') -> size > 0 ? ' title="' + #navitem -> find('title') + '"') +
+							(#navitem -> find('target') -> size > 0 ? ' target="' + #navitem -> find('target') + '"') +
+							(#navitem -> find('raw') -> size > 0 ? ' ' + #navitem -> find('raw')) +
+							'>' + #navitem -> find('label') + '</a>'
+						)
+
+					} // (#navitem -> find('disabled'))
+
+					if(#gotchildren and not #navitem -> find('disabled')) => {
+						local(subpatharray = #patharray -> ascopy)
+						#subpatharray -> size > 0 ? #subpatharray -> removefirst
+						!#levelcounted ? #levelcount += 1
+						#levelcounted = true
+						#output -> append(.renderhtml(#navitem -> find('children'), #localkeyval -> ascopy, #flat, false, #xhtml, #subpatharray, #levelcount, true))
+					} // (!#flat || #patharray -> first == #navitem -> find('key')) && #navitem >> 'children' && #navitem -> find('children') -> isa('array') && #navitem -> find('children') -> size
+					#output -> append('</li>\n')
+				} // !(#navitem -> find('hide'))
+				#localkeyval = #keyval -> ascopy
+			} //with
+			#output -> append('</ul>\r')
+		else // not bootstrap
+			#output -> append('<ul' + (#toplevel && .'class' -> size > 0 ? ' class="' + .'class' + '"') + '>\r')
+
+			with itemtmp in #items do => {
+				#navitem = #itemtmp -> value
+				#localkeyval -> insert(#navitem -> find('key'))
+
+				if(!(#navitem -> find('hide'))) => {
+					#output -> append('<li' + (#navitem -> find('class') -> size > 0 ? ' class="' + #navitem -> find('class') + '"') + '>\r')
+
+					if(#navitem -> find('disabled')) => {
+						#output -> append('<span' + (#navitem -> find('class') -> size > 0 ? ' class="' + #navitem -> find('class') + '"') + ' disabled="disabled">' + #navitem -> find('label') + '</span>')
+
+					else
+	/* code from original nav
+			if((#topself -> 'navmethod') == 'param') => {
+				#url = './?' + #url + (#urlparams -> size || (local: 'urlargs') != '' ? '&amp;')
+			else  // path
+				#url = (#topself -> 'root') + #url +  (#urlparams -> size || (local: 'urlargs') != '' ? '?')
+			}
+	TODO Still need to implement urlparams support
+	*/
+
+						#output -> append('<a href="' +
+							(.'navmethod' == 'param' ? './?') +
+							(#navitem -> find('url') -> size > 0 ? #navitem -> find('url') | '/' + #localkeyval -> join('/') + '/') +
+							'"' +
+							(#navitem -> find('id') -> size > 0 ? ' id="' + #navitem -> find('id') + '"') +
+							(#navitem -> find('class') -> size > 0 ? ' class="' + #navitem -> find('class') + '"') +
+							(#navitem -> find('title') -> size > 0 ? ' title="' + #navitem -> find('title') + '"') +
+							(#navitem -> find('target') -> size > 0 ? ' target="' + #navitem -> find('target') + '"') +
+							(#navitem -> find('raw') -> size > 0 ? ' ' + #navitem -> find('raw')) +
+							'>' + #navitem -> find('label') + '</a>'
+						)
+
+					} // (#navitem -> find('disabled'))
+
+					if((!#flat || #patharray -> first == #navitem -> find('key')) && #navitem >> 'children' && #navitem -> find('children') -> isa('array') && #navitem -> find('children') -> size) => {
+						local(subpatharray = #patharray -> ascopy)
+						#subpatharray -> size > 0 ? #subpatharray -> removefirst
+						!#levelcounted ? #levelcount += 1
+						#levelcounted = true
+						#output -> append(.renderhtml(#navitem -> find('children'), #localkeyval -> ascopy, #flat, false, #xhtml, #subpatharray, #levelcount))
+					} // (!#flat || #patharray -> first == #navitem -> find('key')) && #navitem >> 'children' && #navitem -> find('children') -> isa('array') && #navitem -> find('children') -> size
+					#output -> append('</li>\r')
+				} // !(#navitem -> find('hide'))
+				#localkeyval = #keyval -> ascopy
+			} //with
+			#output -> append('</ul>\r')
+		}
 
 		return #output
-//	} // end debug
 	}
 
 	public renderhtml(
@@ -351,10 +427,12 @@ TODO Still need to implement urlparams support
 		-toplevel::boolean = true,
 		-xhtml::boolean = false,
 		-patharray = .'patharray' -> ascopy,
-		-levelcount::integer = 1
-	) => .renderhtml(#items, #keyval, #flat, #toplevel, #xhtml, #patharray, #levelcount)
+		-levelcount::integer = 1,
+		-bootstrap::boolean = false
+	) => .renderhtml(#items, #keyval, #flat, #toplevel, #xhtml, #patharray, #levelcount, #bootstrap)
 
 /**!
+setlocation
 Sets the current location to a specific nav path or url
 **/
 	public setlocation(
@@ -370,18 +448,15 @@ Sets the current location to a specific nav path or url
 	) => .setlocation(#path)
 
 /**!
-Grabs path and actionpath from params or urlhandler, translates from url to path
-if needed. This must be called before using the nav object.
-
-Parameters:
-	- setpath (optional)
-
-		forces a new path
+getlocation
+Grabs path and actionpath from params or urlhandler, translates from url to path if needed. This must be called before using the nav object. \n\
+			Parameters:\n\
+			-setpath (optional) forces a new path
 **/
 	public getlocation(
 		setpath::string = '',
 		refresh::boolean = false
-	) => debug => {
+	) => {
 //	debug => {
 
 		#refresh ? .'getlocation_didrun' = false
@@ -401,11 +476,11 @@ Parameters:
 			.'pathargs' = string
 			.'actionpath' = string
 
-			// get action path
-			local('clientparams' = tie(web_request -> queryParams, web_request -> postParams) -> asStaticArray)
+			local(clientparams = tie(web_request -> queryParams, web_request -> postParams) -> asStaticArray)
 
-			#actionpath = (#clientparams >> '-action' ? string(#clientparams -> find('-action') -> first -> value) | string)
-			#actionpath -> removeleading('/') & removetrailing('/')
+			// get action path
+			#actionpath = (#clientparams >> '-action' ? string(#clientparams -> find('-action') -> first -> value) -> knop_trim('/')& | string)
+
 			// validate action path
 			if(#actionpath -> size && .'pathmap' >> #actionpath) => {
 				.'actionpath' = #actionpath
@@ -554,10 +629,10 @@ Parameters:
 	) => .getlocation(#setpath, #refresh)
 
 /**!
+label
 Returns the name of the current (or specified) nav location
-
-Parameters:
-	-path (optional)
+			Parameters:
+			-path (optional)
 **/
 	public label(
 		path::string = .'path'
@@ -568,10 +643,10 @@ Parameters:
 	) => .getnav(#path) -> find('label')
 
 /**!
+path
 Returns url or key path for the current or specified location
-
-Parameters:
-	- path (optional)
+			Parameters:
+			-path (optional)
 **/
 	public path(
 		path::string = .'path'
@@ -592,41 +667,49 @@ Parameters:
 	) => .path(#path)
 
 /**!
+patharray
 Returns current path as array.
 **/
 	public patharray() => .'patharray'
 
 /**!
+actionpath
 Returns current path as array.
 **/
 	public actionpath() => .'actionpath'
 
 /**!
+actionconfigfile
 Shortcut to filename: actcfg.
 **/
 	public actionconfigfile() => .filename('actcfg')
 
 /**!
+actionfile
 Shortcut to filename: act.
 **/
 	public actionfile() => .filename('act')
 
 /**!
+configfile
 Shortcut to filename: cfg.
 **/
 	public configfile() => .filename('cfg')
 
 /**!
+libraryfile
 Shortcut to filename: lib.
 **/
 	public libraryfile() => .filename('lib')
 
 /**!
+contentfile
 Shortcut to filename: cnt.
 **/
 	public contentfile() => .filename('cnt')
 
 /**!
+library
 includes file just as ->include, but returns no output.
 **/
 	public library(file::string, path = null) => {.include(#file, #path)}
@@ -634,6 +717,7 @@ includes file just as ->include, but returns no output.
 	public library(-file::string, -path = null) => {.include(#file, #path)}
 
 /**!
+directorytree
 Returns a map of all existing knop file paths.
 **/
 	public directorytree(basepath::string = .'fileroot', firstrun::boolean = true) => {
@@ -648,7 +732,6 @@ Returns a map of all existing knop file paths.
 		local('dirlist' = map)
 		local('diritem' = string)
 		local('dirlist_sub' = map)
-		local('diritem_sub' = pair)
 		local('defaultitems' = map('_knop', '_include', '_config', '_action', '_library', '_content'))
 
 		with diritem in file_listdirectory(#path) do {
@@ -679,34 +762,17 @@ Returns a map of all existing knop file paths.
 	}
 
 /**!
-Returns full url for current path or specified path. Path parameters can be provided and overridden by passing them to this tag.
-
-Parameters:\n\
-	- path (optional) 
-
-	- params (optional)
-		
-		Pair array to be used in url instead of plain parameters sent to this tag
-
-	- urlargs (optional)
-
-		Raw string with url parameters to append at end of url and -params
-
-	- getargs (optional flag)
-
-		Add the getargs (leftover path parts) to the url
-
-	- except (optional)
-
-		Array of parameter names to exclude (or single parameter name as string)
-
-	- topself (optional nav)
-
-		Internal, needed to call url from renderhtml when rendering sublevels
-
-	-autoparams (optional flag)
-
-		Enables the automatic passing of action_params that begin with "-"
+url
+Returns full url for current path or specified path. Path parameters can be provided and overridden by \
+			passing them to this tag. \n\
+			Parameters:\n\
+			-path (optional) \n\
+			-params (optional) Pair array to be used in url instead of plain parameters sent to this tag\n\
+			-urlargs (optional) Raw string with url parameters to append at end of url and -params\n\
+			-getargs (optional flag) Add the getargs (leftover path parts) to the url\n\
+			-except (optional) Array of parameter names to exclude (or single parameter name as string)\n\
+			-topself (optional nav) Internal, needed to call url from renderhtml when rendering sublevels\n\
+			-autoparams (optional flag) Enables the automatic passing of action_params that begin with "-"
 **/
 	public url(
 		path::string = '',
@@ -824,12 +890,10 @@ Parameters:\n\
 	) => .url(#path, #params, #urlargs, #getargs, #except, #topself, #autoparams, #rest)
 
 /**!
-Returns the full path to the specified type of precissing file for the current navigation.
-
-Parameters:
-	-type (required)
-
-		lib, act, cnt, cfg, actcfg
+filename
+Returns the full path to the specified type of precissing file for the current navigation. \n\
+			Parameters:\n\
+			-type (required) lib, act, cnt, cfg, actcfg
 **/
 	public filename(
 		type::string,
@@ -905,7 +969,7 @@ Parameters:
 			#filenamearray  == '' ? #filenamearray = #path
 			#filenamearray = #filenamearray -> split('/')
 		}
-		#type =='actcfg' ? #prefix = 'cfg' | #prefix = #type
+		#type =='actcfg' ? #prefix = 'cfg' | #prefix = string(#type)
 		#type_short = #prefix
 		#typefolder = #typefoldermap -> find(#type)
 
@@ -1017,13 +1081,10 @@ Parameters:
 	public urlmap() => .'urlmap'
 
 /**!
-Includes any of the files for the current path, fails silently if file does not exist.
-
-Parameters:
-	-file (required)
-
-		lib, act, cnt, cfg, actcfg or library, action, config, actionconfig,
-		content, or any arbitrary filename
+include
+Includes any of the files for the current path, fails silently if file does not exist. \n\
+			Parameters:\n\
+			-file (required) lib, act, cnt, cfg, actcfg or library, action, config, actionconfig, content, or any arbitrary filename
 **/
 	public include(
 		file::string,
@@ -1084,6 +1145,7 @@ Parameters:
 	) => .include(#file, #path)
 
 /**!
+getnav
 Return reference to the current navigation object map, or for the specified path.
 **/
 	public getnav(
@@ -1132,12 +1194,10 @@ Return reference to the current navigation object map, or for the specified path
 	}
 
 /**!
-Path arguments = the leftover when we found a matching path, to be used for keyvalue for example.
-
-Parameters:
-	- index (optional integer)
-
-		Specifies which leftover path item to return, defaults to all path items as a string
+getargs
+Path arguments = the leftover when we found a matching path, to be used for keyvalue for example.\n\
+			Parameters:\n\
+			-index (optional integer) Specifies which leftover path item to return, defaults to all path items as a string
 **/
 	public getargs(
 		index::integer = -1
@@ -1159,6 +1219,7 @@ Parameters:
 	) => .getargs(#index)
 
 /**!
+linkparams
 Returns an array for all parameters that should be sent along with nav links
 **/
 	public linkparams(
@@ -1187,6 +1248,7 @@ Returns an array for all parameters that should be sent along with nav links
 	) => .linkparams(#navitem)
 
 /**!
+children
 Return reference to the children of the current navigation object map, or for the specified path
 **/
 	public children(
@@ -1217,6 +1279,7 @@ Return reference to the children of the current navigation object map, or for th
 	) => .children(#path)
 
 /**!
+addchildren
 Add nav object as children to specified key path, replacing the current children if any.
 **/
 	public addchildren(
@@ -1250,26 +1313,13 @@ Add nav object as children to specified key path, replacing the current children
 	) => .addchildren(#path, #children)
 
 /**!
-Sets html template for the nav object, use #items# #item# #/items# or more
-elaborate #items# #link##label##current##/link##children# #/items# as 
-placeholders.
-
-Parameters:
-	- template (optional string)
-
-		Html template, defaults to <ul>#items#<li>#item#</li>#/items#</ul>
-
-	- class (optional string)
-
-		Css class name that will be used for every navigation link
-
-	- currentclass (optional string)
-
-		Css class name that will be added to the currently active navigation link (defaults to crnt)
-
-	- currentmarker (optional string)
-
-		String that will be appended to menu text of currently active navigation link
+setformat
+Sets html template for the nav object, use #items# #item# #/items# or more elaborate #items# #link##label##current##/link##children# #/items# as placeholders.\n\
+			Parameters:\n\
+			-template (optional string) Html template, defaults to <ul>#items#<li>#item#</li>#/items#</ul>\n\
+			-class (optional string) Css class name that will be used for every navigation link\n\
+			-currentclass (optional string) Css class name that will be added to the currently active navigation link (defaults to crnt)\n\
+			-currentmarker (optional string) String that will be appended to menu text of currently active navigation link
 **/
 	public setformat(
 		template::string = string,
@@ -1297,6 +1347,7 @@ Parameters:
 	) => .setformat(#template, #class, #currentclass, #currentmarker)
 
 /**!
+haschildren
 Returns true if nav object has children that are not all -hide.
 **/
 	public haschildren(
@@ -1327,23 +1378,18 @@ Returns true if nav object has children that are not all -hide.
 	) => .haschildren(#navitem)
 
 /**!
-Shows the current navigation as breadcrumb trail.
-
-Parameters:
-	- delimiter (optional)
-
-		Specifies the delimiter to use between nav levels, defaults to " > " if not specified
-
-	- home (optional flag)
-
-		Show the default navigation item (i.e. "home") first in the breadcrumb (unless already there).
+renderbreadcrumb
+Shows the current navigation as breadcrumb trail. \n\
+			Parameters:\n\
+			-delimiter (optional) Specifies the delimiter to use between nav levels, defaults to " > " if not specified\n\
+			-home (optional flag) Show the default navigation item (i.e. "home") first in the breadcrumb (unless already there).
 **/
 	public renderbreadcrumb(
 		delimiter::string = ' &gt; ',
 		home::boolean = false,
 		skipcurrent::boolean = false,
 		plain::boolean = false
-	) => debug => {
+	) => {
 
 		local(timer = knop_timer)
 
@@ -1400,16 +1446,11 @@ Parameters:
 	) => .renderbreadcrumb(#delimiter, #home, #skipcurrent, #plain)
 
 /**!
-Returns data object that can be stored for the current nav location (or specified nav location).
-
-Parameters:
-	- path (optional)
-
-	- type (optional string)
-
-		Force a certain return type. If the stored object doesn´t match the specified
-		type, an empty instance of the type is returned. That way the data can be
-		filtered by type without having to use conditionals to check the type before.
+data
+Returns data object that can be stored for the current nav location (or specified nav location).\n\
+			Parameters:\n\
+			-path (optional)\n\
+			-type (optional string) Force a certain return type. If the stored object doesn´t match the specified type, an empty instance of the type is returned. That way the data can be filtered by type without having to use conditionals to check the type before.
 **/
 	public data(
 		path::string = .'path',
@@ -1521,6 +1562,7 @@ trace // can wait
 	}
 
 /**!
+	scrubKeywords
 	Pinched from Kyles inline definitions. Needed to have keywords, like -path act like regular pairs
 **/
 	protected scrubKeywords(input::trait_queriable)::trait_forEach => {
@@ -1554,6 +1596,6 @@ trace // can wait
     }
 
 }
-log_critical('loading knop_nav done')
+//log_critical('loading knop_nav done')
 
 ?>

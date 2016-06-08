@@ -1,23 +1,26 @@
-﻿<?LassoScript
-log_critical('loading knop_base from LassoApp')
-/**!
-    All Knop custom types should have this type as parent type. 
-    This is to be able to identify all registered knop types.
-*/
+<?LassoScript
+//log_critical('loading knop_base from LassoApp')
+/**!All Knop custom types should have this type as parent type. This is to be able to identify all registered knop types.
+	*/
 define knop_knoptype => type {
 
 	data public isknoptype = true
 }
-/**!
-    Base data type for Knop framework. Contains common member tags. Used as 
-    boilerplate when creating the other types. All member tags and instance 
-    variables in this type are available in the other knop types as well.
-*/
+	/**!
+		Base data type for Knop framework. Contains common member tags. Used as boilerplate when creating the other types. \
+							All member tags and instance variables in this type are available in the other knop types as well.
+	*/
 define knop_base => type {
 
 	/*
 
 	CHANGE NOTES
+	2013-01-31	JC	Major code cleanup of minor details.
+					Removed all semicolons
+					Changed local('xyz' to local(xyz
+					Replaced += with -> append
+					Changed old style if to brackets
+					Replaced iterate with query expression
 	2012-07-02	JC	Improved speed for method varname. Prev: ca 500 micros to run, now ca 55 micros. Note that varname does not work if the knop object is stored in a local
 	2012-05-18	JC	Removed an old style colon syntax call
 	2011-05-30	JC	Fixed bug in regards to calling error_msg
@@ -44,132 +47,136 @@ define knop_base => type {
 
 	*/
 
-	data public version = '2012-07-02'
-	data public debug_trace::array=array
-	data public _debug_trace::array=array
-	data public instance_unique=null
-	data public instance_varname=null
+	data public version = '2013-01-31'
+	data public debug_trace::array = array
+	data public _debug_trace::array = array
+	data public instance_unique = null
+	data public instance_varname = null
 	data public tagtime::integer				// time for entire tag in ms
 	data public tagtime_tagname::tag
-	data public error_code=0
-	data public error_msg=string
-	data public error_lang=null // must be defined as knop_lang in each type instead, to avoid recursion
+	data public error_code = 0
+	data public error_msg = string
+	data public error_lang = null // must be defined as knop_lang in each type instead, to avoid recursion
 
 /* is this needed anymore? Jolle 2011-01-26
 	public ondeserialize =>{
 
-		local('description' = 'Recreates transient variables after coming back from a session');
-		self -> properties -> first -> insert('_debug_trace'=array);
+		local(description = 'Recreates transient variables after coming back from a session')
+		self -> properties -> first -> insert('_debug_trace' = array)
 	}
 */
 
+	/**!
+	help
+	Auto generates an overview of all member tags of a type, with all parameters specified for each member tag.
+	*/
+	public help(html::boolean = false, xhtml::boolean = false) => {
 
-
-	public help(html::boolean=false, xhtml::boolean=false) => {
-
-		local('description'='Auto generates an overview of all member tags of a type, with all parameters specified for each member tag.')
+		local(description = 'Auto generates an overview of all member tags of a type, with all parameters specified for each member tag.')
 
 //		log_critical('curr params: '+params)
-		local('endslash' = self->xhtml(params) ? ' /' | '')
-		local('eol'= (#html || #endslash =='') ? ('<br' + #endslash + '>\n') | '\n')
+		local(endslash = self->xhtml(params) ? ' /' | '')
+		local(eol = (#html || #endslash == '') ? ('<br' + #endslash + '>\n') | '\n')
 
-		local('output'=string)
-		local('tags'=array)
-		local('description'=string)
-		local('parameters'=string)
+		local(output = string)
+		local(tags = array)
+		local(parameters = string)
 
-		#output += (self -> type) + ' - version ' + (self -> 'version') + '\n'
-		#output += (self -> 'description') + '\n\n'
-		iterate(self->listmethods)
-			#tags->insert(loop_value)
-		/iterate
-		if(self -> parent -> type != null) // this doesn't work
-			iterate(self -> parent -> listmethods)
-				#tags -> insert(loop_value)
-			/iterate
-		/if
+		#output -> append((self -> type) + ' - version ' + (self -> 'version') + '\n' + (self -> 'description') + '\n\n')
+		with listmethod in self->listmethods do {
+			#tags->insert(#listmethod)
+		}
+		if(self -> parent -> type != null) => { // this doesn't work
+			with listmethod in self -> parent -> listmethods do {
+				#tags -> insert(#listmethod)
+			}
+		}
 
 //		log_critical('found tags: '+#tags+' which is a '+#tags->type)
 		#tags -> sort
 
-		iterate(#tags )
+		with tag in #tags do {
 			#parameters = string
-			#output += '-> ' + (loop_value -> methodname)
-			#description=(loop_value->paramdescs)
+			#output -> append('-> ' + (#tag -> methodname))
+			#description = (#tag -> paramdescs)
 
-			iterate(loop_value->paramdescs)
-				if(#description !>> ('-' + loop_value))
-					//#parameters += '-' + (loop_value -> get(1)) + ' (' (loop_value -> isrequired ? 'required' | 'optional')
-						+ (loop_value -> get(2) != 'null' && loop_value -> get(2) -> size ? ' ' + (loop_value -> get(2)))  + ')\n'
-					#parameters += '-' + (loop_value -> get(1)) + ' (' + (loop_value -> get(2) != 'null' && loop_value -> get(2) -> size ? ' ' + (loop_value -> get(2)))  + ')\n'
-				/if
-			/iterate;
-			#output += (#description -> size || #parameters -> size ? '\n' + #description)
-			#output += (#description >> 'Parameters:' ?  '\n')
-			#output += (#description !>> 'Parameters:' && #parameters -> size ? '\nParameters:\n')
-			#output += (#parameters -> size ? #parameters)
+			with desc in #tag -> paramdescs do {
+				if(#description !>> ('-' + #desc)) => {
+					//#parameters += '-' + (#desc -> get(1)) + ' (' (#desc -> isrequired ? 'required' | 'optional')
+//						+ (#desc -> get(2) != 'null' && #desc -> get(2) -> size ? ' ' + (#desc -> get(2)))  + ')\n'
+					#parameters -> append('-' + (#desc -> get(1)) + ' (' + (#desc -> get(2) != 'null' && #desc -> get(2) -> size ? ' ' + (#desc -> get(2)))  + ')\n')
+				}
+			}
+			#output -> append(#description -> size || #parameters -> size ? '\n' + #description)
+			#output -> append(#description >> 'Parameters:' ?  '\n')
+			#output -> append(#description !>> 'Parameters:' && #parameters -> size ? '\nParameters:\n')
+			#output -> append(#parameters -> size ? #parameters)
 			#output -> removetrailing('\n')
-			#output += '\n\n'
-		/iterate
+			#output -> append('\n\n')
+		}
 
-		if((local_defined('html') && #html != false) || (local_defined('xhtml') && #xhtml != false))
+		if((local_defined('html') && #html != false) || (local_defined('xhtml') && #xhtml != false)) => {
 			#output = encode_html(#output)
 			// normalize line breaks and convert to <br>
 			#output -> replace('\r\n', '\n') & replace('\r', '\n') & replace('\n', #eol + '\n')
-		/if
-		return(#output)
+		}
+		return #output
 	}
 
-
-	public xhtml(params='') => {
-
-		local('description'='Internal. Finds out if xhtml output should be used. Looks at doctype unless -xhtml is specified \
+	/**!
+	xhtml
+	Internal. Finds out if xhtml output should be used. Looks at doctype unless -xhtml is specified \
 			in the params array. The result is cached in a page variable. \n\
-			Looking at doctype doesn\'t work when using atbegin driven solutions since content_body isn\'t filled with the page buffer until the page has already been processed.  ');
+			Looking at doctype doesn\'t work when using atbegin driven solutions since content_body isn\'t filled with the page buffer until the page has already been processed.
+	*/
+	public xhtml(params = '') => {
 
-		if(local_defined('params') && #params >> '-xhtml');
-			local('xhtmlparam'=#params -> find('-xhtml') -> first);
+		if(#params >> '-xhtml') => {
+			local(xhtmlparam = #params -> find('-xhtml') -> first)
 
-			if(#xhtmlparam -> type == 'pair'); // -xhtml=true / -xhtml=false
-				return(boolean(#xhtmlparam -> value));
-			else; // plain -xhtml
-				return(true);
-			/if;
+			if(#xhtmlparam -> type == 'pair') => {// -xhtml = true / -xhtml = false
+				return boolean(#xhtmlparam -> value)
+			else // plain -xhtml
+				return true
+			}
 		//added else to bypass problems with content_body inside ajax called page
 		else
-			return(false)
-		/if;
+			return false
+		}
 
-		local('rawcontent' = web_response->rawContent)
+		local(rawcontent = web_response->rawContent)
 
-		if(var('_knop_data') -> type != 'map');
-			$_knop_data = map;
-		/if;
-		if($_knop_data !>> 'doctype_xhtml');
-			local('doctype' = #rawcontent->substring(1, #rawcontent->find('>')));
+		if(var('_knop_data') -> type != 'map') => {
+			$_knop_data = map
+		}
+		if($_knop_data !>> 'doctype_xhtml') => {
+			local(doctype = #rawcontent->substring(1, #rawcontent->find('>')))
 
-			$_knop_data -> insert('doctype_xhtml' = (#doctype >> '<!DOCTYPE' && #doctype >> 'xhtml'));
-		/if;
-		return($_knop_data -> find('doctype_xhtml'));
+			$_knop_data -> insert('doctype_xhtml' = (#doctype >> '<!DOCTYPE' && #doctype >> 'xhtml'))
+		}
+		return $_knop_data -> find('doctype_xhtml')
 	}
 
-
+	/**!
+	error_lang
+	Returns a reference to the language object used for error codes, to be able to add localized error messages to any Knop type (except knop_lang and knop_base)
+	*/
 	public error_lang() => {
-		local('description'='Returns a reference to the language object used for error codes, to be able to add localized error messages to any Knop type (except knop_lang and knop_base)');
-		return( 'error_lang')
+		return 'error_lang'
 	}
 
-	public error_code() => {
-		local('description'='Either proprietary error code or standard Lasso error code')
-		return(integer(self -> 'error_code'))
-	}
+	/**!
+	error_code
+	Either proprietary error code or standard Lasso error code
+	*/
+	public error_code() => integer(self -> 'error_code')
 
-	public error_msg(error_code::integer=-1) =>{
+	public error_msg(error_code::integer = -1) =>{
 		#error_code < 0 ? #error_code = .error_code
-		local('error_lang_custom' = .error_lang)
-		local('error_lang' = knop_lang(-default='en', -fallback))
+		local(error_lang_custom = .error_lang)
+		local(error_lang = knop_lang('en', true))
 
-		local('errorcodes' = map(
+		local(errorcodes = map(
 			0 = 'No error',
 			-1728 = 'No records found', // standard Lasso error code
 
@@ -209,42 +216,42 @@ define knop_base => type {
 			7502 = 'Username or password missing',
 			7503 = 'Client fingerprint has changed'
 
-			));
-		#error_lang -> addlanguage(-language = 'en', -strings = #errorcodes);
+			))
+		#error_lang -> addlanguage(-language = 'en', -strings = #errorcodes)
 		// add any custom error strings
-		iterate(#error_lang_custom -> 'strings', local('custom_language'));
-			if(#error_lang -> 'strings' !>> #custom_language -> name);
+		with custom_language in #error_lang_custom -> 'strings' do {
+			if(#error_lang -> 'strings' !>> #custom_language -> name) => {
 				// add entire language at once
-				#error_lang -> addlanguage(-language=#custom_language -> name, -strings=#custom_language -> value);
-			else;
+				#error_lang -> addlanguage(-language = #custom_language -> name, -strings = #custom_language -> value)
+			else
 				// add one string at a time
-				iterate(#custom_language -> value, local('custom_string'));
-					#error_lang -> insert(-language=#custom_language -> name,
-						-key=#custom_string -> name,
-						-value=#custom_string -> value);
-				/iterate;
-			/if;
-		/iterate;
+				with custom_string in #custom_language -> value do {
+					#error_lang -> insert(-language = #custom_language -> name,
+						-key = #custom_string -> name,
+						-value = #custom_string -> value)
+				}
+			}
+		}
 
-		if(#errorcodes >> #error_code);
+		if(#errorcodes >> #error_code) => {
 			// return error message defined by this tag
-			if(#error_lang -> keys >> #error_code);
+			if(#error_lang -> keys >> #error_code) => {
 
-				return(#error_lang -> getstring(#error_code));
-			else;
-				return(#errorcodes -> find(#error_code));
-			/if;
-		else;
-			if((self -> 'error_msg') != '');
+				return #error_lang -> getstring(#error_code)
+			else
+				return #errorcodes -> find(#error_code)
+			}
+		else
+			if((self -> 'error_msg') != '') => {
 				// return literal error message
-				return((self -> 'error_msg'));
-			else;
+				return (self -> 'error_msg')
+			else
 				// test for error known by lasso
-				error_code = #error_code;
+				error_code = #error_code
 				// return Lasso error message
-				return(error_msg);
-			/if;
-		/if;
+				return error_msg
+			}
+		}
 	}
 
 	public varname() => debug => {
@@ -259,7 +266,7 @@ define knop_base => type {
 				if(#thisvar -> type == .type
 					&& (#thisvar -> 'instance_unique') == .'instance_unique') => {
 					.'instance_varname' = string(#varname)
-					return(.'instance_varname')
+					return .'instance_varname'
 				}
 			}
 
@@ -268,37 +275,37 @@ define knop_base => type {
 	} // END varname
 
 /* removed by Jolle 2011-03-10
-	public trace(html::boolean=false, xhtml::boolean=false) =>{
-		local('description'='Returns the debug trace for a type instance');
+	public trace(html::boolean = false, xhtml::boolean = false) =>{
+		local(description = 'Returns the debug trace for a type instance')
 
-		local('endslash' = (self ->xhtml(params) ? ' /' | ''))
-		local('eol'=( local_defined('html') || #endslash -> size >0 ? ('<br' + #endslash + '>\n') | '\n'));
-		local('trace'= self -> 'debug_trace');
-		self ->'_debug_trace'-> isa('array') ? #trace -> merge(self -> '_debug_trace');
+		local(endslash = (self ->xhtml(params) ? ' /' | ''))
+		local(eol = ( local_defined('html') || #endslash -> size >0 ? ('<br' + #endslash + '>\n') | '\n'))
+		local(trace= self -> 'debug_trace')
+		self ->'_debug_trace'-> isa('array') ? #trace -> merge(self -> '_debug_trace')
 		return(#eol + 'Debug trace for ' +self -> type+' $' +self -> varname+ #eol+#trace->join(#eol)+#eol)
 
 	}
 
 
-	public tagtime(html::boolean=false, xhtml::boolean=false) => {
-		local('description'='Returns the time it took to execute the last executed member tag for a type instance.')
+	public tagtime(html::boolean = false, xhtml::boolean = false) => {
+		local(description = 'Returns the time it took to execute the last executed member tag for a type instance.')
 		// Standard timer code
 		//At beginning of tag code:
-		//local: 'timer'=knop_timer;
+		//local: 'timer' = knop_timer
 
 		//Before the end of tag code (before return):
-		//self -> 'tagtime_tagname'=tag_name;
-		//self -> 'tagtime'=integer(#timer); // cast to integer to trigger onconvert and to "stop timer"
+		//self -> 'tagtime_tagname' = tag_name
+		//self -> 'tagtime' = integer(#timer) // cast to integer to trigger onconvert and to "stop timer"
 
-		local('endslash' = (self ->xhtml(params) ? ' /' | ''));
+		local(endslash = (self ->xhtml(params) ? ' /' | ''))
 
 		(#html || #xhtml) ? return(self -> type+ '->' + self -> 'tagtime_tagname' + ': ' + self -> 'tagtime' + ' ms<br' + #endslash + '>')
 		return(self -> 'tagtime')
 	}
 
-	public tagtime(html::boolean=false, xhtml::boolean=false) => {
-		local('description'='Returns the time it took to execute the last executed member tag for a type instance.')
-		local('endslash' = (self ->xhtml(params) ? ' /' | ''));
+	public tagtime(html::boolean = false, xhtml::boolean = false) => {
+		local(description = 'Returns the time it took to execute the last executed member tag for a type instance.')
+		local(endslash = (self ->xhtml(params) ? ' /' | ''))
 
 		(#html || #xhtml) ? return(self -> type+ '->' + self -> 'tagtime_tagname' + ': ' + self -> 'tagtime' + ' ms<br' + #endslash + '>')
 		return(self -> 'tagtime')
@@ -316,6 +323,6 @@ In dialog between Jolle and Tim 2011-03-10
 
 }
 
-log_critical('loading  knop_base done')
+//log_critical('loading  knop_base done')
 
 ?>

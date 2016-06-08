@@ -1,16 +1,11 @@
 ﻿<?LassoScript
-
-
 // Configure language strings
 
 // Separate strings into two lang objects for better organization
 var: 'lang_ui'=(knop_lang: -default='en', -fallback);
 var: 'lang_buttons'=(knop_lang: -default='en', -fallback);
 
-
-
 // English strings (default language)
-
 
 $lang_ui -> addlanguage(-language='en', -strings=map(
 	'languagename'='English',
@@ -54,10 +49,31 @@ $lang_ui -> addlanguage(-language='en', -strings=map(
 	'somethings'='somethings',
 	'option1'='a thing',
 	'option2'='another thing',
-	'option3'='third'
+	'option3'='third',
 	
-	));
+    // grid language strings
+    'quicksearch_showall' = 'Show all',
+    'quicksearch_search' = 'Search',
+    'linktext_edit' = '(edit)',
+    'linktitle_showunsorted' = 'Show unsorted',
+    'linktitle_changesort' = 'Change sort order to',
+    'linktitle_ascending' = 'ascending',
+    'linktitle_descending' = 'descending',
+    'linktitle_sortascby' = 'Sort ascending by',
+    'linktitle_gofirst' = 'Go to first page',
+    'linktitle_goprev' = 'Go to previous page',
+    'footer_shown' = '#1# - #2# of',
+    'footer_found'='found',
+    'linktext_gotopage'='Go to page', // SP customization
+    'linktitle_gonext' = 'Go to next page',
+    'linktitle_golast' = 'Go to last page',
 
+    // language neutral strings, only need to be set for the default language
+    'linktext_first'='|&lt;',
+    'linktext_prev'='&lt;&lt;',
+    'linktext_next'='&gt;&gt;',
+    'linktext_last'='&gt;|'
+));
 
 $lang_buttons -> addlanguage(-language='en', -strings=map(
 	'save'='Save', 
@@ -70,7 +86,6 @@ $lang_buttons -> addlanguage(-language='en', -strings=map(
 
 
 // Swedish strings
-
 
 $lang_ui -> addlanguage(-language='sv', -strings=map(
 	'languagename'='Svenska',
@@ -114,7 +129,24 @@ $lang_ui -> addlanguage(-language='sv', -strings=map(
 	'somethings'='några saker',
 	'option1'='en sak',
 	'option2'='en annan sak',
-	'option3'='tredje'
+	'option3'='tredje',
+
+    // grid language strings
+    'quicksearch_showall' = 'Visa alla',
+    'quicksearch_search' = 'Sök',
+    'linktext_edit' = '(redigera)',
+    'linktitle_showunsorted' = 'Visa osorterade',
+    'linktitle_changesort' = 'Ändra sorteringsordning till',
+    'linktitle_ascending' = 'stigande',
+    'linktitle_descending' = 'fallande',
+    'linktitle_sortascby' = 'Sortera i stigande ordning efter',
+    'linktitle_gofirst' = 'Gå till första sidan',
+    'linktitle_goprev' = 'Gå till föregående sida',
+    'footer_shown' = '#1# - #2# av',
+    'footer_found'='hittade',
+    'linktext_gotopage'='Gå till sida', // SP cüstømizätiøn
+    'linktitle_gonext' = 'Gå till nästa sida',
+    'linktitle_golast' = 'Gå till sista sidan'
 
 	));
 
@@ -146,8 +178,4 @@ else;
 	// no specific language has been chosen, use the visitor's preferred language acording to the browser's request header
 /if;
 
-
-
 ?>
-
-

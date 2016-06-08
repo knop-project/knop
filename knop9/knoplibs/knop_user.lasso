@@ -1,17 +1,14 @@
-﻿<?LassoScript
-log_critical('loading knop_user from LassoApp')
+<?LassoScript
+//log_critical('loading knop_user from LassoApp')
 
 /**!
+knop_user
 Purpose:
-	- Maintain user identity and authentication
-
-	- Handle database record locking more intelligently, also to be able to release all unused locks for a user
-
-	- Authenticating user login
-
-	- Restricting access to data
-
-	- Displaying specific navigation options depending on type of user
+- Maintain user identity and authentication
+- Handle database record locking more intelligently, also to be able to release all unused locks for a user
+- Authenticating user login
+- Restricting access to data
+- displaying specific navigation options depending on type of user
 
 lets add some date handling in there too like time of last login
 and probably the IP that the user logged in from.
@@ -19,26 +16,20 @@ and probably the IP that the user logged in from.
 
 Some options to handle what happens when a user logs in again whilst already logged in.
 ie one could:
-
-	- disallow second login (with a message explaining why)
-
-	- automatically log the first session out (with a message indicating what happened)
-
-	- send a message to first session: "Your username is attempting to log in again, do you wish to close this session, or deny the second login attempt?"
-
-	- allow multiple logins (from the same IP address)
-
-	- allow multiple logins from any IP address
+disallow second login (with a message explaining why)
+automatically log the first session out (with a message indicating what happened)
+send a message to first session: "Your username is attempting to log in again, do you wish to close this session, or deny the second login attempt?"
+allow multiple logins (from the same IP address)
+allow multiple logins from any IP address
 
 All of these could be useful options, depending of the type of app.
 
 And different types of user (ie normal, admin) could have different types of treatment.
 
 Handling for failed login attempts:
-
-	- Option to set how many tries can be attempted;
-	- Option to lock users out permanently after x failed attempts?
-	- Logging (to database) of failed logins / successful logins
+Option to set how many tries can be attempted;
+Option to lock users out permanently after x failed attempts?
+Logging (to database) of failed logins / successful logins
 
 Password recovery system (ie emailing a time sensitive link to re-set password)
 By "password recovery" I'm not thinking "email my password" (hashed passwords can't be emailed...) but rather to email a short lived link that gives the user an opportunity to change his password. How is this different from "password reset"?
@@ -52,10 +43,8 @@ The setup is more or less that I have users and groups.
 I'm thinking that Knop shouldn't do any session handling by itself, but the knop_user variable would be stored in the app's session as any other variable. Knop should stay as lean as possible...
 
 Other things to handle:
-
-	- Prevent session sidejacking by storing and comparing the user's ip and other identifying properties.
-
-	- Provide safe password handling with strong one-way salted encryption.
+Prevent session sidejacking by storing and comparing the user's ip and other identifying properties.
+Provide safe password handling with strong one-way salted encryption.
 
 consider having a separate table for auditing all user actions, including logging in, logging out, the basic CRUD actions, searches
 
@@ -65,38 +54,33 @@ That the added functions don't slow down the processing. We already have a lot o
 
 
 Features:
-
 1. Authentication and credentials
-
-	- Handle the authentication process
-	- Keep track of if a user is properly logged in
-	- Optionally keep track of multiple logins to same account
-	- Prevent sidejacking
-	- Optionally handle encrypted/hashed passwords (with salt)
-	- Prevent brute force attacks (delay between attempts etc)
-	- Handle general information about the user
-	- Provide accessors for user data
+- Handle the authentication process
+- Keep track of if a user is properly logged in
+- Optionally keep track of multiple logins to same account
+- Prevent sidejacking
+- Optionally handle encrypted/hashed passwords (with salt)
+- Prevent brute force attacks (delay between attempts etc)
+- Handle general information about the user
+- Provide accessors for user data
 
 2. Permissions and access control
-
-	- Keep track of what actions a user is allowed to perform (the "verbs")
-	- Tie into knop_nav to be able to filter out locations based on permissions
+- Keep track of what actions a user is allowed to perform (the "verbs")
+- Tie into knop_nav to be able to filter out locations based on permissions
 
 3. Record locks
-
-	- Handle clearing of record locks from knop_database
+- Handle clearing of record locks from knop_database
 
 4. Audit trail/logging
-
-	- Optionally log login/logout actions
-	- Provide hooks to be able to log other user actions
+- Optionally log login/logout actions
+- Provide hooks to be able to log other user actions
 
 Future additions:
-	- Keep track of what objects and resources a user is allowed to act on (the "nouns")
-	- Provide filtering to use in database queries
-	- What groups a user belongs to
-	- Mechanism to update user information, password etc
-	- Handle password recovery
+- Keep track of what objects and resources a user is allowed to act on (the "nouns")
+- Provide filtering to use in database queries
+- What groups a user belongs to
+- Mechanism to update user information, password etc
+- Handle password recovery
 
 
 Permissions can be read, create, update, delete, or application specific (for example publish)
@@ -105,6 +89,8 @@ Permissions can be read, create, update, delete, or application specific (for ex
 define knop_user => type {
 /*
 CHANGE NOTES
+	2013-05-14	JC	Minor enhancement to sidejacking handling. Will log sidejacking even when allowsidejacking is true
+	2012-07-20	JC	Added getpermission(array)
 	2012-07-02	JC	Replaced all old style if, inline and loop with code blocks
 	2012-07-02	JC	Fixed erroneous handling of addlock and clearlocks
 	2012-05-19	JC	Made sure id_user is always of type string
@@ -120,7 +106,7 @@ CHANGE NOTES
 */
 	parent knop_base
 
-	data public version = '2012-05-18'
+	data public version = '2012-07-20'
 	data public description = 'Custom type to handle user identification and authentication'
 
 	data public fields::array = array()
@@ -157,17 +143,12 @@ CHANGE NOTES
 	data private client_fingerprint::string = '' // combination of ip, useragent etc to be able to track sidejacking
 	data private allowsidejacking::boolean = false // when set to true no sidejacking control will be done. Default false
 	data public dblocks::set = set // a list of all database objects that have been locked by this user
-//	data public error_lang::knop_lang = knop_lang(-default = 'en', -fallback)
+//	data public error_lang::knop_lang = knop_lang('en', true)
 
 /**!
-Parameters:
-	- encrypt (optional flag or string)
-	  Use encrypted passwords. If a value is specified then that cipher will be used
-	  instead of the default RIPEMD160. If -saltfield is specified then the value of
-	  that field will be used as salt.
-
-	- singleuser (optional flag)
-	  Multiple logins to the same account are prevented (not implemented)
+Parameters:\n\
+	-encrypt (optional flag or string) Use encrypted passwords. If a value is specified then that cipher will be used instead of the default RIPEMD160. If -saltfield is specified then the value of that field will be used as salt.\n\
+	-singleuser (optional flag) Multiple logins to the same account are prevented (not implemented)
 **/
 
 	public oncreate(
@@ -358,23 +339,27 @@ Parameters:
 **/
 	public auth() => {
 
-		local('validlogin' = .'validlogin')
-		local('client_fingerprint_now' = string)
+		local(
+			validlogin = .validlogin,
+			client_fingerprint_now = .client_fingerprint_expression,
+			sidejack_check = #client_fingerprint_now != .'client_fingerprint'
+			)
 
 		if(#validlogin && .'allowsidejacking' == false) => {
 			// check client_fingerprint to prevent sidejacking
-			#client_fingerprint_now = .client_fingerprint_expression
-
-			if(#client_fingerprint_now != .'client_fingerprint') => {
+			if(#sidejack_check) => {
 				#validlogin = false
 //				..'_debug_trace' -> insert('auth: Client fingerprint has changed - this looks like session sidejacking. Logging out.')
 				.'error_code' = 7503
 				.logout
 				// log this
-				log_critical('auth: Client fingerprint has changed - this looks like session sidejacking. Logging out. ' + #client_fingerprint_now + ' | ' + .'client_fingerprint')
+				log_critical('auth: Client fingerprint has changed - this looks like session sidejacking. Logging out. ' + .'id_user' + ' | ' + #client_fingerprint_now + ' | ' + .'client_fingerprint')
+				return(#validlogin)
 			}
 			// TODO: if singleuser, check uniqueid
 		}
+
+		#validlogin and #sidejack_check ? log_critical('auth: Client fingerprint has changed - this looks like session sidejacking. No action taken since allowsidejacking is true. ' + .'id_user' + ' | ' + #client_fingerprint_now + ' | ' + .'client_fingerprint')
 
 		return(#validlogin)
 
@@ -382,20 +367,12 @@ Parameters:
 
 
 /**!
-Log in user. On successful login, all fields on the user record will be available by -> getdata.
-
-Parameters:
-	- username (required)
-	  Optional if -force is specified
-
-	- password (required)
-	  Optional if -force is specified
-
-	- searchparams (optional)
-	  Extra search params array to use in combination with username and password
-
-	- force (optional)
-	  Supply a user id for a manually authenticated user if custom authentication logics is needed
+Log in user. On successful login, all fields on the user record will be available by -> getdata.\n\
+			Parameters:\n\
+			-username (required) Optional if -force is specified\n\
+			-password (required) Optional if -force is specified\n\
+			-searchparams (optional) Extra search params array to use in combination with username and password\n\
+			-force (optional) Supply a user id for a manually authenticated user if custom authentication logics is needed
 **/
 	public login(
 		username::any = '',
@@ -442,8 +419,10 @@ Parameters:
 				else
 					#searchparams -> merge(array(-op='eq', .'userfield' = #_username))
 				}
-
 				#db -> select(#searchparams)
+
+				#db -> error_code ? log_critical('Error in knop_user DB call ' + #db -> error_msg)
+
 //				..'_debug_trace' -> insert('knop_user -> login: Searching user db, ' (#db -> found_count) + ' found ' + (#db -> error_msg) + ' ' + (#db -> action_statement))
 
 				if(#db -> found_count == 1
@@ -460,7 +439,6 @@ Parameters:
 							-cost = (.'costfield' -> size ? integer(#db -> field(.'costfield')) | .'costsize'), -cipher = (.'encrypt_cipher')) == true) => {
 
 							#validlogin = true
-
 						}
 
 					else(.'encrypt' && .'saltfield' -> size)
@@ -585,7 +563,7 @@ Parameters:
 	}
 
 /**!
-	Set field data in the data map. Either -> setdata(-field='fieldname', -value='value') or -> setdata('fieldname'='value')
+	Set field data in the data map. Either -> setdata(-field=\'fieldname\', -value=\'value\') or -> setdata(\'fieldname\'=\'value\')
 **/
 	public setdata(
 		field::any,
@@ -618,6 +596,39 @@ Returns true if user has permission to perform the specified action, false other
 	}
 
 /**!
+getpermission(array)
+Will compare permissions to the given array. Can have one of two optional params
+	-any will return true if any of the provided array params match a permission
+	-all will return tru only if all the given params have a match in the users permission map.
+**/
+	public getpermission(
+		permissions::array,
+		-any::boolean = true,
+		-all::boolean = false
+	) => {
+
+		#permissions -> size == 0 ? return false
+
+		if(.auth && #any) => {
+			local(permstatus = false)
+			#permissions -> foreach => {
+				local(perm = #1)
+				.'permissions' >> #perm ? #permstatus = .'permissions' -> find(#perm)
+				#permstatus ? return true
+			}
+		else(.auth && #all)
+			#permissions -> foreach => {
+				local(perm = #1)
+				not .'permissions' >> #perm ? return false
+				.'permissions' -> find(#perm) == false ? return false
+			}
+			return true
+		}
+		return false
+
+	}
+
+/**!
 Sets the user\'s permission to perform the specified action (true or false, or just the name of the permission
 **/
 	public setpermission(
@@ -641,13 +652,11 @@ Called by database object, adds the name of a database object that has been lock
 	public addlock(
 		dbname::any
 	) => {
-stdoutnl('knop_user addlock called ' + #dbname)
 //stdoutnl('knop_user addlock check ' + var(#dbname) -> type)
 		if(var(#dbname) -> isa(::knop_database)) => {
 //			..'_debug_trace' -> insert('knop_user -> addlock: adding database name  ' + #dbname)
 			.'dblocks' -> insert(#dbname)
 		}
-stdoutnl('knop_user addlock dblocks ' + .'dblocks')
 	}
 
 	public addlock(
@@ -671,7 +680,7 @@ Clears all database locks that has been set by this user.
 //				if(var(loop_value) -> isa(::knop_database)) => {
 				protect => {
 					handle_error => {
-						log_critical('Error on clearlocks ' + error_msg)
+						log_critical('Error on knop_user clearlocks ' + error_msg)
 					}
 					#thislock -> clearlocks(.'id_user')
 					#cleared_dbs -> insert(#locks)
@@ -702,7 +711,7 @@ Returns an encrypted fingerprint based on client_ip and client_type.
 
 }
 
-log_critical('loading knop_user done')
+//log_critical('loading knop_user done')
 
 
 ?>

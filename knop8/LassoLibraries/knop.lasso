@@ -1,7 +1,7 @@
 ﻿[/* 
 
 	On-Demand library for namespace knop
-	Namespace file built date 2012-07-01 03:39:29 by http://knop/knop8/source/buildnamespace.lasso
+	Namespace file built date 2015-02-23 15:49:53 by http://knop-project/knop8/source/buildnamespace.lasso
 	Montania System AB
 
 */]
@@ -680,6 +680,10 @@ define_type: 'database',
 /*
 
 CHANGE NOTES
+2012-07-05	RL	knop_database -> clearlocks now accepts user object as in knop 9, (or userid - so existing code does not break).
+2012-07-04	RL	knop_database -> saverecord no longer copies user object.
+2012-07-03	RL	Yet another fix for Issue #53: knop_database -> getrecord does not clear stale lockvalue.
+2012-07-02	RL	Fix for Issue #53: knop_database -> deleterecord changes user object to string.
 2012-06-25	JC	Another fix for Issue #53: knop_database -> getrecord does not clear stale lockvalue.
 2012-06-22	JC	Fix for Issue #53: knop_database -> getrecord does not clear stale lockvalue.
 2012-06-10	SP	Fix for decimal precision bug in 8.6.0.1 in renderfooter.
@@ -1117,7 +1121,7 @@ datetime_create and datetime_mod, and also user_create and user_mod.
 		-optional='keyfield',
 		-optional='inlinename', -copy,
 		-optional='lock',
-		-optional='user', -copy,
+		-optional='user',
 		-optional='sql', -type='string';
 		local: 'timer'=knop_timer; 
 
@@ -1148,10 +1152,10 @@ datetime_create and datetime_mod, and also user_create and user_mod.
 			fail_if: (local: 'user') == '' && !((local: 'user') -> isa('user')), 7004, self -> error_msg(7004); // User must be specified to get record with lock
 			(self -> 'debug_trace') -> insert(tag_name ': user is type ' + (#user -> type) + ', isa(user) = ' + (#user -> isa('user')) );
 			if: #user -> isa('user');
-				#user= #user -> id_user;
-				fail_if: #user == '', 7004, self -> error_msg(7004); // User must be logged in to get record with lock
+				local: 'id_user' = #user -> id_user ? #user -> id_user | '';
+				fail_if: #id_user == '', 7004, self -> error_msg(7004); // User must be logged in to get record with lock
 			/if;
-			(self -> 'debug_trace') -> insert(tag_name ': user id is ' + #user);
+			(self -> 'debug_trace') -> insert(tag_name ': user id is ' + #id_user);
 		/if;
 		if: !(local_defined: 'keyfield') && (self -> 'keyfield') != '';
 			local: 'keyfield'=(self -> 'keyfield');
@@ -1192,7 +1196,7 @@ datetime_create and datetime_mod, and also user_create and user_mod.
 						local: 'lock_timestamp'=date: (#lockvalue->size > 1 ? #lockvalue -> (get: 2) | null);
 						local: 'lock_user'=#lockvalue -> first;
 						if: (date - #lock_timestamp) -> seconds < (self -> 'lock_expires')
-							&& #lock_user != #user;
+							&& #lock_user != #id_user;
 							// the lock is still valid and it is locked by another user
 							// this is not a real error, more a warning condition
 							(self -> 'error_code') = 7010; 
@@ -1203,7 +1207,7 @@ datetime_create and datetime_mod, and also user_create and user_mod.
 					/if;
 					if: (self -> 'error_code') == 0;
 						// go ahead and lock record
-						(self -> 'lockvalue') = #user + '|' + (date -> format: '%Q %T');
+						(self -> 'lockvalue') = #id_user + '|' + (date -> format: '%Q %T');
 						(self -> 'lockvalue_encrypted') = (encrypt_blowfish: (self -> 'lockvalue'), -seed=(self -> 'lock_seed'));
 						local: 'keyvalue_temp'=#keyvalue;
 						if: (self -> 'isfilemaker');
@@ -1231,9 +1235,9 @@ datetime_create and datetime_mod, and also user_create and user_mod.
 							else;
 								// lock was set ok
 								(self -> 'debug_trace') -> (insert: tag_name + ': set record lock ' + (self -> 'lockvalue') + ' ' + (self -> 'lockvalue_encrypted'));
-								if: (self -> 'user') -> isa('user');
+								if: #user -> isa('user');
 									// tell user it has locked a record in this db object
-									(self -> 'user') -> addlock(-dbname=self -> varname);
+									 #user -> addlock(-dbname=self -> varname);
 								/if;
 							/if;
 						/inline;
@@ -1262,7 +1266,7 @@ datetime_create and datetime_mod, and also user_create and user_mod.
 		-optional='keyvalue', -copy,
 		-optional='lockvalue', -copy,
 		-optional='keeplock',
-		-optional='user', -copy,
+		-optional='user',
 		-optional='inlinename', -copy;
 		
 		local: 'timer'=knop_timer; 
@@ -1286,10 +1290,10 @@ datetime_create and datetime_mod, and also user_create and user_mod.
 			fail_if: (local: 'user') == '' && !((local: 'user') -> isa('user')), 7004, self -> error_msg(7004); 
 			(self -> 'debug_trace') -> insert(tag_name ': user is type ' + (#user -> type) + ', isa(user) = ' + (#user -> isa('user')) );
 			if: #user -> isa('user');
-				#user= #user -> id_user;
-				fail_if: #user == '', 7004, self -> error_msg(7004); // User must be logged in to get record with lock
+				local: 'id_user' = #user -> id_user ? #user -> id_user | '';
+				fail_if: #id_user == '', 7004, self -> error_msg(7004); // User must be logged in to get record with lock
 			/if;
-			(self -> 'debug_trace') -> insert(tag_name ': user id is ' + #user);
+			(self -> 'debug_trace') -> insert(tag_name ': user id is ' + #id_user);
 		/if;
 		
 		!(local_defined: 'keyfield') ? local: 'keyfield'=self -> 'keyfield';
@@ -1313,7 +1317,7 @@ datetime_create and datetime_mod, and also user_create and user_mod.
 				local: 'lock_timestamp'=date: (#lock->size > 1 ? (#lock -> (get: 2)) | null);
 				local: 'lock_user'=#lock -> first;
 				if: (date - #lock_timestamp) -> seconds < (self -> 'lock_expires')
-					&& #lock_user != #user;
+					&& #lock_user != #id_user;
 					// the lock is still valid and it is locked by another user
 					(self -> 'error_code') = 7010; 
 					(self -> 'error_data') = (map: 'user' = #lock_user, 'timestamp' = #lock_timestamp);
@@ -1344,7 +1348,7 @@ datetime_create and datetime_mod, and also user_create and user_mod.
 					#_fields -> (removeall: (self -> 'lockfield'));
 					if: ((local_defined: 'keeplock') && #keeplock != false);
 						// update the lock timestamp
-						(self -> 'lockvalue') = #user + '|' + (date -> format: '%Q %T');
+						(self -> 'lockvalue') = #id_user + '|' + (date -> format: '%Q %T');
 						(self -> 'lockvalue_encrypted') = (encrypt_blowfish: (self -> 'lockvalue'), -seed=(self -> 'lock_seed'));
 						#_fields -> (insert: (self -> 'lockfield')=(self -> 'lockvalue'));
 					else;
@@ -1429,10 +1433,10 @@ datetime_create and datetime_mod, and also user_create and user_mod.
 			fail_if: (local: 'user') == '' && !((local: 'user') -> isa('user')), 7004, self -> error_msg(7004); 
 			(self -> 'debug_trace') -> insert(tag_name ': user is type ' + (#user -> type) + ', isa(user) = ' + (#user -> isa('user')) );
 			if: #user -> isa('user');
-				#user= #user -> id_user;
-				fail_if: #user == '', 7004, self -> error_msg(7004); // User must be logged in to get record with lock
+				local: 'id_user' = #user -> id_user ? #user -> id_user | '';
+				fail_if: #id_user == '', 7004, self -> error_msg(7004); // User must be logged in to get record with lock
 			/if;
-			(self -> 'debug_trace') -> insert(tag_name ': user id is ' + #user);
+			(self -> 'debug_trace') -> insert(tag_name ': user id is ' + #id_user);
 		/if;
 		
 		local: '_fields'=array;
@@ -1447,7 +1451,7 @@ datetime_create and datetime_mod, and also user_create and user_mod.
 				local: 'lock_timestamp'=date: (#lockvalue->size > 1 ? #lockvalue -> (get: 2) | null);
 				local: 'lock_user'=(#lockvalue -> first);
 				if: (date - #lock_timestamp) -> seconds < (self -> 'lock_expires')
-					&& #lock_user != #user;
+					&& #lock_user != #id_user;
 					// the lock is still valid and it is locked by another user
 					(self -> 'error_code') = 7010; // Delete failed, record locked 
 					(self -> 'error_data') = (map: 'user' = #lock_user, 'timestamp' = #lock_timestamp);
@@ -1528,14 +1532,17 @@ datetime_create and datetime_mod, and also user_create and user_mod.
 
 		fail_if: (self -> 'lockfield') == '', 7003,  self -> error_msg(7003); //  Lockfield not specified
 		fail_if: #user == '', 7004, self -> error_msg(7004); // User not specified
+		
+		// Fix: now accepts user object for consistency but falls back on userid
+		local: 'id_user' = #user -> isa('user') ? #user -> id_user | #user;
 	
 		if: (self -> 'isfilemaker');
 			inline: (self -> 'db_connect'),
 				-maxrecords=all,
-				(self -> 'lockfield')='"' + #user + '|"',
+				(self -> 'lockfield')='"' + #id_user + '|"',
 				-search;
 				if: found_count > 0;
-					(self -> 'debug_trace') -> (insert: tag_name + ': clearing locks for ' + #user + ' in ' + found_count + ' FileMaker records ' + error_msg + ' ' + error_code);
+					(self -> 'debug_trace') -> (insert: tag_name + ': clearing locks for ' + #id_user + ' in ' + found_count + ' FileMaker records ' + error_msg + ' ' + error_code);
 					records;
 						inline: -keyvalue=keyfield_value,
 							(self -> 'lockfield')='',
@@ -1556,13 +1563,13 @@ datetime_create and datetime_mod, and also user_create and user_mod.
 		else;
 			inline: (self -> 'db_connect'),
 				-sql='UPDATE `' + (self -> 'table_realname') + '` SET `' + (self -> 'lockfield') + '`=""  WHERE `' + (self -> 'lockfield') 
-					+ '` LIKE "' + (encode_sql: #user) + '|%"';
+					+ '` LIKE "' + (encode_sql: #id_user) + '|%"';
 				if: error_code != 0;
 					(self -> 'error_code') = 7013; // Clearlocks failed
 					(self -> 'error_data') = (map: 'error_code'=error_code, 'error_msg'=error_msg);
 				/if;
 			/inline;
-			(self -> 'debug_trace') -> (insert: tag_name + ': clearing all locks for ' + #user + ' ' + (self -> error_msg) + ' ' + (self -> error_code));
+			(self -> 'debug_trace') -> (insert: tag_name + ': clearing all locks for ' + #id_user + ' ' + (self -> error_msg) + ' ' + (self -> error_code));
 		/if;
 		self -> 'tagtime_tagname'=tag_name;
 		self -> 'tagtime'=integer: #timer; // cast to integer to trigger onconvert and to "stop timer"
@@ -2050,12 +2057,21 @@ define_type: 'form',
 	-namespace='knop_';
 //	-prototype; 
 
-	local: 'version'='2011-02-28',
+	local: 'version'='2013-10-20',
 		'description'='Custom type to handle forms.';
 
 /*
 
 CHANGE NOTES
+2015-02-21  SP  Added -singlevalue flag to ->addfield so that checkboxes and selects which have values containing commas can be rendered "checked" or "selected" when those values have been checked or selected after loading the field.
+2013-11-16  SP  removed file from exceptionfieldtypes because it prevented adding error messages to custom widgets
+2013-11-16  SP  ->renderform: avoid adding -contenttype parameters to post forms since it conflicts with file uploads
+2013-11-04  SP  Added support for buttons to custom widget templates.
+2013-11-04  SP  Added support for inputs of type radio and checkbox, and textarea to custom widget templates.
+2013-11-03  SP  Added support for <select> to custom widget templates.
+2013-11-03  SP  Added -group and -groupclass options to ->addfield for custom widget templates.
+2013-10-20  SP  ->renderform and ->addfield(-widget=string): Added new feature.  Provide the name of a widget, which is a custom tag that serves as a template for the field.  All the features of ->renderform are supported.  More flexible than -template.  Idea obtained from Pyramid, a Python web application framework.
+2013-10-20  SP  ->fields: Added new feature.  This method returns a map of all non-special type field names and their parameters.
 2011-02-28	JS	->addfield: Added -template to specify field specific template 
 2010-11-22	SP	->init: Correction of -lockvalue handling after L9 syntax adjustment
 2010-07-18	SP	Added support for series for -options
@@ -2236,7 +2252,7 @@ Option for -> renderhtml to output without html encoding
 	local: 'validfieldtypes' = (map: 'text', 'password', 'checkbox', 'radio', 'textarea', 'select', 'file', 'search',
 				'submit', 'reset', 'image', 'hidden', 
 				'fieldset', 'legend', 'html'), // special types
-		'exceptionfieldtypes' = (map: 'file', 'submit', 'reset', 'image', 'addbutton', 'savebutton', 'deletebutton', 'cancelbutton',
+		'exceptionfieldtypes' = (map: /* 'file',  */'submit', 'reset', 'image', 'addbutton', 'savebutton', 'deletebutton', 'cancelbutton',
 				'fieldset', 'legend', 'html'); // special types
 	local: 'validfieldtypes_array'=array;
 	iterate: #validfieldtypes, (local: 'temp');
@@ -2426,7 +2442,13 @@ Option for -> renderhtml to output without html encoding
 			-filter (optional) Compound expression to filter the input before it is loaded into the form by ->loadfields. The field value can be accessed as params inside the expression which should return the filtered field value. -filter is applied before validation. \n\
 			-nowarning (optional flag) If specified then changing the field will not trigger an unsaved warning\n\
 			-after (optional) Numeric index or name of field to insert after\n\
-			-template (optional) Format string that will override global template or buttontemplate',
+			-template (optional) Format string that will override global template or buttontemplate\n\
+			-widget (optional) Name of a widget to use as a template for a given field.\n\
+			-errorclass (optional) A class for custom widgets to indicate through CSS that the user caused an error.\n\
+			-placeholder (optional) Similar to -hint, but for custom widgets.  Adds placeholder text for fields using HTML5 standards.\n\
+			-group (optional) For custom widgets.  Wraps a widget—defined as a control, its label, and its messages—with HTML as defined in the widget template.  Twitter Bootstrap also uses the group markup for styling fields as inline.  Boolean.  Default is false.\n\
+			-groupclass (optional) A class for custom widgets.  Adds a class to the wrapper HTML of the widget.  Allows easier toggling of widget display between vertical, horizontal, and inline.  Requires -group=true.\n\
+            -singlevalue (optional flag) The form field has only a single value and not multiple values separated by commas',
 		-required='type',
 		-optional='name',
 		-optional='id',	
@@ -2452,7 +2474,14 @@ Option for -> renderhtml to output without html encoding
 		-optional='filter', -type='tag',
 		-optional='nowarning',
 		-optional='after',
-		-optional='template';
+		-optional='template',
+		-optional='widget',
+		-optional='errorclass',
+		-optional='placeholder',
+		-optional='group',
+		-optional='groupclass',
+		-optional='singlevalue'
+		;
 		// TODO: add optiontemplate to be able to format individual options
 		local: 'timer'=knop_timer; 
 		
@@ -2491,7 +2520,8 @@ Option for -> renderhtml to output without html encoding
 			'linebreak'=(local_defined: 'linebreak') 	&& #linebreak != false,
 			'focus'=(local_defined: 'focus') 			&& #focus != false,
 			'nowarning'=(local_defined: 'nowarning') 	&& #nowarning != false,
-			'disabled'=(local_defined: 'disabled') 		&& #disabled != false
+			'disabled'=(local_defined: 'disabled') 		&& #disabled != false,
+            'singlevalue'=local_defined('singlevalue') && #singlevalue != false
 			);
 		if: (self -> 'exceptionfieldtypes') >> #_type;
 			// || (map: 'legend', 'fieldset', 'html') >> #_type;
@@ -2515,6 +2545,12 @@ Option for -> renderhtml to output without html encoding
 		local_defined('confirmmessage') ? #field -> insert('confirmmessage' = #confirmmessage);
 		local_defined('originaltype') ? #field -> insert('originaltype' = #originaltype);
 		(local_defined: 'template') ? #field -> (insert: 'template'=#template);
+        // the following params are for use in custom widgets only
+		local_defined('widget') ? #field -> insert('widget'=#widget);
+        local_defined('errorclass') ? #field -> insert('errorclass' = #errorclass);
+        local_defined('placeholder') ? #field -> insert('placeholder' = #placeholder);
+        local_defined('group') && #group != false ? #field -> insert('group' = #group);
+        local_defined('groupclass') ? #field -> insert('groupclass' = #groupclass);
 
 		#field -> (insert: 'dbfield'=( (local_defined: 'dbfield') ? #dbfield | #_name ) );
 		(local_defined: 'value') ? #field -> (insert: 'defaultvalue'=#value);
@@ -3150,7 +3186,8 @@ Option for -> renderhtml to output without html encoding
 			'fieldvalue'=string,
 			'fieldvalue_array'=array,
 			'options'=array,
-			'focusfield';
+			'focusfield',
+			'singlevalue'=false;
 
 		local: 'clientparams'=client_getparams;
 		#clientparams -> (merge: client_postparams);
@@ -3203,6 +3240,7 @@ Option for -> renderhtml to output without html encoding
 							if: #clientparam -> name -> (beginswith: '-') 
 							    && !(#clientparam -> name -> (beginswith: '-upload.'))
 							    && !(#clientparam -> name -> (beginswith: '-upload2.'))
+							    && !(#clientparam -> name -> (beginswith: '-contenttype'))
 								&& #clientparam -> name != '-session'
 								&& (self -> 'fields') !>> #clientparam -> name
 								// check if param name appears in form action
@@ -3340,10 +3378,11 @@ Option for -> renderhtml to output without html encoding
 				#onefield = #fieldpair -> value;
 				#fieldvalue = (#onefield -> (find: 'value'));
 				#fieldvalue_array = #fieldvalue;
+                #singlevalue = #onefield -> find('singlevalue');
 				if: #fieldvalue_array -> type != 'array';
 					if: #fieldvalue_array >> '\r'; // Filemaker value list with multiple checked
 						#fieldvalue_array = #fieldvalue_array -> (split: '\r');
-					else: #fieldvalue_array >> ','; // Other database with multiple checked
+					else(#fieldvalue_array >> ',' && !#singlevalue); // Other database with multiple checked
 						#fieldvalue_array = #fieldvalue_array -> (split: ',');
 					else;
 						#fieldvalue_array = array: #fieldvalue_array;
@@ -3389,305 +3428,350 @@ Option for -> renderhtml to output without html encoding
 						#focusfield = #id;
 					/if;
 					
-					// set field label, with error marker if field validation failed
-					// if: (self -> 'exceptionfieldtypes') >> (#onefield -> (find: 'type')) && (#onefield -> (find: 'type')) != 'file';
-					//	#renderrow -> (replace: '#label#', '');
-					//else: 
-					if: (self -> 'errors') -> type == 'array' && (self -> 'errors') >> (#onefield -> (find: 'name'));
-						#renderrow -> (replace: '#label#', 
-							'<label for="' + #id + '" id="' + #id + '_label" ' + #errorclass + '>' + (#onefield -> find('label')) + '</label>');
-						if: #focusfield == '';
-							#focusfield = #id;
-						/if;
-					else;
-						#renderrow -> (replace: '#label#', '<label for="' + #id + '" id="' + #id + '_label">' + (#onefield -> find('label')) + '</label>');
-					/if;
-					
-					// set markers for required fields 
-					if: #onefield -> (find: 'required') && !((self -> 'exceptionfieldtypes') >> (#onefield -> (find: 'type')) );
-						#renderrow -> (replace: '#required#', (encode_smart: #requiredmarker));
-					else;
-						#renderrow -> (replace: '#required#', '');
-					/if;
-					#renderfield=string;
-					#renderfield_base = ' name="' + (encode_html: (#onefield -> (find: 'name'))) + '"'
-						+ (#onefield >> 'class' ?  ' class="' + (#onefield -> (find: 'class')) + '"' 
-							| (#defaultclass != '' ? ' class="' + #defaultclass + '"') )
-						+ ' id="' +  (encode_html: #id) + '"'
-						+ (#onefield >> 'raw'	?  ' ' + (#onefield -> (find: 'raw')) )
-						+ (#onefield -> (find: 'disabled') ? ' disabled="disabled"');
+                    local('widget'= #onefield -> find('widget'));
 
-					#fieldtype=(#onefield -> (find: 'type'));
-					if: #fieldtype == 'search' && client_type !>> 'WebKit';
-						// only show <input type=search" for WebKit based browsers like Safari
-						#fieldtype = 'text';
-					/if;
-					select: #fieldtype;
-					case: 'html';
-						#renderrow = #template;
-						#renderrow -> (replace: '#label#', '');
-						#renderrow -> (replace: '#required#', '');
-						#renderfield = #fieldvalue + '\n';
-					case: 'legend';
-						#renderrow = '';
-						if: (self -> 'render_fieldset_open');
-							#output += '</fieldset>\n';
-							(self -> 'render_fieldset_open') = false;
-						/if;
-						#output += '<fieldset' 
-							+ (#onefield >> 'class' ?  ' class="' + (#onefield -> (find: 'class')) + '"' 
-								| (#defaultclass != '' ? ' class="' + #defaultclass + '"') )
-							+ ((#onefield -> (find: 'id') != '') ? ' id="' + #id + '"') 
-							+ '>\n';
-						(self -> 'render_fieldset_open') = true;
-						#output += '<legend>' + (encode_html: #fieldvalue) + '</legend>\n';
-					case: 'fieldset';
-						#renderrow = '';
-						if: (self -> 'render_fieldset_open');
-							#output += '</fieldset>\n';
-							(self -> 'render_fieldset_open') = false;
-						/if;
-						if: #fieldvalue !== false;
-							(self -> 'render_fieldset_open') = true;
-							#output += '<fieldset' 
-							+ (#onefield >> 'class' ?  ' class="' + (#onefield -> (find: 'class')) + '"' 
-								| (#defaultclass != '' ? ' class="' + #defaultclass + '"') )
-							+ ((#onefield -> (find: 'id') != '') ? ' id="' + #id + '"') 
-							+ '>\n<legend>' + (encode_html: #fieldvalue) + '</legend>\n'; // must contain a legend
-						/if;
-					case: 'hidden';
-						#renderfield += '<input type="hidden"' 
-							+ #renderfield_base
-							+ ' value="' + (encode_html: #fieldvalue) + '"';
-						#renderfield += #endslash + '>';
-						#renderrow = '';
-						#output += #renderfield + '\n';
-					case: 'text';
-						#renderfield += '<input type="text"' 
-							+ #renderfield_base
-							+ ' value="' + (encode_html: #fieldvalue) + '"'
-							+ (#onefield >> 'size' 	? ' size="' + (#onefield -> (find: 'size')) + '"' )
-							+ (#onefield >> 'maxlength' 	? ' maxlength="' + (#onefield -> (find: 'maxlength')) + '"' );
-						if: !(self -> 'noscript') && (#onefield -> (find: 'hint')) != '';
-							#renderfield += ' onfocus="clearHint(this)" onblur="setHint(this, \'' (#onefield -> (find: 'hint')) '\')"';
-							#usehint -> (insert: (#onefield -> find: 'name') = #id);
-						/if;
-						if: !(self -> 'noscript') && !#nowarning;
-							#renderfield += ' onkeydown="dirtyvalue(this)" onkeyup="makedirty(this)"';
-						/if;
-						#renderfield += #endslash + '>';
-					case: 'search';
-						#renderfield += '<input type="search"' 
-							+ #renderfield_base
-							+ ' value="' + (encode_html: #fieldvalue) + '"'
-							+ (#onefield >> 'size' 	? ' size="' + (#onefield -> (find: 'size')) + '"' );
-						if: (#onefield -> (find: 'hint')) != '';
-							#renderfield += ' placeholder="' + (encode_html: (#onefield -> (find: 'hint'))) + '"';
-						/if;
-						if: !(self -> 'noscript') && !#nowarning;
-							#renderfield += ' onkeydown="dirtyvalue(this)" onkeyup="makedirty(this)"';
-						/if;
-						#renderfield += #endslash + '>';
-					case: 'password';
-						#renderfield += '<input type="password"' 
-							+ #renderfield_base
-							+ ' value="' + (encode_html: #fieldvalue) + '"'
-							+ (#onefield >> 'size' 	? ' size="' + (#onefield -> (find: 'size')) + '"' );
-						if: !(self -> 'noscript') && !#nowarning;
-							#renderfield += ' onkeydown="dirtyvalue(this)" onkeyup="makedirty(this)"';
-						/if;
-						#renderfield += #endslash + '>';
-					case: 'textarea';
-						#renderfield += '<textarea' 
-							+ #renderfield_base
-							+ (#onefield >> 'cols' 	? ' cols="' + (#onefield -> (find: 'cols')) + '"')
-							+ (#onefield >> 'rows' 	? ' rows="' + (#onefield -> (find: 'rows')) + '"');
-						if: !(self -> 'noscript') && (#onefield -> (find: 'hint')) != '';
-							#renderfield += ' onfocus="clearHint(this)" onblur="setHint(this, \'' (#onefield -> (find: 'hint')) '\')"';
-							#usehint -> (insert: (#onefield -> find: 'name') = #id);
-						/if;
-						if: !(self -> 'noscript') && !#nowarning;
-							#renderfield += ' onkeydown="dirtyvalue(this)" onkeyup="makedirty(this)"';
-						/if;
-						#renderfield += '>'
-							+ (encode_html: #fieldvalue) + '</textarea>';
-					case: 'checkbox';
-						local: 'optioncount'=integer;
-						#renderfield += '<div class="inputgroup'
-							+ (#onefield >> 'class' ?  ' ' + (#onefield -> find('class'))
-							| (#defaultclass != '' ? ' ' + #defaultclass) ) 
-							+ '" id="' + #id + '">\n';
-						iterate: #options, (local: 'option');
-							#optioncount += 1;
-							#renderfield += (#optioncount > 1 && (#onefield -> find: 'linebreak') ? '<br' + #endslash + '>') + '\n';
-							if: #option -> name == '-optgroup';
-								#renderfield += (!(#onefield -> find: 'linebreak') && #optioncount > 1 ? '\n<br' + #endslash + '>');
-								if: #option -> value != '-optgroup';
-									#renderfield += #option -> value
-										+ (!(#onefield -> find: 'linebreak') ? '<br' + #endslash + '>\n');
-								/if;
-							else;
-								#renderfield +=  '<input type="checkbox"'
-									+ (string_replaceregexp: #renderfield_base, -find='id="(.+?)"', -replace=('id="\\1_' + #optioncount + '"'))
-									+ ' value="' + (encode_html: #option -> name) + '"';
-								if: #option -> name != '' && #fieldvalue_array >> #option -> name;
-									#renderfield +=' checked="checked"';
-								/if;
-								if: !(self -> 'noscript') && !#nowarning;
-									#renderfield += ' onclick="makedirty();"';
-								/if;
-								#renderfield += #endslash + '> <label for="' + #id + '_' + #optioncount 
-									+ '" id="' + #id + '_' + #optioncount + '_label"';
-								if: (self -> 'noscript') && !#nowarning;
-									#renderfield += ' onclick="makedirty();"';
-								/if;
-								#renderfield += '>' + (#option -> value) + '</label> ';
-							/if;
-						/iterate;
-						#renderfield += '</div>\n';
-					case: 'radio';
-						local: 'optioncount'=integer;
-						#renderfield += '<div class="inputgroup'
-							+ (#onefield >> 'class' ?  ' ' + (#onefield -> find('class'))
-							| (#defaultclass != '' ? ' ' + #defaultclass) ) 
-							+ '" id="' + #id + '">\n';
-						iterate: #options, (local: 'option');
-							#optioncount += 1;
-							#renderfield += (#optioncount > 1 && (#onefield -> find: 'linebreak') ? '<br' + #endslash + '>') + '\n';
-							if: #option -> name == '-optgroup';
-								#renderfield += (!(#onefield -> find: 'linebreak') && #optioncount > 1 ? '\n<br' + #endslash + '>');
-								if: #option -> value != '-optgroup';
-									#renderfield += #option -> value
-										+ (!(#onefield -> find: 'linebreak') ? '<br' + #endslash + '>\n');
-								/if;
-							else;
-								#renderfield += '<input type="radio"'
-									+ (string_replaceregexp: #renderfield_base, -find='id="(.+?)"', -replace=('id="\\1_' + #optioncount + '"'))
-									+ ' value="' + (encode_html: #option -> name) + '"';
-								if: #option -> name != '' && #fieldvalue_array >> #option -> name;
-									#renderfield +=' checked="checked"';
-								/if;
-								if: !(self -> 'noscript') && !#nowarning;
-									#renderfield += ' onclick="makedirty();"';
-								/if;
-								#renderfield += #endslash + '> <label for="' + #id + '_' + #optioncount 
-									+ '" id="' + #id + '_' + #optioncount + '_label"';
-								if: !(self -> 'noscript') && !#nowarning;
-									#renderfield += ' onclick="makedirty();"';
-								/if;
-								#renderfield += '>' + (#option -> value) + '</label> ';
-							/if;
-						/iterate;
-						#renderfield += '</div>\n';
-					case: 'select';
-						#renderfield += '<select '
-							+ #renderfield_base
-							+ (#onefield -> (find: 'multiple') ? ' multiple')
-							+ (#onefield >> 'size' 	? ' size="' + (#onefield -> (find: 'size')) + '"' );
-						if: !(self -> 'noscript') && !#nowarning;
-							if: #renderfield >> 'onchange="';
-								#renderfield -> (replace: 'onchange="', 'onchange="makedirty();');
-							else;
-								#renderfield += ' onchange="makedirty()"';
-							/if;
-						/if;
-						#renderfield += '>\n';
-						if: (#onefield -> (find: 'default')) != '' && (#onefield -> (find: 'size')) <= 1;
-							#renderfield += '<option'
-								+ ' value="">' + (encode_html: (#onefield -> (find: 'default'))) + '</option>\n';
-							#renderfield += '<option'
-								+ ' value=""></option>\n';
-						/if;
-						local: 'optgroup_open'=false;
-						iterate: #options, (local: 'option');
-							if: #option -> name == '-optgroup';
-								if: #optgroup_open;
-									#renderfield += '</optgroup>\n';
-								/if;
-								if: #option -> value != '-optgroup';
-									#renderfield += '<optgroup label="' + (#option -> value) + '">\n';
-									#optgroup_open = true;
-								/if;
-							else;
-								#renderfield += '<option'
-									+ ' value="' + (encode_html: #option -> name) + '"';
-								if: #option -> name != '' && #fieldvalue_array >> #option -> name;
-									#renderfield +=' selected="selected"';
-								/if;
-								#renderfield +=  '>' + (encode_html: #option -> value) + '</option>\n';
-							/if;
-						/iterate;
-						if: #optgroup_open;
-							#renderfield += '</optgroup>\n';
-						/if;
-						#renderfield += '</select>\n';
-					case: 'submit';
-						#renderfield += '<input type="submit"' 
-							+ #renderfield_base
-							+ ' value="' + (encode_html: #fieldvalue) + '"';
-						if: (self -> formmode) == 'add' 
-							&& !(#onefield -> (find: 'disabled')) // already disabled
-							&& (#onefield -> (find: 'originaltype') == 'savebutton' || #onefield -> (find: 'originaltype') == 'deletebutton'
-							|| #onefield -> (find: 'name') == 'button_save' || #onefield -> (find: 'name') == 'button_delete');
-							#renderfield += ' disabled="disabled"';
-						/if;
-						if: !(self -> 'noscript') 
-							&& (#onefield -> (find: 'name') == 'button_delete' 
-								|| #onefield -> (find: 'originaltype') == 'deletebutton' 
-								|| #onefield -> (find: 'confirmmessage') != '');
-							local: 'confirmmessage'=(#onefield -> (find: 'confirmmessage') != '' 
-								? #onefield -> (find: 'confirmmessage') | 'Really delete?');
-							#confirmmessage -> (replace: '"', '&quot;');
-							#confirmmessage -> (replace: '\'', '\\\'');
-							#renderfield += ' onclick="return confirm(\'' + #confirmmessage +  '\')"';
-						/if;
-						#renderfield += #endslash + '>';
-					case: 'reset';
-						#renderfield += '<input type="reset"' 
-							+ #renderfield_base
-							+ ' value="' + (encode_html: #fieldvalue) + '"';
-						if: !(self -> 'noscript') && #onefield -> (find: 'confirmmessage') != '';
-							local: 'confirmmessage'=#onefield -> (find: 'confirmmessage');
-							#confirmmessage -> (replace: '"', '&quot;');
-							#confirmmessage -> (replace: '\'', '\\\'');
-							#renderfield += ' onclick="if(confirm(\'' + #confirmmessage +  '\')){makeundirty();return true}else{return false};"';
-						else: !(self -> 'noscript');
-							#renderfield += ' onclick="makeundirty();"';
-						/if;
-						#renderfield += #endslash + '>';
-					case: 'image';
-						#renderfield += '<input type="image"' 
-							+ #renderfield_base
-							+ ' value="' + (encode_html: #fieldvalue) + '"';
-						if: (self -> formmode) == 'add' && 
-							(#onefield -> (find: 'originaltype') == 'savebutton' || #onefield -> (find: 'originaltype') == 'deletebutton'
-							|| #onefield -> (find: 'name') == 'button_save' || #onefield -> (find: 'name') == 'button_delete');
-							#renderfield += ' disabled="disabled"';
-						/if;
-						if: !(self -> 'noscript')
-							&& (#onefield -> (find: 'name') == 'button_delete' 
-								|| #onefield -> (find: 'originaltype') == 'deletebutton' 
-								|| #onefield -> (find: 'confirmmessage') != '');
-							local: 'confirmmessage'=(#onefield -> (find: 'confirmmessage') != '' 
-								? #onefield -> (find: 'confirmmessage') | 'Really delete?');
-							#confirmmessage -> (replace: '"', '&quot;');
-							#confirmmessage -> (replace: '\'', '\\\'');
-							#renderfield += ' onclick="return confirm(\'' + #confirmmessage +  '\')"';
-						/if;
-						#renderfield += #endslash + '>';
-					case: 'file';
-						#renderfield += '<input type="file"' 
-							+ #renderfield_base;
-						if: !(self -> 'noscript') && !#nowarning;
-							if: #renderfield >> 'onchange="';
-								#renderfield -> (replace: 'onchange="', 'onchange="makedirty();');
-							else;
-								#renderfield += ' onchange="makedirty()"';
-							/if;
-						/if;
-						#renderfield += #endslash + '>';
-					/select;
-					#renderrow -> (replace: '#field#', #renderfield);
+                    if(#widget == '');
+                        // use the built-in template to renderrow
+                        // set field label, with error marker if field validation failed
+                        // if: (self -> 'exceptionfieldtypes') >> (#onefield -> (find: 'type')) && (#onefield -> (find: 'type')) != 'file';
+                        //	#renderrow -> (replace: '#label#', '');
+                        //else: 
+                        if: (self -> 'errors') -> type == 'array' && (self -> 'errors') >> (#onefield -> (find: 'name'));
+                            #renderrow -> (replace: '#label#', 
+                                '<label for="' + #id + '" id="' + #id + '_label" ' + #errorclass + '>' + (#onefield -> find('label')) + '</label>');
+                            if: #focusfield == '';
+                                #focusfield = #id;
+                            /if;
+                        else;
+                            #renderrow -> (replace: '#label#', '<label for="' + #id + '" id="' + #id + '_label">' + (#onefield -> find('label')) + '</label>');
+                        /if;
+                        
+                        // set markers for required fields 
+                        if: #onefield -> (find: 'required') && !((self -> 'exceptionfieldtypes') >> (#onefield -> (find: 'type')) );
+                            #renderrow -> (replace: '#required#', (encode_smart: #requiredmarker));
+                        else;
+                            #renderrow -> (replace: '#required#', '');
+                        /if;
+                        #renderfield=string;
+                        #renderfield_base = ' name="' + (encode_html: (#onefield -> (find: 'name'))) + '"'
+                            + (#onefield >> 'class' ?  ' class="' + (#onefield -> (find: 'class')) + '"' 
+                                | (#defaultclass != '' ? ' class="' + #defaultclass + '"') )
+                            + ' id="' +  (encode_html: #id) + '"'
+                            + (#onefield >> 'raw'	?  ' ' + (#onefield -> (find: 'raw')) )
+                            + (#onefield -> (find: 'disabled') ? ' disabled="disabled"');
+    
+                        #fieldtype=(#onefield -> (find: 'type'));
+                        if: #fieldtype == 'search' && client_type !>> 'WebKit';
+                            // only show <input type=search" for WebKit based browsers like Safari
+                            #fieldtype = 'text';
+                        /if;
+                        select: #fieldtype;
+                        case: 'html';
+                            #renderrow = #template;
+                            #renderrow -> (replace: '#label#', '');
+                            #renderrow -> (replace: '#required#', '');
+                            #renderfield = #fieldvalue + '\n';
+                        case: 'legend';
+                            #renderrow = '';
+                            if: (self -> 'render_fieldset_open');
+                                #output += '</fieldset>\n';
+                                (self -> 'render_fieldset_open') = false;
+                            /if;
+                            #output += '<fieldset' 
+                                + (#onefield >> 'class' ?  ' class="' + (#onefield -> (find: 'class')) + '"' 
+                                    | (#defaultclass != '' ? ' class="' + #defaultclass + '"') )
+                                + ((#onefield -> (find: 'id') != '') ? ' id="' + #id + '"') 
+                                + '>\n';
+                            (self -> 'render_fieldset_open') = true;
+                            #output += '<legend>' + (encode_html: #fieldvalue) + '</legend>\n';
+                        case: 'fieldset';
+                            #renderrow = '';
+                            if: (self -> 'render_fieldset_open');
+                                #output += '</fieldset>\n';
+                                (self -> 'render_fieldset_open') = false;
+                            /if;
+                            if: #fieldvalue !== false;
+                                (self -> 'render_fieldset_open') = true;
+                                #output += '<fieldset' 
+                                + (#onefield >> 'class' ?  ' class="' + (#onefield -> (find: 'class')) + '"' 
+                                    | (#defaultclass != '' ? ' class="' + #defaultclass + '"') )
+                                + ((#onefield -> (find: 'id') != '') ? ' id="' + #id + '"') 
+                                + '>\n<legend>' + (encode_html: #fieldvalue) + '</legend>\n'; // must contain a legend
+                            /if;
+                        case: 'hidden';
+                            #renderfield += '<input type="hidden"' 
+                                + #renderfield_base
+                                + ' value="' + (encode_html: #fieldvalue) + '"';
+                            #renderfield += #endslash + '>';
+                            #renderrow = '';
+                            #output += #renderfield + '\n';
+                        case: 'text';
+                            #renderfield += '<input type="text"' 
+                                + #renderfield_base
+                                + ' value="' + (encode_html: #fieldvalue) + '"'
+                                + (#onefield >> 'size' 	? ' size="' + (#onefield -> (find: 'size')) + '"' )
+                                + (#onefield >> 'maxlength' 	? ' maxlength="' + (#onefield -> (find: 'maxlength')) + '"' );
+                            if: !(self -> 'noscript') && (#onefield -> (find: 'hint')) != '';
+                                #renderfield += ' onfocus="clearHint(this)" onblur="setHint(this, \'' (#onefield -> (find: 'hint')) '\')"';
+                                #usehint -> (insert: (#onefield -> find: 'name') = #id);
+                            /if;
+                            if: !(self -> 'noscript') && !#nowarning;
+                                #renderfield += ' onkeydown="dirtyvalue(this)" onkeyup="makedirty(this)"';
+                            /if;
+                            #renderfield += #endslash + '>';
+                        case: 'search';
+                            #renderfield += '<input type="search"' 
+                                + #renderfield_base
+                                + ' value="' + (encode_html: #fieldvalue) + '"'
+                                + (#onefield >> 'size' 	? ' size="' + (#onefield -> (find: 'size')) + '"' );
+                            if: (#onefield -> (find: 'hint')) != '';
+                                #renderfield += ' placeholder="' + (encode_html: (#onefield -> (find: 'hint'))) + '"';
+                            /if;
+                            if: !(self -> 'noscript') && !#nowarning;
+                                #renderfield += ' onkeydown="dirtyvalue(this)" onkeyup="makedirty(this)"';
+                            /if;
+                            #renderfield += #endslash + '>';
+                        case: 'password';
+                            #renderfield += '<input type="password"' 
+                                + #renderfield_base
+                                + ' value="' + (encode_html: #fieldvalue) + '"'
+                                + (#onefield >> 'size' 	? ' size="' + (#onefield -> (find: 'size')) + '"' );
+                            if: !(self -> 'noscript') && !#nowarning;
+                                #renderfield += ' onkeydown="dirtyvalue(this)" onkeyup="makedirty(this)"';
+                            /if;
+                            #renderfield += #endslash + '>';
+                        case: 'textarea';
+                            #renderfield += '<textarea' 
+                                + #renderfield_base
+                                + (#onefield >> 'cols' 	? ' cols="' + (#onefield -> (find: 'cols')) + '"')
+                                + (#onefield >> 'rows' 	? ' rows="' + (#onefield -> (find: 'rows')) + '"');
+                            if: !(self -> 'noscript') && (#onefield -> (find: 'hint')) != '';
+                                #renderfield += ' onfocus="clearHint(this)" onblur="setHint(this, \'' (#onefield -> (find: 'hint')) '\')"';
+                                #usehint -> (insert: (#onefield -> find: 'name') = #id);
+                            /if;
+                            if: !(self -> 'noscript') && !#nowarning;
+                                #renderfield += ' onkeydown="dirtyvalue(this)" onkeyup="makedirty(this)"';
+                            /if;
+                            #renderfield += '>'
+                                + (encode_html: #fieldvalue) + '</textarea>';
+                        case: 'checkbox';
+                            local: 'optioncount'=integer;
+                            #renderfield += '<div class="inputgroup'
+                                + (#onefield >> 'class' ?  ' ' + (#onefield -> find('class'))
+                                | (#defaultclass != '' ? ' ' + #defaultclass) ) 
+                                + '" id="' + #id + '">\n';
+                            iterate: #options, (local: 'option');
+                                #optioncount += 1;
+                                #renderfield += (#optioncount > 1 && (#onefield -> find: 'linebreak') ? '<br' + #endslash + '>') + '\n';
+                                if: #option -> name == '-optgroup';
+                                    #renderfield += (!(#onefield -> find: 'linebreak') && #optioncount > 1 ? '\n<br' + #endslash + '>');
+                                    if: #option -> value != '-optgroup';
+                                        #renderfield += #option -> value
+                                            + (!(#onefield -> find: 'linebreak') ? '<br' + #endslash + '>\n');
+                                    /if;
+                                else;
+                                    #renderfield +=  '<input type="checkbox"'
+                                        + (string_replaceregexp: #renderfield_base, -find='id="(.+?)"', -replace=('id="\\1_' + #optioncount + '"'))
+                                        + ' value="' + (encode_html: #option -> name) + '"';
+                                    if: #option -> name != '' && #fieldvalue_array >> #option -> name;
+                                        #renderfield +=' checked="checked"';
+                                    /if;
+                                    if: !(self -> 'noscript') && !#nowarning;
+                                        #renderfield += ' onclick="makedirty();"';
+                                    /if;
+                                    #renderfield += #endslash + '> <label for="' + #id + '_' + #optioncount 
+                                        + '" id="' + #id + '_' + #optioncount + '_label"';
+                                    if: (self -> 'noscript') && !#nowarning;
+                                        #renderfield += ' onclick="makedirty();"';
+                                    /if;
+                                    #renderfield += '>' + (#option -> value) + '</label> ';
+                                /if;
+                            /iterate;
+                            #renderfield += '</div>\n';
+                        case: 'radio';
+                            local: 'optioncount'=integer;
+                            #renderfield += '<div class="inputgroup'
+                                + (#onefield >> 'class' ?  ' ' + (#onefield -> find('class'))
+                                | (#defaultclass != '' ? ' ' + #defaultclass) ) 
+                                + '" id="' + #id + '">\n';
+                            iterate: #options, (local: 'option');
+                                #optioncount += 1;
+                                #renderfield += (#optioncount > 1 && (#onefield -> find: 'linebreak') ? '<br' + #endslash + '>') + '\n';
+                                if: #option -> name == '-optgroup';
+                                    #renderfield += (!(#onefield -> find: 'linebreak') && #optioncount > 1 ? '\n<br' + #endslash + '>');
+                                    if: #option -> value != '-optgroup';
+                                        #renderfield += #option -> value
+                                            + (!(#onefield -> find: 'linebreak') ? '<br' + #endslash + '>\n');
+                                    /if;
+                                else;
+                                    #renderfield += '<input type="radio"'
+                                        + (string_replaceregexp: #renderfield_base, -find='id="(.+?)"', -replace=('id="\\1_' + #optioncount + '"'))
+                                        + ' value="' + (encode_html: #option -> name) + '"';
+                                    if: #option -> name != '' && #fieldvalue_array >> #option -> name;
+                                        #renderfield +=' checked="checked"';
+                                    /if;
+                                    if: !(self -> 'noscript') && !#nowarning;
+                                        #renderfield += ' onclick="makedirty();"';
+                                    /if;
+                                    #renderfield += #endslash + '> <label for="' + #id + '_' + #optioncount 
+                                        + '" id="' + #id + '_' + #optioncount + '_label"';
+                                    if: !(self -> 'noscript') && !#nowarning;
+                                        #renderfield += ' onclick="makedirty();"';
+                                    /if;
+                                    #renderfield += '>' + (#option -> value) + '</label> ';
+                                /if;
+                            /iterate;
+                            #renderfield += '</div>\n';
+                        case: 'select';
+                            #renderfield += '<select '
+                                + #renderfield_base
+                                + (#onefield -> (find: 'multiple') ? ' multiple')
+                                + (#onefield >> 'size' 	? ' size="' + (#onefield -> (find: 'size')) + '"' );
+                            if: !(self -> 'noscript') && !#nowarning;
+                                if: #renderfield >> 'onchange="';
+                                    #renderfield -> (replace: 'onchange="', 'onchange="makedirty();');
+                                else;
+                                    #renderfield += ' onchange="makedirty()"';
+                                /if;
+                            /if;
+                            #renderfield += '>\n';
+                            if: (#onefield -> (find: 'default')) != '' && (#onefield -> (find: 'size')) <= 1;
+                                #renderfield += '<option'
+                                    + ' value="">' + (encode_html: (#onefield -> (find: 'default'))) + '</option>\n';
+                                #renderfield += '<option'
+                                    + ' value=""></option>\n';
+                            /if;
+                            local: 'optgroup_open'=false;
+                            iterate: #options, (local: 'option');
+                                if: #option -> name == '-optgroup';
+                                    if: #optgroup_open;
+                                        #renderfield += '</optgroup>\n';
+                                    /if;
+                                    if: #option -> value != '-optgroup';
+                                        #renderfield += '<optgroup label="' + (#option -> value) + '">\n';
+                                        #optgroup_open = true;
+                                    /if;
+                                else;
+                                    #renderfield += '<option'
+                                        + ' value="' + (encode_html: #option -> name) + '"';
+                                    if: #option -> name != '' && #fieldvalue_array >> #option -> name;
+                                        #renderfield +=' selected="selected"';
+                                    /if;
+                                    #renderfield +=  '>' + (encode_html: #option -> value) + '</option>\n';
+                                /if;
+                            /iterate;
+                            if: #optgroup_open;
+                                #renderfield += '</optgroup>\n';
+                            /if;
+                            #renderfield += '</select>\n';
+                        case: 'submit';
+                            #renderfield += '<input type="submit"' 
+                                + #renderfield_base
+                                + ' value="' + (encode_html: #fieldvalue) + '"';
+                            if: (self -> formmode) == 'add' 
+                                && !(#onefield -> (find: 'disabled')) // already disabled
+                                && (#onefield -> (find: 'originaltype') == 'savebutton' || #onefield -> (find: 'originaltype') == 'deletebutton'
+                                || #onefield -> (find: 'name') == 'button_save' || #onefield -> (find: 'name') == 'button_delete');
+                                #renderfield += ' disabled="disabled"';
+                            /if;
+                            if: !(self -> 'noscript') 
+                                && (#onefield -> (find: 'name') == 'button_delete' 
+                                    || #onefield -> (find: 'originaltype') == 'deletebutton' 
+                                    || #onefield -> (find: 'confirmmessage') != '');
+                                local: 'confirmmessage'=(#onefield -> (find: 'confirmmessage') != '' 
+                                    ? #onefield -> (find: 'confirmmessage') | 'Really delete?');
+                                #confirmmessage -> (replace: '"', '&quot;');
+                                #confirmmessage -> (replace: '\'', '\\\'');
+                                #renderfield += ' onclick="return confirm(\'' + #confirmmessage +  '\')"';
+                            /if;
+                            #renderfield += #endslash + '>';
+                        case: 'reset';
+                            #renderfield += '<input type="reset"' 
+                                + #renderfield_base
+                                + ' value="' + (encode_html: #fieldvalue) + '"';
+                            if: !(self -> 'noscript') && #onefield -> (find: 'confirmmessage') != '';
+                                local: 'confirmmessage'=#onefield -> (find: 'confirmmessage');
+                                #confirmmessage -> (replace: '"', '&quot;');
+                                #confirmmessage -> (replace: '\'', '\\\'');
+                                #renderfield += ' onclick="if(confirm(\'' + #confirmmessage +  '\')){makeundirty();return true}else{return false};"';
+                            else: !(self -> 'noscript');
+                                #renderfield += ' onclick="makeundirty();"';
+                            /if;
+                            #renderfield += #endslash + '>';
+                        case: 'image';
+                            #renderfield += '<input type="image"' 
+                                + #renderfield_base
+                                + ' value="' + (encode_html: #fieldvalue) + '"';
+                            if: (self -> formmode) == 'add' && 
+                                (#onefield -> (find: 'originaltype') == 'savebutton' || #onefield -> (find: 'originaltype') == 'deletebutton'
+                                || #onefield -> (find: 'name') == 'button_save' || #onefield -> (find: 'name') == 'button_delete');
+                                #renderfield += ' disabled="disabled"';
+                            /if;
+                            if: !(self -> 'noscript')
+                                && (#onefield -> (find: 'name') == 'button_delete' 
+                                    || #onefield -> (find: 'originaltype') == 'deletebutton' 
+                                    || #onefield -> (find: 'confirmmessage') != '');
+                                local: 'confirmmessage'=(#onefield -> (find: 'confirmmessage') != '' 
+                                    ? #onefield -> (find: 'confirmmessage') | 'Really delete?');
+                                #confirmmessage -> (replace: '"', '&quot;');
+                                #confirmmessage -> (replace: '\'', '\\\'');
+                                #renderfield += ' onclick="return confirm(\'' + #confirmmessage +  '\')"';
+                            /if;
+                            #renderfield += #endslash + '>';
+                        case: 'file';
+                            #renderfield += '<input type="file"' 
+                                + #renderfield_base;
+                            if: !(self -> 'noscript') && !#nowarning;
+                                if: #renderfield >> 'onchange="';
+                                    #renderfield -> (replace: 'onchange="', 'onchange="makedirty();');
+                                else;
+                                    #renderfield += ' onchange="makedirty()"';
+                                /if;
+                            /if;
+                            #renderfield += #endslash + '>';
+                        /select;
+                        #renderrow -> (replace: '#field#', #renderfield);
+                    else;
+                        // use a custom widget template to renderrow
+                        local('e' = array);
+                        if((self -> 'errors') -> type == 'array'
+                            && (self -> 'errors') >> (#onefield -> find('name')));
+                            iterate((self -> 'errors') -> find(#onefield -> find('name')), local('oe'));
+                                #oe -> isa('pair') ? #e = #oe -> second;
+                            /iterate;
+                        /if;
+                        // if field is required, use the required marker of the form
+                        local('required' = string);
+                        if(#onefield -> find('required'));
+                             #required = self -> 'required';
+                        /if;
+                        local('tw') = \#widget;
+                        #renderrow = #tw->run(
+                            -params=array(
+                                -name = #onefield -> find('name'),
+                                -class = #onefield -> find('class'),
+                                -cols = #onefield -> find('cols'),
+                                -default = #onefield -> find('default'),
+                                -disabled = #onefield -> find('disabled'),
+                                -errmsg = #e,
+                                -errorclass = #onefield -> find('errorclass'),
+                                -fieldvalue_array = #fieldvalue_array,
+                                -group = #onefield -> find('group'),
+                                -groupclass = #onefield -> find('groupclass'),
+                                -id = #id,
+                                -label = #onefield -> find('label'),
+                                -maxlength = #onefield -> find('maxlength'),
+                                -multiple = #onefield -> find('multiple'),
+                                -options = #options,
+                                -placeholder = #onefield -> find('placeholder'),
+                                -required = #required,
+                                -rows = #onefield -> find('rows'),
+                                -size = #onefield -> find('size'),
+                                -type = #onefield -> find('type'),
+                                -value = encode_html(#fieldvalue),
+                                -encodenone
+                        ));
+                    /if;
 					#output += #renderrow;
 				/if; 
 			/iterate;
@@ -4042,7 +4126,8 @@ Option for -> renderhtml to output without html encoding
 			'fieldvalue'=string,
 			'fieldvalue_array'=array,
 			'options'=array,
-			'usehint'=array;
+			'usehint'=array,
+			'singlevalue'=false;
 
 		
 		// local var that adjust tag endings if rendered for XHTML
@@ -4093,10 +4178,11 @@ Option for -> renderhtml to output without html encoding
 			#onefield = #fieldpair -> value;
 			#fieldvalue = (#onefield -> (find: 'value'));
 			#fieldvalue_array = #fieldvalue;
+            #singlevalue = #onefield -> find('singlevalue');
 			if: #fieldvalue_array -> type != 'array';
 				if: #fieldvalue_array >> '\r'; // Filemaker value list with multiple checked
 					#fieldvalue_array = #fieldvalue_array -> (split: '\r');
-				else: #fieldvalue_array >> ','; // Other database with multiple checked
+				else(#fieldvalue_array >> ',' && !#singlevalue); // Other database with multiple checked
 					#fieldvalue_array = #fieldvalue_array -> (split: ',');
 				else;
 					#fieldvalue_array = array: #fieldvalue_array;
@@ -4257,6 +4343,20 @@ Option for -> renderhtml to output without html encoding
 	/define_tag;
 
 
+    define_tag('fields', -description='Returns a map of all non-special type field names and their parameters');
+        local('timer' = knop_timer);
+        local('output' = map);
+        iterate((self -> 'fields'), local('fieldpair'));
+            if(array('html', 'fieldset', 'legend') !>> #fieldpair -> name);
+                #output -> insert(#fieldpair -> name = #fieldpair -> value);
+            /if;
+        /iterate;
+        self -> 'tagtime_tagname' = tag_name;
+        self -> 'tagtime' = integer(#timer); // cast to integer to trigger onconvert and to "stop timer"
+        return(#output);
+    /define_tag;
+
+
 	define_tag: 'keyvalue'; 			return: (self -> 'db_keyvalue');		/define_tag;
 	define_tag: 'lockvalue'; 			return: (self -> 'db_lockvalue');		/define_tag;
 	define_tag: 'lockvalue_decrypted';
@@ -4374,6 +4474,7 @@ define_type: 'grid',
 /*
 
 CHANGE NOTES
+2014-07-10  SP  Allow grid element language strings in the language configuration file to override the instance variables in the knop_grid type.
 2011-01-01	SP	Correction of invalid HTML in <thead> and <tr>
 2010-12-23	SP	Corrected pagination bug for -numbered.
 2010-11-17	JC	Added -startwithfooter flag to grid->renderhtml.  This moves the footer before the column titles in the table header.
@@ -4453,8 +4554,7 @@ CHANGE NOTES
 2007-01-17	JS	Added addfield: -template
 
 TODO
-Make it possible for knop_grid to work independently of a knop_database object so other types of listings can bre created. 
-Language of quicksearch buttons can't be changed after the grid has been created
+Make it possible for knop_grid to work independently of a knop_database object so other types of listings can be created.
 tbody is used in renderfooter, which is not semantically correct. can't use tfoot though since the footer is rendered twice. 
 Move templates to a member tag to be make it easier to subclass
 Change ->addfield to ->insert and make ->addfield deprecated
@@ -4498,8 +4598,8 @@ Change ->addfield to ->insert and make ->addfield deprecated
 		'linktitle_gofirst' = 'Go to first page',
 		'linktitle_goprev' = 'Go to previous page',
 		'footer_shown' = '#1# - #2# of',
-		'footer_found'='found',
-		'linktext_gotopage'='Go to page', // SP customization
+		'footer_found' = 'found',
+		'linktext_gotopage' = 'Go to page', // SP customization
 		'linktitle_gonext' = 'Go to next page',
 		'linktitle_golast' = 'Go to last page',
 
@@ -4522,8 +4622,8 @@ Change ->addfield to ->insert and make ->addfield deprecated
 		'linktitle_gofirst' = 'Gå till första sidan',
 		'linktitle_goprev' = 'Gå till föregående sida',
 		'footer_shown' = '#1# - #2# av',
-		'footer_found'='hittade',
-		'linktext_gotopage'='Gå till sida', // SP cüstømizätiøn
+		'footer_found' = 'hittade',
+		'linktext_gotopage' = 'Gå till sida', // SP cüstømizätiøn
 		'linktitle_gonext' = 'Gå till nästa sida',
 		'linktitle_golast' = 'Gå till sista sidan'
 	));
@@ -4537,6 +4637,7 @@ Change ->addfield to ->insert and make ->addfield deprecated
 			-id (optional) Creates a custom id used for table, quicksearch and quicksearch_reset\n\
 			-nosort (optional flag) Global setting for the entire grid (overrides column specific sort options)\n\
 			-language (optional) Language to use for the grid, defaults to the browser\'s preferred language\n\
+            -langobject (optional) Pass in a knop_lang object into the grid. Define the language strings in the language configuration file cfg__lang.inc, overriding the language strings defined as instance variables in the knop_lang type.\n\
 			-numbered (optional flag or integer) If specified, pagination links will be shown as page numbers instead of regular prev/next links. Defaults to 6 links, specify another number (minimum 6) if more numbers are wanted. Can be specified in ->renderhtml as well. ',
 		-required='database', -type='database',
 		-optional='nav', -type='nav',
@@ -4546,10 +4647,16 @@ Change ->addfield to ->insert and make ->addfield deprecated
 		-optional='id',
 		-optional='nosort',
 		-optional='language',
+		-optional='langobject', -type='lang',
 		-optional='numbered';
 		local: 'timer'=knop_timer; 
 		
-		local: 'lang'=@(self -> 'lang');
+        if(local_defined('langobject'));
+            local('lang') = #langobject;
+            self -> 'lang' = #lang;
+        else;
+            local('lang') = @(self -> 'lang');
+        /if;
 		
 		if: (local_defined: 'language');
 			#lang -> (setlanguage: #language);
@@ -5916,12 +6023,46 @@ define_type: 'nav',
 	-namespace='knop_';
 //	-prototype;
 
-	local: 'version'='2010-11-17',
+	local: 'version'='2013-08-04',
  		'description'='Custom type to handle site navigation menu';
 
 /*
 
 CHANGE NOTES
+2013-08-04	SP	Added optional -tbdropdown parameter to ->insert method.  It may be a flag or any type.  The following values for the parameter -tbdropdown are equivalent.
+
+    -tbdropdown
+    -tbdropdown=true
+    -tbdropdown=<any non-map type or expression that evaluates to true>
+    -tbdropdown=map(
+        'tbdd_liclass' = 'dropdown',
+        'tbdd_aclass' = 'dropdown-toggle',
+        'tbdd_araw' = ' data-toggle="dropdown"',
+        'tbdd_labelappend' = ' <span class="caret"></span>');
+
+All will generate HTML markup:
+
+  <li class="dropdown">
+    <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+      Dropdown <span class="caret"></span>
+    </a>
+
+If -tbdropdown is type map, then the values for the keys in the map will be used.  For example, using the Crisp theme <https://wrapbootstrap.com/theme/crisp-responsive-fluid-business-template-WB0F7FH2P>
+
+    -tbdropdown=map(
+        'tbdd_liclass' = 'parent',
+        'tbdd_aclass' = '',
+        'tbdd_araw' = '',
+        'tbdd_labelappend' = '<i></i><span class="dcjq-icon"></span>');
+
+Will generate HTML markup:
+
+  <li class="parent">
+    <a href="#">
+      Dropdown<i></i><span class="dcjq-icon"></span>
+    </a>
+2013-08-04	SP	Added optional -liclass parameter to ->insert method.  If the HTML template contains "<li>", either by setting it with -template or using the default value, then when the nav is rendered the classes will be inserted into the <li> tag.
+2013-08-02	SP	Added optional -ulclass parameter as an instance variable.  If the HTML template begins with "<ul>", either by setting it or using the default value, then when the nav is rendered the classes will be inserted into the <ul> tag.
 2010-11-17	JC	Fixed bug so that session links no longer gets added to urls by the nav -> url tag.
 2010-11-17	JC	Fixed a bug that would not convert local params to an array under certain situations
 2009-09-18	JS	Syntax adjustments for Lasso 9
@@ -6048,7 +6189,9 @@ Make it possible to use external URL for -url (make sure there is no / before ht
 		'dotrace'=false,
 		'actionconfigfile_didrun'=string,	// path to action config file that has been run for the current page load
 											// used to not load the same config again
-		'error_lang'=(knop_lang: -default='en', -fallback);
+		'error_lang'=(knop_lang: -default='en', -fallback),
+		'ulclass'=string,   // class to insert into this nav's <ul> tag
+		'currentclasstags'=array;   // array of tags into which the current class as defined by -currentclass will be inserted
 
 	define_tag: 'oncreate', -description='Parameters:\n\
 			-default (optional) Key of default navigation item\n\
@@ -6060,7 +6203,8 @@ Make it possible to use external URL for -url (make sure there is no / before ht
 			-template (optional) html template used to render the navigation menu\n\
 			-class (optional) default class for all navigation links\n\
 			-currentclass (optional) class added for the currently active link\n\
-			-currentmarker (optional) character(s) show to the right link of current nav (typically &raquo;)',
+			-currentmarker (optional) character(s) show to the right link of current nav (typically &raquo;)\n\
+			-ulclass (optional) Accepts a string of classes separated by spaces.  If the HTML template begins with "<ul>", either by setting it or using the default value, then when the nav is rendered the classes will be inserted into the <ul> tag.',
 		-optional='template',
 		-optional='class',
 		-optional='currentclass',
@@ -6070,7 +6214,9 @@ Make it possible to use external URL for -url (make sure there is no / before ht
 		-optional='fileroot',
 		-optional='navmethod',
 		-optional='filenaming',
-		-optional='trace';
+		-optional='trace',
+		-optional='ulclass',
+		-optional='currentclasstags', -type='array';
 		local: 'timer'=knop_timer, 'dotrace'=(self -> 'dotrace');
 		// TODO: check if we are in an inline, in that case use -key, -label etc as field names and loop through records to fill nav		
 		
@@ -6082,6 +6228,8 @@ Make it possible to use external URL for -url (make sure there is no / before ht
 		local_defined('currentclass') ? (self -> 'currentclass') = #currentclass;
 		local_defined('currentmarker') ? (self -> 'currentmarker') = #currentmarker;
 		local_defined('filenaming') ? (self -> 'filenaming') = #filenaming;
+		local_defined('ulclass') ? (self -> 'ulclass') = #ulclass;
+		local_defined('currentclasstags') ? (self -> 'currentclasstags') = #currentclasstags;
 
 		(self -> 'dotrace') = (local_defined: 'trace') && #trace != false;
 		// normalize slashes
@@ -6133,7 +6281,41 @@ Make it possible to use external URL for -url (make sure there is no / before ht
 			-disabled (optional flag) Makes the menu item dimmed and non-clickable\n\ 
 			-hide (optional flag) Makes the location valid without showing a menu item for it\n\ 
 			-after (optional) After which navitem to insert this navitem (key or numeric index)\n\ 
-			-data (optional) Arbitrary data object (variable, map, array, compound expression) that can be returned for the location by calling ->data',
+			-data (optional) Arbitrary data object (variable, map, array, compound expression) that can be returned for the location by calling ->data\n\
+			-liclass (optional) If the HTML template contains "<li>", either by setting it with -template or using the default value, then when the nav is rendered the classes will be inserted into the <li> tag.\n\
+			-tbdropdown (optional flag or map) It may be a flag or any type.  The following values for the parameter -tbdropdown are equivalent.
+
+    -tbdropdown
+    -tbdropdown=true
+    -tbdropdown=<any non-map type or expression that evaluates to true>
+    -tbdropdown=map(
+        \'tbdd_liclass\' = \'dropdown\',
+        \'tbdd_aclass\' = \'dropdown-toggle\',
+        \'tbdd_araw\' = \' data-toggle="dropdown"\',
+        \'tbdd_labelappend\' = \' <span class="caret"></span>\');
+
+All will generate HTML markup:
+
+  <li class="dropdown">
+    <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+      Dropdown <span class="caret"></span>
+    </a>
+
+If -tbdropdown is type map, then the values for the keys in the map will be used.  For example, using the Crisp theme <https://wrapbootstrap.com/theme/crisp-responsive-fluid-business-template-WB0F7FH2P>
+
+    -tbdropdown=map(
+        \'tbdd_liclass\' = \'parent\',
+        \'tbdd_aclass\' = \'\',
+        \'tbdd_araw\' = \'\',
+        \'tbdd_labelappend\' = \'<i></i><span class="dcjq-icon"></span>\');
+
+Will generate HTML markup:
+
+  <li class="parent">
+    <a href="#">
+      Dropdown<i></i><span class="dcjq-icon"></span>
+    </a>
+',
 		-required='key',
 		-optional='label',
 		-optional='default',
@@ -6147,7 +6329,9 @@ Make it possible to use external URL for -url (make sure there is no / before ht
 		-optional='disabled',
 		-optional='hide',
 		-optional='after',
-		-optional='data';
+		-optional='data',
+		-optional='liclass',
+		-optional='tbdropdown';
 		local: 'timer'=knop_timer, 'dotrace'=(self -> 'dotrace'); 
 		
 		fail_if: !(local_defined: 'hide') && (local: 'label') == '', -1, 'Insert requires a label';
@@ -6188,8 +6372,9 @@ Make it possible to use external URL for -url (make sure there is no / before ht
 		local_defined('title') && #title != '' ? #navitem -> insert('title' = #title); 
 		local_defined('template') && #template != '' ? #navitem -> insert('template' = #template); 
 		local_defined('children') && #children != '' ? #navitem -> insert('children' = #children); 
-		local_defined('class') && #class != '' ? #navitem -> insert('class' = #class); 
+		local_defined('class') && #class != '' ? #navitem -> insert('class' = #class);
 		local_defined('filename') && #filename != '' ? #navitem -> insert('filename' = #filename);
+		local_defined('liclass') && #liclass != '' ? #navitem -> insert('liclass' = #liclass);
 
 		if(local_defined('default') && #default != '' && #pathmapchildren >> #default);
 			// only add default that exists in children
@@ -6206,6 +6391,22 @@ Make it possible to use external URL for -url (make sure there is no / before ht
 		/if;
 		#navitem -> (insert: 'disabled'=(local_defined: 'disabled') && #disabled != false);
 		#navitem -> (insert: 'hide'=(local_defined: 'hide') && #hide != false);
+
+        if(local_defined('tbdropdown'));
+            // initiate values for the Twitter Bootstrap dropdown #item#
+            if(#tbdropdown -> isa('map'));
+                // use the custom key values in the map
+                #navitem -> insert('tbdropdown' = #tbdropdown);
+            else(#tbdropdown != false);
+                // set default values
+                #navitem -> insert('tbdropdown' = map(
+                    'tbdd_liclass' = 'dropdown',
+                    'tbdd_aclass' = 'dropdown-toggle',
+                    'tbdd_araw' = ' data-toggle="dropdown"',
+                    'tbdd_labelappend' = ' <span class="caret"></span>'));
+            /if;
+        /if;
+
 		#dotrace ? (self -> 'debug_trace') -> (insert: tag_name + ': #key=' + #key);
 		local: 'index'=(self -> 'navitems') -> size + 1;
 		if: (local_defined: 'after') && (string: #after) -> size;
@@ -6530,8 +6731,8 @@ Make it possible to use external URL for -url (make sure there is no / before ht
 	define_tag: 'setformat', -description='Sets html template for the nav object, use #items# #item# #/items# or more elaborate #items# #link##label##current##/link##children# #/items# as placeholders.\n\
 			Parameters:\n\
 			-template (optional string) Html template, defaults to <ul>#items#<li>#item#</li>#/items#</ul>\n\
-			-class (optional string) Css class name that will be used for every navigation link\n\
-			-currentclass (optional string) Css class name that will be added to the currently active navigation link (defaults to crnt)\n\
+			-class (optional string) CSS class name that will be used for every navigation link\n\
+			-currentclass (optional string) CSS class name that will be added to the currently active navigation link (defaults to crnt)\n\
 			-currentmarker (optional string) String that will be appended to menu text of currently active navigation link',
 		-optional='template', -type='string',
 		-optional='class', -type='string',
@@ -6596,6 +6797,7 @@ Make it possible to use external URL for -url (make sure there is no / before ht
 		local: '_expand' = (local_defined: 'expand') && #expand != false;
 		
 		local: 'template'=(self -> 'template' != '' ? self -> 'template' | #topself -> 'template');
+		local('ulclass' = self->'ulclass');
 		local: 'clientparams'=client_getparams;
 		#clientparams -> (merge: client_postparams);
 		
@@ -6615,7 +6817,20 @@ Make it possible to use external URL for -url (make sure there is no / before ht
 			'itemtemplate'=(string_findregexp: #template, -find='(?si)#items#(.*?)#/items#'),
 			'itemlinkstart'=string,
 			'itemlinkend'=string,
-			'itemlabel'=string;
+			'itemlabel'=string,
+            'ulclassarray'=array,
+            'liclassarray'=array,
+            'tbdd_liclass' = string,
+            'tbdd_aclass' = string,
+            'tbdd_araw' = string,
+            'tbdd_labelappend' = string;
+		// construct the array of classes for the current <ul>
+		if(#template->beginswith('<ul>') && #ulclass != '');
+		    #ulclassarray = #ulclass->split(' ');
+		/if;
+        if(#ulclassarray->size > 0);
+            #template = string_replaceregexp(#template, -find='<ul', -replace=('<ul class="' + #ulclassarray->join(' ') + '"'));
+        /if;
 		#itemtemplate = (#itemtemplate -> size >= 2 ? #itemtemplate -> (get: 2) | string);
 		
 		if: (local_defined: 'renderpath') && #renderpath != '' && #renderpath != '/';
@@ -6637,6 +6852,11 @@ Make it possible to use external URL for -url (make sure there is no / before ht
 				#itemlinkend=string;
 				#itemchildren = string;
 				#currentmarker=string;
+                
+                #tbdd_liclass = string;
+                #tbdd_aclass = string;
+                #tbdd_araw = string;
+                #tbdd_labelappend = string;
 
 				#thispath=#basepath + '/' + (#navitem -> (find: 'key'));
 				#thispath -> (removeleading: '/');
@@ -6646,17 +6866,46 @@ Make it possible to use external URL for -url (make sure there is no / before ht
 				else;
 					#itemrow = #itemtemplate;
 				/if;
+                #liclassarray = array;
+                if(#itemrow->beginswith('<li>') && #navitem->find('liclass') != '');
+                    #liclassarray = #navitem->find('liclass')->split(' ');
+                /if;
+
+                if(#navitem -> find('tbdropdown') -> isa('map'));
+                    #tbdd_liclass = #navitem -> find('tbdropdown') -> find('tbdd_liclass');
+                    #tbdd_aclass = #navitem -> find('tbdropdown') -> find('tbdd_aclass');
+                    #tbdd_araw = #navitem -> find('tbdropdown') -> find('tbdd_araw');
+                    #tbdd_labelappend = #navitem -> find('tbdropdown') -> find('tbdd_labelappend');
+                /if;
+
+                #tbdd_liclass != '' ? #liclassarray->insert(#tbdd_liclass);
+
+                if: (((#topself -> 'path') + '/') -> (beginswith: #thispath + '/'));
+                    if(#topself -> 'currentclasstags' >> 'li');
+                        // add the current class to the <li> tag
+                        #liclassarray -> (insert: ((#topself -> 'currentclass') != '' ? (#topself -> 'currentclass') | 'crnt') );
+                    /if;
+                /if;
+
+                if(#liclassarray->size > 0);
+                    #itemrow = string_replaceregexp(#itemrow, -find='<li', -replace=('<li class="' + #liclassarray->join(' ') + '"'));
+                /if;
 				#classarray = array;
 				(#topself -> 'class') != '' ? #classarray -> (insert: (#topself -> 'class'));
 				(#navitem -> (find: 'class')) != '' ? #classarray -> (insert: (#navitem -> (find: 'class')));
+
+                #tbdd_aclass != '' ? #classarray->insert('dropdown-toggle');
+
 				if: #navitem -> (find: 'disabled');
 					#itemlinkstart='<span';
 					if: #classarray -> size;
 						#itemlinkstart += ' class="' + #classarray -> (join: ' ') + '"';
 					/if;
+                    #tbdd_araw != '' ? #itemlinkstart += #tbdd_araw;
 					#itemlinkstart += '>';
 					#itemlabel=(#navitem -> (find: 'label'));
-					#itemlinkend='</span>';
+                    #tbdd_labelappend != '' ? #itemlinkend = #tbdd_labelappend;
+					#itemlinkend += '</span>';
 				else;
 					/* this code is moved into ->url
 					if: (#navitem -> (find: 'params')) -> type == 'array';
@@ -6677,18 +6926,21 @@ Make it possible to use external URL for -url (make sure there is no / before ht
 						//#dotrace ? (self -> 'debug_trace') -> (insert: tag_name + ': no params for ' + #thispath);
 						#link = (self -> (url: -path=#thispath, -topself=#topself));
 					///if;
-					
-										
+
 					#itemlinkstart = '<a href="' + #link + '"';
 					if: (#navitem -> (find: 'title')) != '';
 						#itemlinkstart += ' title="' + (encode_html: (#navitem -> (find: 'title'))) + '"';
 					/if;
 					if: (((#topself -> 'path') + '/') -> (beginswith: #thispath + '/'));
-						#classarray -> (insert: ((#topself -> 'currentclass') != '' ? (#topself -> 'currentclass') | 'crnt') );
+					    if(#topself -> 'currentclasstags' >> 'a' || #topself -> 'currentclasstags' -> size == 0);
+					        // add the current class to the <a> tag
+    						#classarray -> (insert: ((#topself -> 'currentclass') != '' ? (#topself -> 'currentclass') | 'crnt') );
+					    /if;
 					/if;
 					if: #classarray -> size;
 						#itemlinkstart += ' class="' + #classarray -> (join: ' ') + '"';
 					/if;
+                    #tbdd_araw != '' ? #itemlinkstart += #tbdd_araw;
 					#itemlinkstart += '>';
 					#itemlabel=(#navitem -> (find: 'label'));
 					if: #thispath == (#topself -> 'path');
@@ -6698,7 +6950,8 @@ Make it possible to use external URL for -url (make sure there is no / before ht
 							#currentmarker = (#topself -> 'currentmarker');
 						/if;
 					/if;
-					#itemlinkend = '</a>';
+                    #tbdd_labelappend != '' ? #itemlinkend = #tbdd_labelappend;
+					#itemlinkend += '</a>';
 					if: ( (((#topself -> 'path') + '/') -> (beginswith: #thispath + '/')) || #_expand)
 						&& self -> (haschildren: #navitem)
 						&& !#_flat;
@@ -6736,7 +6989,6 @@ Make it possible to use external URL for -url (make sure there is no / before ht
 		self -> 'tagtime'=integer: #timer; // cast to integer to trigger onconvert and to "stop timer"
 		#dotrace ? (self -> 'debug_trace') -> (insert: tag_name + ': render done in ' (self -> 'tagtime') + ' ms');
 		return: @#output;
-
 	/define_tag;
 
 	define_tag: 'renderbreadcrumb', -description='Shows the current navigation as breadcrumb trail. \n\
@@ -7844,9 +8096,43 @@ Permissions can be read, create, update, delete, or application specific (for ex
 //##################################################################
 
 ][define_tag('changenotes', -description='This tag is created on the fly by buildnamespace.lasso',
-		-namespace='knop_',
-		-optional='type', -optional='date', -copy);
-		local('output'=string, 'changenotes'=map('knop_nav'='2010-11-17	JC	Fixed bug so that session links no longer gets added to urls by the nav -> url tag.
+                -namespace='knop_',
+                -optional='type', -optional='date', -copy);
+                local('output'=string, 'changenotes'=map('knop_nav'='2013-08-04	SP	Added optional -tbdropdown parameter to ->insert method.  It may be a flag or any type.  The following values for the parameter -tbdropdown are equivalent.
+
+    -tbdropdown
+    -tbdropdown=true
+    -tbdropdown=<any non-map type or expression that evaluates to true>
+    -tbdropdown=map(
+        \'tbdd_liclass\' = \'dropdown\',
+        \'tbdd_aclass\' = \'dropdown-toggle\',
+        \'tbdd_araw\' = \' data-toggle="dropdown"\',
+        \'tbdd_labelappend\' = \' <span class="caret"></span>\');
+
+All will generate HTML markup:
+
+  <li class="dropdown">
+    <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+      Dropdown <span class="caret"></span>
+    </a>
+
+If -tbdropdown is type map, then the values for the keys in the map will be used.  For example, using the Crisp theme <https://wrapbootstrap.com/theme/crisp-responsive-fluid-business-template-WB0F7FH2P>
+
+    -tbdropdown=map(
+        \'tbdd_liclass\' = \'parent\',
+        \'tbdd_aclass\' = \'\',
+        \'tbdd_araw\' = \'\',
+        \'tbdd_labelappend\' = \'<i></i><span class="dcjq-icon"></span>\');
+
+Will generate HTML markup:
+
+  <li class="parent">
+    <a href="#">
+      Dropdown<i></i><span class="dcjq-icon"></span>
+    </a>
+2013-08-04	SP	Added optional -liclass parameter to ->insert method.  If the HTML template contains "<li>", either by setting it with -template or using the default value, then when the nav is rendered the classes will be inserted into the <li> tag.
+2013-08-02	SP	Added optional -ulclass parameter as an instance variable.  If the HTML template begins with "<ul>", either by setting it or using the default value, then when the nav is rendered the classes will be inserted into the <ul> tag.
+2010-11-17	JC	Fixed bug so that session links no longer gets added to urls by the nav -> url tag.
 2010-11-17	JC	Fixed a bug that would not convert local params to an array under certain situations
 2009-09-18	JS	Syntax adjustments for Lasso 9
 2009-09-04	JS	->linkparams: Multiple paramaters with the same name (typically checkboxes) are now passed properly
@@ -7962,7 +8248,8 @@ TODO: ->help: add output option to format for Google Code Wiki
 ->xhtml is not working properly when site is run by atbegin handler and explicitly writing to content_body 
 
 
-','knop_grid'='2011-01-01	SP	Correction of invalid HTML in <thead> and <tr>
+','knop_grid'='2014-07-10  SP  Allow grid element language strings in the language configuration file to override the instance variables in the knop_grid type.
+2011-01-01	SP	Correction of invalid HTML in <thead> and <tr>
 2010-12-23	SP	Corrected pagination bug for -numbered.
 2010-11-17	JC	Added -startwithfooter flag to grid->renderhtml.  This moves the footer before the column titles in the table header.
 2010-11-17	JC	Changed rawheader inclusion to work even if there\'s no quicksearch for a grid
@@ -8041,13 +8328,16 @@ TODO: ->help: add output option to format for Google Code Wiki
 2007-01-17	JS	Added addfield: -template
 
 TODO
-Make it possible for knop_grid to work independently of a knop_database object so other types of listings can bre created. 
-Language of quicksearch buttons can\'t be changed after the grid has been created
+Make it possible for knop_grid to work independently of a knop_database object so other types of listings can be created.
 tbody is used in renderfooter, which is not semantically correct. can\'t use tfoot though since the footer is rendered twice. 
 Move templates to a member tag to be make it easier to subclass
 Change ->addfield to ->insert and make ->addfield deprecated
 
-','knop_database'='2012-06-25	JC	Another fix for Issue #53: knop_database -> getrecord does not clear stale lockvalue.
+','knop_database'='2012-07-05	RL	knop_database -> clearlocks now accepts user object as in knop 9, (or userid - so existing code does not break).
+2012-07-04	RL	knop_database -> saverecord no longer copies user object.
+2012-07-03	RL	Yet another fix for Issue #53: knop_database -> getrecord does not clear stale lockvalue.
+2012-07-02	RL	Fix for Issue #53: knop_database -> deleterecord changes user object to string.
+2012-06-25	JC	Another fix for Issue #53: knop_database -> getrecord does not clear stale lockvalue.
 2012-06-22	JC	Fix for Issue #53: knop_database -> getrecord does not clear stale lockvalue.
 2012-06-10	SP	Fix for decimal precision bug in 8.6.0.1 in renderfooter.
 2012-01-15	SP	Add support for inline host method.  Thanks to Ric Lewis.
@@ -8206,7 +8496,16 @@ Examples
 	$lang_messages -> (loggedin: -replace=(array: (field: \'firstname\'), (field: \'lastname\')));
 
 
-','knop_form'='2011-02-28	JS	->addfield: Added -template to specify field specific template 
+','knop_form'='2015-02-21  SP  Added -singlevalue flag to ->addfield so that checkboxes and selects which have values containing commas can be rendered "checked" or "selected" when those values have been checked or selected after loading the field.
+2013-11-16  SP  removed file from exceptionfieldtypes because it prevented adding error messages to custom widgets
+2013-11-16  SP  ->renderform: avoid adding -contenttype parameters to post forms since it conflicts with file uploads
+2013-11-04  SP  Added support for buttons to custom widget templates.
+2013-11-04  SP  Added support for inputs of type radio and checkbox, and textarea to custom widget templates.
+2013-11-03  SP  Added support for <select> to custom widget templates.
+2013-11-03  SP  Added -group and -groupclass options to ->addfield for custom widget templates.
+2013-10-20  SP  ->renderform and ->addfield(-widget=string): Added new feature.  Provide the name of a widget, which is a custom tag that serves as a template for the field.  All the features of ->renderform are supported.  More flexible than -template.  Idea obtained from Pyramid, a Python web application framework.
+2013-10-20  SP  ->fields: Added new feature.  This method returns a map of all non-special type field names and their parameters.
+2011-02-28	JS	->addfield: Added -template to specify field specific template 
 2010-11-22	SP	->init: Correction of -lockvalue handling after L9 syntax adjustment
 2010-07-18	SP	Added support for series for -options
 2010-06-10	JS	->renderform: avoid adding -upload parameters to post forms since it conflicts with file uploads (found by Steve Piercy)
@@ -8342,16 +8641,16 @@ Option for -> renderhtml to output without html encoding
 ->renderhtml should never html encode fields of type html
 
 ',));
-		if(local_defined('type'));return(#changenotes -> find(#type));else;
-		!local_defined('date') ? local('date'=date('1900-01-01')) | #date = date(#date);
-		iterate(#changenotes, local('changenote'));
-			#output += #changenote -> name + '\n';
-			iterate(#changenote ->value -> split('\n'), local('changenote_row'));
-				if(date(#changenote_row -> split(regexp('\\s')) -> first) >= #date);
-					#output += #changenote_row + '\n';
-				/if;
-			/iterate;
-			#output += '\n';
-		/iterate;
-		return(@#output);/if;
-		/define_tag]
+                if(local_defined('type'));return(#changenotes -> find(#type));else;
+                !local_defined('date') ? local('date'=date('1900-01-01')) | #date = date(#date);
+                iterate(#changenotes, local('changenote'));
+                    #output += #changenote -> name + '\n';
+                    iterate(#changenote ->value -> split('\n'), local('changenote_row'));
+                        if(date(#changenote_row -> split(regexp('\\s')) -> first) >= #date);
+                            #output += #changenote_row + '\n';
+                        /if;
+                    /iterate;
+                    #output += '\n';
+                /iterate;
+                return(@#output);/if;
+                /define_tag]

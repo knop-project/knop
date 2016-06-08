@@ -5,12 +5,21 @@ define_type: 'form',
 	-namespace='knop_';
 //	-prototype; 
 
-	local: 'version'='2011-02-28',
+	local: 'version'='2013-10-20',
 		'description'='Custom type to handle forms.';
 
 /*
 
 CHANGE NOTES
+2015-02-21  SP  Added -singlevalue flag to ->addfield so that checkboxes and selects which have values containing commas can be rendered "checked" or "selected" when those values have been checked or selected after loading the field.
+2013-11-16  SP  removed file from exceptionfieldtypes because it prevented adding error messages to custom widgets
+2013-11-16  SP  ->renderform: avoid adding -contenttype parameters to post forms since it conflicts with file uploads
+2013-11-04  SP  Added support for buttons to custom widget templates.
+2013-11-04  SP  Added support for inputs of type radio and checkbox, and textarea to custom widget templates.
+2013-11-03  SP  Added support for <select> to custom widget templates.
+2013-11-03  SP  Added -group and -groupclass options to ->addfield for custom widget templates.
+2013-10-20  SP  ->renderform and ->addfield(-widget=string): Added new feature.  Provide the name of a widget, which is a custom tag that serves as a template for the field.  All the features of ->renderform are supported.  More flexible than -template.  Idea obtained from Pyramid, a Python web application framework.
+2013-10-20  SP  ->fields: Added new feature.  This method returns a map of all non-special type field names and their parameters.
 2011-02-28	JS	->addfield: Added -template to specify field specific template 
 2010-11-22	SP	->init: Correction of -lockvalue handling after L9 syntax adjustment
 2010-07-18	SP	Added support for series for -options
@@ -191,7 +200,7 @@ Option for -> renderhtml to output without html encoding
 	local: 'validfieldtypes' = (map: 'text', 'password', 'checkbox', 'radio', 'textarea', 'select', 'file', 'search',
 				'submit', 'reset', 'image', 'hidden', 
 				'fieldset', 'legend', 'html'), // special types
-		'exceptionfieldtypes' = (map: 'file', 'submit', 'reset', 'image', 'addbutton', 'savebutton', 'deletebutton', 'cancelbutton',
+		'exceptionfieldtypes' = (map: /* 'file',  */'submit', 'reset', 'image', 'addbutton', 'savebutton', 'deletebutton', 'cancelbutton',
 				'fieldset', 'legend', 'html'); // special types
 	local: 'validfieldtypes_array'=array;
 	iterate: #validfieldtypes, (local: 'temp');
@@ -381,7 +390,13 @@ Option for -> renderhtml to output without html encoding
 			-filter (optional) Compound expression to filter the input before it is loaded into the form by ->loadfields. The field value can be accessed as params inside the expression which should return the filtered field value. -filter is applied before validation. \n\
 			-nowarning (optional flag) If specified then changing the field will not trigger an unsaved warning\n\
 			-after (optional) Numeric index or name of field to insert after\n\
-			-template (optional) Format string that will override global template or buttontemplate',
+			-template (optional) Format string that will override global template or buttontemplate\n\
+			-widget (optional) Name of a widget to use as a template for a given field.\n\
+			-errorclass (optional) A class for custom widgets to indicate through CSS that the user caused an error.\n\
+			-placeholder (optional) Similar to -hint, but for custom widgets.  Adds placeholder text for fields using HTML5 standards.\n\
+			-group (optional) For custom widgets.  Wraps a widget—defined as a control, its label, and its messages—with HTML as defined in the widget template.  Twitter Bootstrap also uses the group markup for styling fields as inline.  Boolean.  Default is false.\n\
+			-groupclass (optional) A class for custom widgets.  Adds a class to the wrapper HTML of the widget.  Allows easier toggling of widget display between vertical, horizontal, and inline.  Requires -group=true.\n\
+            -singlevalue (optional flag) The form field has only a single value and not multiple values separated by commas',
 		-required='type',
 		-optional='name',
 		-optional='id',	
@@ -407,7 +422,14 @@ Option for -> renderhtml to output without html encoding
 		-optional='filter', -type='tag',
 		-optional='nowarning',
 		-optional='after',
-		-optional='template';
+		-optional='template',
+		-optional='widget',
+		-optional='errorclass',
+		-optional='placeholder',
+		-optional='group',
+		-optional='groupclass',
+		-optional='singlevalue'
+		;
 		// TODO: add optiontemplate to be able to format individual options
 		local: 'timer'=knop_timer; 
 		
@@ -446,7 +468,8 @@ Option for -> renderhtml to output without html encoding
 			'linebreak'=(local_defined: 'linebreak') 	&& #linebreak != false,
 			'focus'=(local_defined: 'focus') 			&& #focus != false,
 			'nowarning'=(local_defined: 'nowarning') 	&& #nowarning != false,
-			'disabled'=(local_defined: 'disabled') 		&& #disabled != false
+			'disabled'=(local_defined: 'disabled') 		&& #disabled != false,
+            'singlevalue'=local_defined('singlevalue') && #singlevalue != false
 			);
 		if: (self -> 'exceptionfieldtypes') >> #_type;
 			// || (map: 'legend', 'fieldset', 'html') >> #_type;
@@ -470,6 +493,12 @@ Option for -> renderhtml to output without html encoding
 		local_defined('confirmmessage') ? #field -> insert('confirmmessage' = #confirmmessage);
 		local_defined('originaltype') ? #field -> insert('originaltype' = #originaltype);
 		(local_defined: 'template') ? #field -> (insert: 'template'=#template);
+        // the following params are for use in custom widgets only
+		local_defined('widget') ? #field -> insert('widget'=#widget);
+        local_defined('errorclass') ? #field -> insert('errorclass' = #errorclass);
+        local_defined('placeholder') ? #field -> insert('placeholder' = #placeholder);
+        local_defined('group') && #group != false ? #field -> insert('group' = #group);
+        local_defined('groupclass') ? #field -> insert('groupclass' = #groupclass);
 
 		#field -> (insert: 'dbfield'=( (local_defined: 'dbfield') ? #dbfield | #_name ) );
 		(local_defined: 'value') ? #field -> (insert: 'defaultvalue'=#value);
@@ -1105,7 +1134,8 @@ Option for -> renderhtml to output without html encoding
 			'fieldvalue'=string,
 			'fieldvalue_array'=array,
 			'options'=array,
-			'focusfield';
+			'focusfield',
+			'singlevalue'=false;
 
 		local: 'clientparams'=client_getparams;
 		#clientparams -> (merge: client_postparams);
@@ -1158,6 +1188,7 @@ Option for -> renderhtml to output without html encoding
 							if: #clientparam -> name -> (beginswith: '-') 
 							    && !(#clientparam -> name -> (beginswith: '-upload.'))
 							    && !(#clientparam -> name -> (beginswith: '-upload2.'))
+							    && !(#clientparam -> name -> (beginswith: '-contenttype'))
 								&& #clientparam -> name != '-session'
 								&& (self -> 'fields') !>> #clientparam -> name
 								// check if param name appears in form action
@@ -1295,10 +1326,11 @@ Option for -> renderhtml to output without html encoding
 				#onefield = #fieldpair -> value;
 				#fieldvalue = (#onefield -> (find: 'value'));
 				#fieldvalue_array = #fieldvalue;
+                #singlevalue = #onefield -> find('singlevalue');
 				if: #fieldvalue_array -> type != 'array';
 					if: #fieldvalue_array >> '\r'; // Filemaker value list with multiple checked
 						#fieldvalue_array = #fieldvalue_array -> (split: '\r');
-					else: #fieldvalue_array >> ','; // Other database with multiple checked
+					else(#fieldvalue_array >> ',' && !#singlevalue); // Other database with multiple checked
 						#fieldvalue_array = #fieldvalue_array -> (split: ',');
 					else;
 						#fieldvalue_array = array: #fieldvalue_array;
@@ -1344,305 +1376,350 @@ Option for -> renderhtml to output without html encoding
 						#focusfield = #id;
 					/if;
 					
-					// set field label, with error marker if field validation failed
-					// if: (self -> 'exceptionfieldtypes') >> (#onefield -> (find: 'type')) && (#onefield -> (find: 'type')) != 'file';
-					//	#renderrow -> (replace: '#label#', '');
-					//else: 
-					if: (self -> 'errors') -> type == 'array' && (self -> 'errors') >> (#onefield -> (find: 'name'));
-						#renderrow -> (replace: '#label#', 
-							'<label for="' + #id + '" id="' + #id + '_label" ' + #errorclass + '>' + (#onefield -> find('label')) + '</label>');
-						if: #focusfield == '';
-							#focusfield = #id;
-						/if;
-					else;
-						#renderrow -> (replace: '#label#', '<label for="' + #id + '" id="' + #id + '_label">' + (#onefield -> find('label')) + '</label>');
-					/if;
-					
-					// set markers for required fields 
-					if: #onefield -> (find: 'required') && !((self -> 'exceptionfieldtypes') >> (#onefield -> (find: 'type')) );
-						#renderrow -> (replace: '#required#', (encode_smart: #requiredmarker));
-					else;
-						#renderrow -> (replace: '#required#', '');
-					/if;
-					#renderfield=string;
-					#renderfield_base = ' name="' + (encode_html: (#onefield -> (find: 'name'))) + '"'
-						+ (#onefield >> 'class' ?  ' class="' + (#onefield -> (find: 'class')) + '"' 
-							| (#defaultclass != '' ? ' class="' + #defaultclass + '"') )
-						+ ' id="' +  (encode_html: #id) + '"'
-						+ (#onefield >> 'raw'	?  ' ' + (#onefield -> (find: 'raw')) )
-						+ (#onefield -> (find: 'disabled') ? ' disabled="disabled"');
+                    local('widget'= #onefield -> find('widget'));
 
-					#fieldtype=(#onefield -> (find: 'type'));
-					if: #fieldtype == 'search' && client_type !>> 'WebKit';
-						// only show <input type=search" for WebKit based browsers like Safari
-						#fieldtype = 'text';
-					/if;
-					select: #fieldtype;
-					case: 'html';
-						#renderrow = #template;
-						#renderrow -> (replace: '#label#', '');
-						#renderrow -> (replace: '#required#', '');
-						#renderfield = #fieldvalue + '\n';
-					case: 'legend';
-						#renderrow = '';
-						if: (self -> 'render_fieldset_open');
-							#output += '</fieldset>\n';
-							(self -> 'render_fieldset_open') = false;
-						/if;
-						#output += '<fieldset' 
-							+ (#onefield >> 'class' ?  ' class="' + (#onefield -> (find: 'class')) + '"' 
-								| (#defaultclass != '' ? ' class="' + #defaultclass + '"') )
-							+ ((#onefield -> (find: 'id') != '') ? ' id="' + #id + '"') 
-							+ '>\n';
-						(self -> 'render_fieldset_open') = true;
-						#output += '<legend>' + (encode_html: #fieldvalue) + '</legend>\n';
-					case: 'fieldset';
-						#renderrow = '';
-						if: (self -> 'render_fieldset_open');
-							#output += '</fieldset>\n';
-							(self -> 'render_fieldset_open') = false;
-						/if;
-						if: #fieldvalue !== false;
-							(self -> 'render_fieldset_open') = true;
-							#output += '<fieldset' 
-							+ (#onefield >> 'class' ?  ' class="' + (#onefield -> (find: 'class')) + '"' 
-								| (#defaultclass != '' ? ' class="' + #defaultclass + '"') )
-							+ ((#onefield -> (find: 'id') != '') ? ' id="' + #id + '"') 
-							+ '>\n<legend>' + (encode_html: #fieldvalue) + '</legend>\n'; // must contain a legend
-						/if;
-					case: 'hidden';
-						#renderfield += '<input type="hidden"' 
-							+ #renderfield_base
-							+ ' value="' + (encode_html: #fieldvalue) + '"';
-						#renderfield += #endslash + '>';
-						#renderrow = '';
-						#output += #renderfield + '\n';
-					case: 'text';
-						#renderfield += '<input type="text"' 
-							+ #renderfield_base
-							+ ' value="' + (encode_html: #fieldvalue) + '"'
-							+ (#onefield >> 'size' 	? ' size="' + (#onefield -> (find: 'size')) + '"' )
-							+ (#onefield >> 'maxlength' 	? ' maxlength="' + (#onefield -> (find: 'maxlength')) + '"' );
-						if: !(self -> 'noscript') && (#onefield -> (find: 'hint')) != '';
-							#renderfield += ' onfocus="clearHint(this)" onblur="setHint(this, \'' (#onefield -> (find: 'hint')) '\')"';
-							#usehint -> (insert: (#onefield -> find: 'name') = #id);
-						/if;
-						if: !(self -> 'noscript') && !#nowarning;
-							#renderfield += ' onkeydown="dirtyvalue(this)" onkeyup="makedirty(this)"';
-						/if;
-						#renderfield += #endslash + '>';
-					case: 'search';
-						#renderfield += '<input type="search"' 
-							+ #renderfield_base
-							+ ' value="' + (encode_html: #fieldvalue) + '"'
-							+ (#onefield >> 'size' 	? ' size="' + (#onefield -> (find: 'size')) + '"' );
-						if: (#onefield -> (find: 'hint')) != '';
-							#renderfield += ' placeholder="' + (encode_html: (#onefield -> (find: 'hint'))) + '"';
-						/if;
-						if: !(self -> 'noscript') && !#nowarning;
-							#renderfield += ' onkeydown="dirtyvalue(this)" onkeyup="makedirty(this)"';
-						/if;
-						#renderfield += #endslash + '>';
-					case: 'password';
-						#renderfield += '<input type="password"' 
-							+ #renderfield_base
-							+ ' value="' + (encode_html: #fieldvalue) + '"'
-							+ (#onefield >> 'size' 	? ' size="' + (#onefield -> (find: 'size')) + '"' );
-						if: !(self -> 'noscript') && !#nowarning;
-							#renderfield += ' onkeydown="dirtyvalue(this)" onkeyup="makedirty(this)"';
-						/if;
-						#renderfield += #endslash + '>';
-					case: 'textarea';
-						#renderfield += '<textarea' 
-							+ #renderfield_base
-							+ (#onefield >> 'cols' 	? ' cols="' + (#onefield -> (find: 'cols')) + '"')
-							+ (#onefield >> 'rows' 	? ' rows="' + (#onefield -> (find: 'rows')) + '"');
-						if: !(self -> 'noscript') && (#onefield -> (find: 'hint')) != '';
-							#renderfield += ' onfocus="clearHint(this)" onblur="setHint(this, \'' (#onefield -> (find: 'hint')) '\')"';
-							#usehint -> (insert: (#onefield -> find: 'name') = #id);
-						/if;
-						if: !(self -> 'noscript') && !#nowarning;
-							#renderfield += ' onkeydown="dirtyvalue(this)" onkeyup="makedirty(this)"';
-						/if;
-						#renderfield += '>'
-							+ (encode_html: #fieldvalue) + '</textarea>';
-					case: 'checkbox';
-						local: 'optioncount'=integer;
-						#renderfield += '<div class="inputgroup'
-							+ (#onefield >> 'class' ?  ' ' + (#onefield -> find('class'))
-							| (#defaultclass != '' ? ' ' + #defaultclass) ) 
-							+ '" id="' + #id + '">\n';
-						iterate: #options, (local: 'option');
-							#optioncount += 1;
-							#renderfield += (#optioncount > 1 && (#onefield -> find: 'linebreak') ? '<br' + #endslash + '>') + '\n';
-							if: #option -> name == '-optgroup';
-								#renderfield += (!(#onefield -> find: 'linebreak') && #optioncount > 1 ? '\n<br' + #endslash + '>');
-								if: #option -> value != '-optgroup';
-									#renderfield += #option -> value
-										+ (!(#onefield -> find: 'linebreak') ? '<br' + #endslash + '>\n');
-								/if;
-							else;
-								#renderfield +=  '<input type="checkbox"'
-									+ (string_replaceregexp: #renderfield_base, -find='id="(.+?)"', -replace=('id="\\1_' + #optioncount + '"'))
-									+ ' value="' + (encode_html: #option -> name) + '"';
-								if: #option -> name != '' && #fieldvalue_array >> #option -> name;
-									#renderfield +=' checked="checked"';
-								/if;
-								if: !(self -> 'noscript') && !#nowarning;
-									#renderfield += ' onclick="makedirty();"';
-								/if;
-								#renderfield += #endslash + '> <label for="' + #id + '_' + #optioncount 
-									+ '" id="' + #id + '_' + #optioncount + '_label"';
-								if: (self -> 'noscript') && !#nowarning;
-									#renderfield += ' onclick="makedirty();"';
-								/if;
-								#renderfield += '>' + (#option -> value) + '</label> ';
-							/if;
-						/iterate;
-						#renderfield += '</div>\n';
-					case: 'radio';
-						local: 'optioncount'=integer;
-						#renderfield += '<div class="inputgroup'
-							+ (#onefield >> 'class' ?  ' ' + (#onefield -> find('class'))
-							| (#defaultclass != '' ? ' ' + #defaultclass) ) 
-							+ '" id="' + #id + '">\n';
-						iterate: #options, (local: 'option');
-							#optioncount += 1;
-							#renderfield += (#optioncount > 1 && (#onefield -> find: 'linebreak') ? '<br' + #endslash + '>') + '\n';
-							if: #option -> name == '-optgroup';
-								#renderfield += (!(#onefield -> find: 'linebreak') && #optioncount > 1 ? '\n<br' + #endslash + '>');
-								if: #option -> value != '-optgroup';
-									#renderfield += #option -> value
-										+ (!(#onefield -> find: 'linebreak') ? '<br' + #endslash + '>\n');
-								/if;
-							else;
-								#renderfield += '<input type="radio"'
-									+ (string_replaceregexp: #renderfield_base, -find='id="(.+?)"', -replace=('id="\\1_' + #optioncount + '"'))
-									+ ' value="' + (encode_html: #option -> name) + '"';
-								if: #option -> name != '' && #fieldvalue_array >> #option -> name;
-									#renderfield +=' checked="checked"';
-								/if;
-								if: !(self -> 'noscript') && !#nowarning;
-									#renderfield += ' onclick="makedirty();"';
-								/if;
-								#renderfield += #endslash + '> <label for="' + #id + '_' + #optioncount 
-									+ '" id="' + #id + '_' + #optioncount + '_label"';
-								if: !(self -> 'noscript') && !#nowarning;
-									#renderfield += ' onclick="makedirty();"';
-								/if;
-								#renderfield += '>' + (#option -> value) + '</label> ';
-							/if;
-						/iterate;
-						#renderfield += '</div>\n';
-					case: 'select';
-						#renderfield += '<select '
-							+ #renderfield_base
-							+ (#onefield -> (find: 'multiple') ? ' multiple')
-							+ (#onefield >> 'size' 	? ' size="' + (#onefield -> (find: 'size')) + '"' );
-						if: !(self -> 'noscript') && !#nowarning;
-							if: #renderfield >> 'onchange="';
-								#renderfield -> (replace: 'onchange="', 'onchange="makedirty();');
-							else;
-								#renderfield += ' onchange="makedirty()"';
-							/if;
-						/if;
-						#renderfield += '>\n';
-						if: (#onefield -> (find: 'default')) != '' && (#onefield -> (find: 'size')) <= 1;
-							#renderfield += '<option'
-								+ ' value="">' + (encode_html: (#onefield -> (find: 'default'))) + '</option>\n';
-							#renderfield += '<option'
-								+ ' value=""></option>\n';
-						/if;
-						local: 'optgroup_open'=false;
-						iterate: #options, (local: 'option');
-							if: #option -> name == '-optgroup';
-								if: #optgroup_open;
-									#renderfield += '</optgroup>\n';
-								/if;
-								if: #option -> value != '-optgroup';
-									#renderfield += '<optgroup label="' + (#option -> value) + '">\n';
-									#optgroup_open = true;
-								/if;
-							else;
-								#renderfield += '<option'
-									+ ' value="' + (encode_html: #option -> name) + '"';
-								if: #option -> name != '' && #fieldvalue_array >> #option -> name;
-									#renderfield +=' selected="selected"';
-								/if;
-								#renderfield +=  '>' + (encode_html: #option -> value) + '</option>\n';
-							/if;
-						/iterate;
-						if: #optgroup_open;
-							#renderfield += '</optgroup>\n';
-						/if;
-						#renderfield += '</select>\n';
-					case: 'submit';
-						#renderfield += '<input type="submit"' 
-							+ #renderfield_base
-							+ ' value="' + (encode_html: #fieldvalue) + '"';
-						if: (self -> formmode) == 'add' 
-							&& !(#onefield -> (find: 'disabled')) // already disabled
-							&& (#onefield -> (find: 'originaltype') == 'savebutton' || #onefield -> (find: 'originaltype') == 'deletebutton'
-							|| #onefield -> (find: 'name') == 'button_save' || #onefield -> (find: 'name') == 'button_delete');
-							#renderfield += ' disabled="disabled"';
-						/if;
-						if: !(self -> 'noscript') 
-							&& (#onefield -> (find: 'name') == 'button_delete' 
-								|| #onefield -> (find: 'originaltype') == 'deletebutton' 
-								|| #onefield -> (find: 'confirmmessage') != '');
-							local: 'confirmmessage'=(#onefield -> (find: 'confirmmessage') != '' 
-								? #onefield -> (find: 'confirmmessage') | 'Really delete?');
-							#confirmmessage -> (replace: '"', '&quot;');
-							#confirmmessage -> (replace: '\'', '\\\'');
-							#renderfield += ' onclick="return confirm(\'' + #confirmmessage +  '\')"';
-						/if;
-						#renderfield += #endslash + '>';
-					case: 'reset';
-						#renderfield += '<input type="reset"' 
-							+ #renderfield_base
-							+ ' value="' + (encode_html: #fieldvalue) + '"';
-						if: !(self -> 'noscript') && #onefield -> (find: 'confirmmessage') != '';
-							local: 'confirmmessage'=#onefield -> (find: 'confirmmessage');
-							#confirmmessage -> (replace: '"', '&quot;');
-							#confirmmessage -> (replace: '\'', '\\\'');
-							#renderfield += ' onclick="if(confirm(\'' + #confirmmessage +  '\')){makeundirty();return true}else{return false};"';
-						else: !(self -> 'noscript');
-							#renderfield += ' onclick="makeundirty();"';
-						/if;
-						#renderfield += #endslash + '>';
-					case: 'image';
-						#renderfield += '<input type="image"' 
-							+ #renderfield_base
-							+ ' value="' + (encode_html: #fieldvalue) + '"';
-						if: (self -> formmode) == 'add' && 
-							(#onefield -> (find: 'originaltype') == 'savebutton' || #onefield -> (find: 'originaltype') == 'deletebutton'
-							|| #onefield -> (find: 'name') == 'button_save' || #onefield -> (find: 'name') == 'button_delete');
-							#renderfield += ' disabled="disabled"';
-						/if;
-						if: !(self -> 'noscript')
-							&& (#onefield -> (find: 'name') == 'button_delete' 
-								|| #onefield -> (find: 'originaltype') == 'deletebutton' 
-								|| #onefield -> (find: 'confirmmessage') != '');
-							local: 'confirmmessage'=(#onefield -> (find: 'confirmmessage') != '' 
-								? #onefield -> (find: 'confirmmessage') | 'Really delete?');
-							#confirmmessage -> (replace: '"', '&quot;');
-							#confirmmessage -> (replace: '\'', '\\\'');
-							#renderfield += ' onclick="return confirm(\'' + #confirmmessage +  '\')"';
-						/if;
-						#renderfield += #endslash + '>';
-					case: 'file';
-						#renderfield += '<input type="file"' 
-							+ #renderfield_base;
-						if: !(self -> 'noscript') && !#nowarning;
-							if: #renderfield >> 'onchange="';
-								#renderfield -> (replace: 'onchange="', 'onchange="makedirty();');
-							else;
-								#renderfield += ' onchange="makedirty()"';
-							/if;
-						/if;
-						#renderfield += #endslash + '>';
-					/select;
-					#renderrow -> (replace: '#field#', #renderfield);
+                    if(#widget == '');
+                        // use the built-in template to renderrow
+                        // set field label, with error marker if field validation failed
+                        // if: (self -> 'exceptionfieldtypes') >> (#onefield -> (find: 'type')) && (#onefield -> (find: 'type')) != 'file';
+                        //	#renderrow -> (replace: '#label#', '');
+                        //else: 
+                        if: (self -> 'errors') -> type == 'array' && (self -> 'errors') >> (#onefield -> (find: 'name'));
+                            #renderrow -> (replace: '#label#', 
+                                '<label for="' + #id + '" id="' + #id + '_label" ' + #errorclass + '>' + (#onefield -> find('label')) + '</label>');
+                            if: #focusfield == '';
+                                #focusfield = #id;
+                            /if;
+                        else;
+                            #renderrow -> (replace: '#label#', '<label for="' + #id + '" id="' + #id + '_label">' + (#onefield -> find('label')) + '</label>');
+                        /if;
+                        
+                        // set markers for required fields 
+                        if: #onefield -> (find: 'required') && !((self -> 'exceptionfieldtypes') >> (#onefield -> (find: 'type')) );
+                            #renderrow -> (replace: '#required#', (encode_smart: #requiredmarker));
+                        else;
+                            #renderrow -> (replace: '#required#', '');
+                        /if;
+                        #renderfield=string;
+                        #renderfield_base = ' name="' + (encode_html: (#onefield -> (find: 'name'))) + '"'
+                            + (#onefield >> 'class' ?  ' class="' + (#onefield -> (find: 'class')) + '"' 
+                                | (#defaultclass != '' ? ' class="' + #defaultclass + '"') )
+                            + ' id="' +  (encode_html: #id) + '"'
+                            + (#onefield >> 'raw'	?  ' ' + (#onefield -> (find: 'raw')) )
+                            + (#onefield -> (find: 'disabled') ? ' disabled="disabled"');
+    
+                        #fieldtype=(#onefield -> (find: 'type'));
+                        if: #fieldtype == 'search' && client_type !>> 'WebKit';
+                            // only show <input type=search" for WebKit based browsers like Safari
+                            #fieldtype = 'text';
+                        /if;
+                        select: #fieldtype;
+                        case: 'html';
+                            #renderrow = #template;
+                            #renderrow -> (replace: '#label#', '');
+                            #renderrow -> (replace: '#required#', '');
+                            #renderfield = #fieldvalue + '\n';
+                        case: 'legend';
+                            #renderrow = '';
+                            if: (self -> 'render_fieldset_open');
+                                #output += '</fieldset>\n';
+                                (self -> 'render_fieldset_open') = false;
+                            /if;
+                            #output += '<fieldset' 
+                                + (#onefield >> 'class' ?  ' class="' + (#onefield -> (find: 'class')) + '"' 
+                                    | (#defaultclass != '' ? ' class="' + #defaultclass + '"') )
+                                + ((#onefield -> (find: 'id') != '') ? ' id="' + #id + '"') 
+                                + '>\n';
+                            (self -> 'render_fieldset_open') = true;
+                            #output += '<legend>' + (encode_html: #fieldvalue) + '</legend>\n';
+                        case: 'fieldset';
+                            #renderrow = '';
+                            if: (self -> 'render_fieldset_open');
+                                #output += '</fieldset>\n';
+                                (self -> 'render_fieldset_open') = false;
+                            /if;
+                            if: #fieldvalue !== false;
+                                (self -> 'render_fieldset_open') = true;
+                                #output += '<fieldset' 
+                                + (#onefield >> 'class' ?  ' class="' + (#onefield -> (find: 'class')) + '"' 
+                                    | (#defaultclass != '' ? ' class="' + #defaultclass + '"') )
+                                + ((#onefield -> (find: 'id') != '') ? ' id="' + #id + '"') 
+                                + '>\n<legend>' + (encode_html: #fieldvalue) + '</legend>\n'; // must contain a legend
+                            /if;
+                        case: 'hidden';
+                            #renderfield += '<input type="hidden"' 
+                                + #renderfield_base
+                                + ' value="' + (encode_html: #fieldvalue) + '"';
+                            #renderfield += #endslash + '>';
+                            #renderrow = '';
+                            #output += #renderfield + '\n';
+                        case: 'text';
+                            #renderfield += '<input type="text"' 
+                                + #renderfield_base
+                                + ' value="' + (encode_html: #fieldvalue) + '"'
+                                + (#onefield >> 'size' 	? ' size="' + (#onefield -> (find: 'size')) + '"' )
+                                + (#onefield >> 'maxlength' 	? ' maxlength="' + (#onefield -> (find: 'maxlength')) + '"' );
+                            if: !(self -> 'noscript') && (#onefield -> (find: 'hint')) != '';
+                                #renderfield += ' onfocus="clearHint(this)" onblur="setHint(this, \'' (#onefield -> (find: 'hint')) '\')"';
+                                #usehint -> (insert: (#onefield -> find: 'name') = #id);
+                            /if;
+                            if: !(self -> 'noscript') && !#nowarning;
+                                #renderfield += ' onkeydown="dirtyvalue(this)" onkeyup="makedirty(this)"';
+                            /if;
+                            #renderfield += #endslash + '>';
+                        case: 'search';
+                            #renderfield += '<input type="search"' 
+                                + #renderfield_base
+                                + ' value="' + (encode_html: #fieldvalue) + '"'
+                                + (#onefield >> 'size' 	? ' size="' + (#onefield -> (find: 'size')) + '"' );
+                            if: (#onefield -> (find: 'hint')) != '';
+                                #renderfield += ' placeholder="' + (encode_html: (#onefield -> (find: 'hint'))) + '"';
+                            /if;
+                            if: !(self -> 'noscript') && !#nowarning;
+                                #renderfield += ' onkeydown="dirtyvalue(this)" onkeyup="makedirty(this)"';
+                            /if;
+                            #renderfield += #endslash + '>';
+                        case: 'password';
+                            #renderfield += '<input type="password"' 
+                                + #renderfield_base
+                                + ' value="' + (encode_html: #fieldvalue) + '"'
+                                + (#onefield >> 'size' 	? ' size="' + (#onefield -> (find: 'size')) + '"' );
+                            if: !(self -> 'noscript') && !#nowarning;
+                                #renderfield += ' onkeydown="dirtyvalue(this)" onkeyup="makedirty(this)"';
+                            /if;
+                            #renderfield += #endslash + '>';
+                        case: 'textarea';
+                            #renderfield += '<textarea' 
+                                + #renderfield_base
+                                + (#onefield >> 'cols' 	? ' cols="' + (#onefield -> (find: 'cols')) + '"')
+                                + (#onefield >> 'rows' 	? ' rows="' + (#onefield -> (find: 'rows')) + '"');
+                            if: !(self -> 'noscript') && (#onefield -> (find: 'hint')) != '';
+                                #renderfield += ' onfocus="clearHint(this)" onblur="setHint(this, \'' (#onefield -> (find: 'hint')) '\')"';
+                                #usehint -> (insert: (#onefield -> find: 'name') = #id);
+                            /if;
+                            if: !(self -> 'noscript') && !#nowarning;
+                                #renderfield += ' onkeydown="dirtyvalue(this)" onkeyup="makedirty(this)"';
+                            /if;
+                            #renderfield += '>'
+                                + (encode_html: #fieldvalue) + '</textarea>';
+                        case: 'checkbox';
+                            local: 'optioncount'=integer;
+                            #renderfield += '<div class="inputgroup'
+                                + (#onefield >> 'class' ?  ' ' + (#onefield -> find('class'))
+                                | (#defaultclass != '' ? ' ' + #defaultclass) ) 
+                                + '" id="' + #id + '">\n';
+                            iterate: #options, (local: 'option');
+                                #optioncount += 1;
+                                #renderfield += (#optioncount > 1 && (#onefield -> find: 'linebreak') ? '<br' + #endslash + '>') + '\n';
+                                if: #option -> name == '-optgroup';
+                                    #renderfield += (!(#onefield -> find: 'linebreak') && #optioncount > 1 ? '\n<br' + #endslash + '>');
+                                    if: #option -> value != '-optgroup';
+                                        #renderfield += #option -> value
+                                            + (!(#onefield -> find: 'linebreak') ? '<br' + #endslash + '>\n');
+                                    /if;
+                                else;
+                                    #renderfield +=  '<input type="checkbox"'
+                                        + (string_replaceregexp: #renderfield_base, -find='id="(.+?)"', -replace=('id="\\1_' + #optioncount + '"'))
+                                        + ' value="' + (encode_html: #option -> name) + '"';
+                                    if: #option -> name != '' && #fieldvalue_array >> #option -> name;
+                                        #renderfield +=' checked="checked"';
+                                    /if;
+                                    if: !(self -> 'noscript') && !#nowarning;
+                                        #renderfield += ' onclick="makedirty();"';
+                                    /if;
+                                    #renderfield += #endslash + '> <label for="' + #id + '_' + #optioncount 
+                                        + '" id="' + #id + '_' + #optioncount + '_label"';
+                                    if: (self -> 'noscript') && !#nowarning;
+                                        #renderfield += ' onclick="makedirty();"';
+                                    /if;
+                                    #renderfield += '>' + (#option -> value) + '</label> ';
+                                /if;
+                            /iterate;
+                            #renderfield += '</div>\n';
+                        case: 'radio';
+                            local: 'optioncount'=integer;
+                            #renderfield += '<div class="inputgroup'
+                                + (#onefield >> 'class' ?  ' ' + (#onefield -> find('class'))
+                                | (#defaultclass != '' ? ' ' + #defaultclass) ) 
+                                + '" id="' + #id + '">\n';
+                            iterate: #options, (local: 'option');
+                                #optioncount += 1;
+                                #renderfield += (#optioncount > 1 && (#onefield -> find: 'linebreak') ? '<br' + #endslash + '>') + '\n';
+                                if: #option -> name == '-optgroup';
+                                    #renderfield += (!(#onefield -> find: 'linebreak') && #optioncount > 1 ? '\n<br' + #endslash + '>');
+                                    if: #option -> value != '-optgroup';
+                                        #renderfield += #option -> value
+                                            + (!(#onefield -> find: 'linebreak') ? '<br' + #endslash + '>\n');
+                                    /if;
+                                else;
+                                    #renderfield += '<input type="radio"'
+                                        + (string_replaceregexp: #renderfield_base, -find='id="(.+?)"', -replace=('id="\\1_' + #optioncount + '"'))
+                                        + ' value="' + (encode_html: #option -> name) + '"';
+                                    if: #option -> name != '' && #fieldvalue_array >> #option -> name;
+                                        #renderfield +=' checked="checked"';
+                                    /if;
+                                    if: !(self -> 'noscript') && !#nowarning;
+                                        #renderfield += ' onclick="makedirty();"';
+                                    /if;
+                                    #renderfield += #endslash + '> <label for="' + #id + '_' + #optioncount 
+                                        + '" id="' + #id + '_' + #optioncount + '_label"';
+                                    if: !(self -> 'noscript') && !#nowarning;
+                                        #renderfield += ' onclick="makedirty();"';
+                                    /if;
+                                    #renderfield += '>' + (#option -> value) + '</label> ';
+                                /if;
+                            /iterate;
+                            #renderfield += '</div>\n';
+                        case: 'select';
+                            #renderfield += '<select '
+                                + #renderfield_base
+                                + (#onefield -> (find: 'multiple') ? ' multiple')
+                                + (#onefield >> 'size' 	? ' size="' + (#onefield -> (find: 'size')) + '"' );
+                            if: !(self -> 'noscript') && !#nowarning;
+                                if: #renderfield >> 'onchange="';
+                                    #renderfield -> (replace: 'onchange="', 'onchange="makedirty();');
+                                else;
+                                    #renderfield += ' onchange="makedirty()"';
+                                /if;
+                            /if;
+                            #renderfield += '>\n';
+                            if: (#onefield -> (find: 'default')) != '' && (#onefield -> (find: 'size')) <= 1;
+                                #renderfield += '<option'
+                                    + ' value="">' + (encode_html: (#onefield -> (find: 'default'))) + '</option>\n';
+                                #renderfield += '<option'
+                                    + ' value=""></option>\n';
+                            /if;
+                            local: 'optgroup_open'=false;
+                            iterate: #options, (local: 'option');
+                                if: #option -> name == '-optgroup';
+                                    if: #optgroup_open;
+                                        #renderfield += '</optgroup>\n';
+                                    /if;
+                                    if: #option -> value != '-optgroup';
+                                        #renderfield += '<optgroup label="' + (#option -> value) + '">\n';
+                                        #optgroup_open = true;
+                                    /if;
+                                else;
+                                    #renderfield += '<option'
+                                        + ' value="' + (encode_html: #option -> name) + '"';
+                                    if: #option -> name != '' && #fieldvalue_array >> #option -> name;
+                                        #renderfield +=' selected="selected"';
+                                    /if;
+                                    #renderfield +=  '>' + (encode_html: #option -> value) + '</option>\n';
+                                /if;
+                            /iterate;
+                            if: #optgroup_open;
+                                #renderfield += '</optgroup>\n';
+                            /if;
+                            #renderfield += '</select>\n';
+                        case: 'submit';
+                            #renderfield += '<input type="submit"' 
+                                + #renderfield_base
+                                + ' value="' + (encode_html: #fieldvalue) + '"';
+                            if: (self -> formmode) == 'add' 
+                                && !(#onefield -> (find: 'disabled')) // already disabled
+                                && (#onefield -> (find: 'originaltype') == 'savebutton' || #onefield -> (find: 'originaltype') == 'deletebutton'
+                                || #onefield -> (find: 'name') == 'button_save' || #onefield -> (find: 'name') == 'button_delete');
+                                #renderfield += ' disabled="disabled"';
+                            /if;
+                            if: !(self -> 'noscript') 
+                                && (#onefield -> (find: 'name') == 'button_delete' 
+                                    || #onefield -> (find: 'originaltype') == 'deletebutton' 
+                                    || #onefield -> (find: 'confirmmessage') != '');
+                                local: 'confirmmessage'=(#onefield -> (find: 'confirmmessage') != '' 
+                                    ? #onefield -> (find: 'confirmmessage') | 'Really delete?');
+                                #confirmmessage -> (replace: '"', '&quot;');
+                                #confirmmessage -> (replace: '\'', '\\\'');
+                                #renderfield += ' onclick="return confirm(\'' + #confirmmessage +  '\')"';
+                            /if;
+                            #renderfield += #endslash + '>';
+                        case: 'reset';
+                            #renderfield += '<input type="reset"' 
+                                + #renderfield_base
+                                + ' value="' + (encode_html: #fieldvalue) + '"';
+                            if: !(self -> 'noscript') && #onefield -> (find: 'confirmmessage') != '';
+                                local: 'confirmmessage'=#onefield -> (find: 'confirmmessage');
+                                #confirmmessage -> (replace: '"', '&quot;');
+                                #confirmmessage -> (replace: '\'', '\\\'');
+                                #renderfield += ' onclick="if(confirm(\'' + #confirmmessage +  '\')){makeundirty();return true}else{return false};"';
+                            else: !(self -> 'noscript');
+                                #renderfield += ' onclick="makeundirty();"';
+                            /if;
+                            #renderfield += #endslash + '>';
+                        case: 'image';
+                            #renderfield += '<input type="image"' 
+                                + #renderfield_base
+                                + ' value="' + (encode_html: #fieldvalue) + '"';
+                            if: (self -> formmode) == 'add' && 
+                                (#onefield -> (find: 'originaltype') == 'savebutton' || #onefield -> (find: 'originaltype') == 'deletebutton'
+                                || #onefield -> (find: 'name') == 'button_save' || #onefield -> (find: 'name') == 'button_delete');
+                                #renderfield += ' disabled="disabled"';
+                            /if;
+                            if: !(self -> 'noscript')
+                                && (#onefield -> (find: 'name') == 'button_delete' 
+                                    || #onefield -> (find: 'originaltype') == 'deletebutton' 
+                                    || #onefield -> (find: 'confirmmessage') != '');
+                                local: 'confirmmessage'=(#onefield -> (find: 'confirmmessage') != '' 
+                                    ? #onefield -> (find: 'confirmmessage') | 'Really delete?');
+                                #confirmmessage -> (replace: '"', '&quot;');
+                                #confirmmessage -> (replace: '\'', '\\\'');
+                                #renderfield += ' onclick="return confirm(\'' + #confirmmessage +  '\')"';
+                            /if;
+                            #renderfield += #endslash + '>';
+                        case: 'file';
+                            #renderfield += '<input type="file"' 
+                                + #renderfield_base;
+                            if: !(self -> 'noscript') && !#nowarning;
+                                if: #renderfield >> 'onchange="';
+                                    #renderfield -> (replace: 'onchange="', 'onchange="makedirty();');
+                                else;
+                                    #renderfield += ' onchange="makedirty()"';
+                                /if;
+                            /if;
+                            #renderfield += #endslash + '>';
+                        /select;
+                        #renderrow -> (replace: '#field#', #renderfield);
+                    else;
+                        // use a custom widget template to renderrow
+                        local('e' = array);
+                        if((self -> 'errors') -> type == 'array'
+                            && (self -> 'errors') >> (#onefield -> find('name')));
+                            iterate((self -> 'errors') -> find(#onefield -> find('name')), local('oe'));
+                                #oe -> isa('pair') ? #e = #oe -> second;
+                            /iterate;
+                        /if;
+                        // if field is required, use the required marker of the form
+                        local('required' = string);
+                        if(#onefield -> find('required'));
+                             #required = self -> 'required';
+                        /if;
+                        local('tw') = \#widget;
+                        #renderrow = #tw->run(
+                            -params=array(
+                                -name = #onefield -> find('name'),
+                                -class = #onefield -> find('class'),
+                                -cols = #onefield -> find('cols'),
+                                -default = #onefield -> find('default'),
+                                -disabled = #onefield -> find('disabled'),
+                                -errmsg = #e,
+                                -errorclass = #onefield -> find('errorclass'),
+                                -fieldvalue_array = #fieldvalue_array,
+                                -group = #onefield -> find('group'),
+                                -groupclass = #onefield -> find('groupclass'),
+                                -id = #id,
+                                -label = #onefield -> find('label'),
+                                -maxlength = #onefield -> find('maxlength'),
+                                -multiple = #onefield -> find('multiple'),
+                                -options = #options,
+                                -placeholder = #onefield -> find('placeholder'),
+                                -required = #required,
+                                -rows = #onefield -> find('rows'),
+                                -size = #onefield -> find('size'),
+                                -type = #onefield -> find('type'),
+                                -value = encode_html(#fieldvalue),
+                                -encodenone
+                        ));
+                    /if;
 					#output += #renderrow;
 				/if; 
 			/iterate;
@@ -1997,7 +2074,8 @@ Option for -> renderhtml to output without html encoding
 			'fieldvalue'=string,
 			'fieldvalue_array'=array,
 			'options'=array,
-			'usehint'=array;
+			'usehint'=array,
+			'singlevalue'=false;
 
 		
 		// local var that adjust tag endings if rendered for XHTML
@@ -2048,10 +2126,11 @@ Option for -> renderhtml to output without html encoding
 			#onefield = #fieldpair -> value;
 			#fieldvalue = (#onefield -> (find: 'value'));
 			#fieldvalue_array = #fieldvalue;
+            #singlevalue = #onefield -> find('singlevalue');
 			if: #fieldvalue_array -> type != 'array';
 				if: #fieldvalue_array >> '\r'; // Filemaker value list with multiple checked
 					#fieldvalue_array = #fieldvalue_array -> (split: '\r');
-				else: #fieldvalue_array >> ','; // Other database with multiple checked
+				else(#fieldvalue_array >> ',' && !#singlevalue); // Other database with multiple checked
 					#fieldvalue_array = #fieldvalue_array -> (split: ',');
 				else;
 					#fieldvalue_array = array: #fieldvalue_array;
@@ -2210,6 +2289,20 @@ Option for -> renderhtml to output without html encoding
 		self -> 'tagtime'=integer: #timer; // cast to integer to trigger onconvert and to "stop timer"
 		return: #output;
 	/define_tag;
+
+
+    define_tag('fields', -description='Returns a map of all non-special type field names and their parameters');
+        local('timer' = knop_timer);
+        local('output' = map);
+        iterate((self -> 'fields'), local('fieldpair'));
+            if(array('html', 'fieldset', 'legend') !>> #fieldpair -> name);
+                #output -> insert(#fieldpair -> name = #fieldpair -> value);
+            /if;
+        /iterate;
+        self -> 'tagtime_tagname' = tag_name;
+        self -> 'tagtime' = integer(#timer); // cast to integer to trigger onconvert and to "stop timer"
+        return(#output);
+    /define_tag;
 
 
 	define_tag: 'keyvalue'; 			return: (self -> 'db_keyvalue');		/define_tag;

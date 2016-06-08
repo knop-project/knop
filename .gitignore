@@ -1,4 +1,5 @@
 /.buildpath
 /.project
-/.DS_Store
+.DS_Store
 *.bbproject*
+SQLiteDBs/
