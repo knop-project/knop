@@ -30,7 +30,7 @@ CHANGE NOTES
 
 	parent knop_base
 
-	data public version = '2012-11-26'
+	data public version = '2016-06-08'
 
 	// instance variables
 	data public navitems::array = array
@@ -143,7 +143,7 @@ Outputs the navigation object in a very basic form, just to see what it contains
 /**!
 Shortcut to renderhtml
 **/
-	public onconvert() => .renderhtml
+	public asstring() => .renderhtml
 
 /**!
 Inserts a nav item into the nav array

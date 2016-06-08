@@ -13,6 +13,7 @@ define knop_lang => type {
 	/*
 
 	CHANGE NOTES
+	2016-06-08	JS	Changed onconvert to asString
 	2016-06-08	JS	Added back oncreate signature for named keyword (thanks to Ke)
 	2014-01-09	JC	Removed the keyword signatur oncreate since it collided with Lasso 9.2.7
 	2013-04-02	JC	Add log_critical for keys that wasn't found and if the -always flag is set
@@ -69,7 +70,7 @@ define knop_lang => type {
     )
 
 
-	public onConvert() => (self -> listmethods)
+	public asString() => (self -> listmethods)
 
 	/**!
 	_unknowntag
