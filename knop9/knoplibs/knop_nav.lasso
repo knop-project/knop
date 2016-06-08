@@ -10,6 +10,8 @@ define knop_nav => type {
 /*
 
 CHANGE NOTES
+	2016-06-08	JS	Changed onconvert to asString
+	2016-06-08	JS	Place oncreate signature for named keyword first (for no reason, really)
 	2013-08-31	JC	Added support for dropdownheader
 	2012-11-26	JC	Added support for divider list item in bootstrap
 	2012-11-26	JC	Added param raw
@@ -75,16 +77,16 @@ Parameters:\n\
 **/
 
 	public oncreate(
-		template::string = '',
-		class::string = '',
-		currentclass::string = 'crnt',
-		currentmarker::string = '',
-		default::string = '',
-		root::string = '/',
-		fileroot::string = '/',
-		navmethod::string = '',
-		filenaming::string = 'prefix',
-		trace::boolean = false
+		-template::string,
+		-class::string = string,
+		-currentclass::string = 'crnt',
+		-currentmarker::string = string,
+		-default::string = string,
+		-root::string = '/',
+		-fileroot::string = '/',
+		-navmethod::string = string,
+		-filenaming::string = 'prefix',
+		-trace::boolean = false
 
 	) => {
 //	debug => {
@@ -122,18 +124,28 @@ Parameters:\n\
 	}
 
 	public oncreate(
-		-template::string = '',
-		-class::string = '',
-		-currentclass::string = 'crnt',
-		-currentmarker::string = '',
-		-default::string = '',
-		-root::string = '/',
-		-fileroot::string = '/',
-		-navmethod::string = '',
-		-filenaming::string = 'prefix',
-		-trace::boolean = false
+		template::string = string,
+		class::string = string,
+		currentclass::string = 'crnt',
+		currentmarker::string = string,
+		default::string = string,
+		root::string = '/',
+		fileroot::string = '/',
+		navmethod::string = string,
+		filenaming::string = 'prefix',
+		trace::boolean = false
 
-	) => .oncreate(#template, #class, #currentclass, #currentmarker, #default, #root, #fileroot, #navmethod, #filenaming, #trace)
+	) => .oncreate(
+		-template=#template,
+		-class=#class,
+		-currentclass=#currentclass,
+		-currentmarker?#currentmarker,
+		-default=#default,
+		-root=#root,
+		-fileroot=#fileroot,
+		-navmethod=#navmethod,
+		-filenaming=#filenaming,
+		-trace=#trace)
 
 /**!
 Outputs the navigation object in a very basic form, just to see what it contains
@@ -223,7 +235,7 @@ Inserts a nav item into the nav array
 		-title::any = string,
 		-id::any = string,
 		-template::any = string,
-		-children::any = '',
+		-children::any = string,
 		-param::any = string,
 		-class::any = string,
 		-filename::any = string,
