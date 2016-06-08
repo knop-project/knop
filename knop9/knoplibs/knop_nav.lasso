@@ -10,6 +10,7 @@ define knop_nav => type {
 /*
 
 CHANGE NOTES
+	2016-06-08	JS	Adjustment of signatures for oncreate and data
 	2016-06-08	JS	Removed tagtime
 	2016-06-08	JS	Changed onconvert to asString
 	2016-06-08	JS	Place oncreate signature for named keyword first (for no reason, really)
@@ -78,7 +79,7 @@ Parameters:\n\
 **/
 
 	public oncreate(
-		-template::string,
+		-template::string = string,
 		-class::string = string,
 		-currentclass::string = 'crnt',
 		-currentmarker::string = string,
@@ -125,7 +126,7 @@ Parameters:\n\
 	}
 
 	public oncreate(
-		template::string = string,
+		template::string,
 		class::string = string,
 		currentclass::string = 'crnt',
 		currentmarker::string = string,
@@ -140,7 +141,7 @@ Parameters:\n\
 		-template=#template,
 		-class=#class,
 		-currentclass=#currentclass,
-		-currentmarker?#currentmarker,
+		-currentmarker=#currentmarker,
 		-default=#default,
 		-root=#root,
 		-fileroot=#fileroot,
@@ -1466,8 +1467,8 @@ Returns data object that can be stored for the current nav location (or specifie
 			-type (optional string) Force a certain return type. If the stored object doesn´t match the specified type, an empty instance of the type is returned. That way the data can be filtered by type without having to use conditionals to check the type before.
 **/
 	public data(
-		path::string = .'path',
-		type::string = ''
+		-path::string = .'path',
+		-type::string = ''
 	) => {
 
 		local(timer = knop_timer)
@@ -1490,9 +1491,9 @@ Returns data object that can be stored for the current nav location (or specifie
 	}
 
 	public data(
-		-path::string = .'path',
-		-type::string = ''
-	) => .data(#path, #type)
+		path::string,
+		type::string
+	) => .data(-path=#path, -type=#type)
 
 /*
 trace // can wait
