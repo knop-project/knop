@@ -10,6 +10,7 @@ define knop_nav => type {
 /*
 
 CHANGE NOTES
+	2016-06-10	JS	Do not cast data to string when storing it at insert
 	2016-06-08	JS	Adjustment of signatures for oncreate and data
 	2016-06-08	JS	Removed tagtime
 	2016-06-08	JS	Changed onconvert to asString
@@ -34,7 +35,7 @@ CHANGE NOTES
 
 	parent knop_base
 
-	data public version = '2016-06-08'
+	data public version = '2016-06-10'
 
 	// instance variables
 	data public navitems::array = array
@@ -203,7 +204,7 @@ Inserts a nav item into the nav array
 			'disabled' = #disabled,
 			'after' = string(#after),
 			'target' = string(#after),
-			'data' = string(#data),
+			'data' = #data,
 			'hide' = #hide,
 			'raw' = #raw,
 			'divider' = #divider,
