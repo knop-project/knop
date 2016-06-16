@@ -4,6 +4,7 @@
 define knop_form => type {
 /*
 
+	2016-06-16	JS	Disable _unknownTag
 	2014-03-13	JC	Enhanced handling of required markup
 	2013-11-26	JC	Added date to valid field types
 	2013-06-27	JC	Fixed bug that prevented captures from being used as filters. Fixed bug that prevented captures from being used for validate
@@ -47,7 +48,7 @@ define knop_form => type {
 */
 	parent knop_base
 
-	data public version = '2013-05-09'
+	data public version = '2016-06-16'
 
 	// instance variables
 	data public fields::array = array
@@ -202,7 +203,7 @@ Outputs the form data in very basic form, just to see what it contains
 /**!
 Shortcut to getvalue
 **/
-	public _unknowntag(index::integer = 1) => {
+	public not_unknowntag(index::integer = 1) => {
 // debug => {
 		local(name = string(currentCapture->calledName))
 		if(.'fields' >> #name) => { // should be (.keys) but this is faster

@@ -89,6 +89,7 @@ Permissions can be read, create, update, delete, or application specific (for ex
 define knop_user => type {
 /*
 CHANGE NOTES
+	2016-06-16	JS	Disable _unknownTag
 	2013-05-14	JC	Minor enhancement to sidejacking handling. Will log sidejacking even when allowsidejacking is true
 	2012-07-20	JC	Added getpermission(array)
 	2012-07-02	JC	Replaced all old style if, inline and loop with code blocks
@@ -106,7 +107,7 @@ CHANGE NOTES
 */
 	parent knop_base
 
-	data public version = '2012-07-20'
+	data public version = '2016-06-16'
 	data public description = 'Custom type to handle user identification and authentication'
 
 	data public fields::array = array()
@@ -237,7 +238,7 @@ Parameters:\n\
 	}
 */
 
-	public _unknownTag(...) => {
+	public not_unknownTag(...) => {
 		local(name = string(currentCapture->calledName))
 		.'data' >> #name ? return (.'data' -> find(#name))
 

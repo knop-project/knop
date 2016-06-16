@@ -11,6 +11,7 @@ define knop_database => type {
 
 	CHANGE NOTES
 
+	2016-06-16	JS	Disable _unknownTag
 	2013-06-21	JC	Added method clearlock. Will remove the lock only for the requested record. Requires a lockvalue and a valid user.
 	2012-05-02	JC	Changed date type calls to use Lasso 9 style format or asdecimal. Will speed processing up
 	2013-03-21	JC	Changed remaining iterate to query
@@ -41,7 +42,7 @@ define knop_database => type {
 
 	parent knop_base
 
-	data public version = '2012-05-02'
+	data public version = '2016-06-16'
 
 	data public description::string = 'Custom type to interact with databases. Supports both MySQL and FileMaker datasources'
 
@@ -191,8 +192,8 @@ define knop_database => type {
 /**!
 	Shortcut to field
 **/
-	public _unknownTag(...) => {
-		local(name = string(currentCapture -> calledName))
+	public not_unknownTag(...) => {
+ 		local(name = string(currentCapture -> calledName))
 		if( .'field_names_map' >> #name) => {
 			return (.field(#name))
 		else
