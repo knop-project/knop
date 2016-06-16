@@ -11,6 +11,7 @@ define knop_database => type {
 
 	CHANGE NOTES
 
+	2016-06-16	JS	Allow integer keyvalues
 	2016-06-16	JS	Disable _unknownTag
 	2016-06-16	JS	Change defaults in signature for ->select
 	2013-06-21	JC	Added method clearlock. Will remove the lock only for the requested record. Requires a lockvalue and a valid user.
@@ -70,7 +71,7 @@ define knop_database => type {
 	// these variables are set for each query
 	data public inlinename::string = string 			// the inlinename that holds the result of the latest db operation
 	data public keyfield::string = string
-	data public keyvalue::string = ''
+	data public keyvalue::any = ''
 	data public affectedrecord_keyvalue::string = '' 	// keyvalue of last added or updated record (not reset by other db actions)
 	data public lockfield::string = string
 	data public lockvalue::string = ''
@@ -418,7 +419,7 @@ Parameters:
 		-search::array = array,
 		-sql::string = '',
 		-keyfield::string = '',
-		-keyvalue::string = '',
+		-keyvalue::any = '',
 		-inlinename::string = 'inline_' + knop_unique9 // inlinename defaults to a random string
 	) => .select(#search, #sql, #keyfield, #keyvalue, #inlinename)
 
