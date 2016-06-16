@@ -10,6 +10,7 @@ define knop_nav => type {
 /*
 
 CHANGE NOTES
+	2016-06-16	JS	urlmap is now properly inherited from children
 	2016-06-16	JS	->url does not add getargs as default
 	2016-06-10	JS	Do not cast data to string when storing it at insert
 	2016-06-08	JS	Adjustment of signatures for oncreate and data
@@ -217,6 +218,10 @@ Inserts a nav item into the nav array
 			#navitem -> insert('children_nav' = #children)
 			with loopkey in #children -> 'pathmap' -> keys do => {
  				.'pathmap' -> insert(#key + '/' + #loopkey)
+			}
+			local(children_urlmap=#children -> 'urlmap')
+			with loopkey in #children_urlmap do => {
+ 				.'urlmap' -> insert(#loopkey = #key + '/' + #children_urlmap -> find(#loopkey))
 			}
 		}
 		.'navitems' -> insert(#key = #navitem)
