@@ -10,6 +10,7 @@ define knop_nav => type {
 /*
 
 CHANGE NOTES
+	2016-06-16	JS	->url does not add getargs as default
 	2016-06-10	JS	Do not cast data to string when storing it at insert
 	2016-06-08	JS	Adjustment of signatures for oncreate and data
 	2016-06-08	JS	Removed tagtime
@@ -35,7 +36,7 @@ CHANGE NOTES
 
 	parent knop_base
 
-	data public version = '2016-06-10'
+	data public version = '2016-06-16'
 
 	// instance variables
 	data public navitems::array = array
@@ -793,7 +794,7 @@ Returns full url for current path or specified path. Path parameters can be prov
 		path::string = '',
 		params::any = array,
 		urlargs::string = '',
-		getargs::boolean = true,
+		getargs::boolean = false,
 		except::any = array,
 		topself::knop_nav = self,
 		autoparams::boolean = false,
@@ -839,7 +840,6 @@ Returns full url for current path or specified path. Path parameters can be prov
 		with excepttmp in #except do => {
 			#params -> removeall(#excepttmp)
 		}
-
 		#url = (.path(#path) + (.path(#path) != '' ? '/'))
 		if(.getargs -> size > 0 && #getargs) => {
 			// for links to the current path, add the path args
