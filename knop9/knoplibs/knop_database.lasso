@@ -12,6 +12,7 @@ define knop_database => type {
 	CHANGE NOTES
 
 	2016-06-16	JS	Disable _unknownTag
+	2016-06-16	JS	Change defaults in signature for ->select
 	2013-06-21	JC	Added method clearlock. Will remove the lock only for the requested record. Requires a lockvalue and a valid user.
 	2012-05-02	JC	Changed date type calls to use Lasso 9 style format or asdecimal. Will speed processing up
 	2013-03-21	JC	Changed remaining iterate to query
@@ -308,8 +309,8 @@ Parameters:
 	-inlinename (optional) Defaults to autocreated inlinename
 **/
 	public select(
-		search::array = array,
-		sql::string = '',
+		search::array,
+		sql::string,
 		keyfield::string = '',
 		keyvalue::any = '',
 		inlinename::string = 'inline_' + knop_unique9 // inlinename defaults to a random string
@@ -400,7 +401,7 @@ Parameters:
 			inline(#_search, .'db_connect') => {
 				.'querytime' = integer(#querytimer)
 				.'searchparams' = #_search
-	//			debug -> sql(action_statement)
+				error_code ? debug -> sql(action_statement)
 	//			debug(found_count + ' found')
 				resultset(1) => {
 					.capturesearchvars
