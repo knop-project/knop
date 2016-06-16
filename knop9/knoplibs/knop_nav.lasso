@@ -219,9 +219,8 @@ Inserts a nav item into the nav array
 			with loopkey in #children -> 'pathmap' -> keys do => {
  				.'pathmap' -> insert(#key + '/' + #loopkey)
 			}
-			local(children_urlmap=#children -> 'urlmap')
-			with loopkey in #children_urlmap do => {
- 				.'urlmap' -> insert(#loopkey = #key + '/' + #children_urlmap -> find(#loopkey))
+			with mappair in #children -> 'urlmap' -> eachPair do => {
+ 				.'urlmap' -> insert(#mappair->name = #key + '/' + #mappair->value)
 			}
 		}
 		.'navitems' -> insert(#key = #navitem)
