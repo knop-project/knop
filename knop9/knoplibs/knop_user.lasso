@@ -567,19 +567,21 @@ Log in user. On successful login, all fields on the user record will be availabl
 	Set field data in the data map. Either -> setdata(-field=\'fieldname\', -value=\'value\') or -> setdata(\'fieldname\'=\'value\')
 **/
 	public setdata(
-		field::any,
-		value::any = ''
+		field::string,
+		value::any
 	) => {
 
-		if(#field -> isa('pair')) => {
-			#value = #field -> value
-			#field = #field -> name
-		}
+// 		if(#field -> isa('pair')) => {
+// 			#value = #field -> value
+// 			#field = #field -> name
+// 		}
 
-		fail_if(#value == '', -1, 'knop_user -> setdata requires a value parameter')
 		.'data' -> insert(string(#field) = #value -> ascopy)
 
 	}
+	public setdata(
+		valuepair::pair
+	) => {.setdata(#valuepair->name, #valuepair->value)}
 
 /**!
 Returns true if user has permission to perform the specified action, false otherwise
