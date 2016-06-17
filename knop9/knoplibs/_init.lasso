@@ -20,7 +20,7 @@
 	(not lasso_tagExists('debug')) ? #coremethods -> insertfirst('debug.type.lasso')
 	// Courtesy of Ke Carlton, www.l-debug.org. L-Debug for Lasso 9 All rights reserved — K Carlton 2011-2013
 
-	with file in #coremethods do  {
+	with file in #coremethods do protect => {
 		local(s) = micros
 		handle => {
 			stdoutnl(
@@ -30,8 +30,7 @@
 	
 		stdout('\t' + #file + ' - ')
 
-		// allow relative includes
-		.filename !>> '/LassoApps/' && .filename !>> 'zip:' && .filename != '/_init.lasso' 
+		web_request
 		? library(include_path + #file)
 		| lassoapp_include(#file)
 	
