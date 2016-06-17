@@ -89,6 +89,8 @@ Permissions can be read, create, update, delete, or application specific (for ex
 define knop_user => type {
 /*
 CHANGE NOTES
+	2016-06-17	JS	Changed signature for login(-force)
+	2016-06-17	JS	Added signature for setdata with pair
 	2016-06-16	JS	Disable _unknownTag
 	2013-05-14	JC	Minor enhancement to sidejacking handling. Will log sidejacking even when allowsidejacking is true
 	2012-07-20	JC	Added getpermission(array)
@@ -107,7 +109,7 @@ CHANGE NOTES
 */
 	parent knop_base
 
-	data public version = '2016-06-16'
+	data public version = '2016-06-17'
 	data public description = 'Custom type to handle user identification and authentication'
 
 	data public fields::array = array()
@@ -376,10 +378,10 @@ Log in user. On successful login, all fields on the user record will be availabl
 			-force (optional) Supply a user id for a manually authenticated user if custom authentication logics is needed
 **/
 	public login(
-		username::any = '',
-		password::any = '',
+		username::string,
+		password::any,
 		searchparams::array = array,
-		force::string = ''
+		force::any = ''
 	) => {
 //	debug => {
 
@@ -390,14 +392,14 @@ Log in user. On successful login, all fields on the user record will be availabl
 		local(_username = string(#username))
 		local(_password = string(#password))
 
-		if(#force -> size == 0 && (#_username -> size == 0 || #_password -> size == 0)) => {
+		if(string(#force) -> size == 0 && (#_username -> size == 0 || #_password -> size == 0)) => {
 			fail(-9956, 'knop_user -> login requires -username and -password, or -force')
 		}
 
 		local('db' = .'userdb')
 		local('validlogin' = false)
 
-		if(#force -> size > 0) => {
+		if(string(#force) -> size > 0) => {
 //			..'_debug_trace' -> insert('login: Manually authenticating user id ' + #force)
 			#validlogin = true
 			.'id_user' = #force
@@ -420,7 +422,7 @@ Log in user. On successful login, all fields on the user record will be availabl
 				else
 					#searchparams -> merge(array(-op='eq', .'userfield' = #_username))
 				}
-				#db -> select(#searchparams)
+				#db -> select(-search=#searchparams)
 
 				#db -> error_code ? log_critical('Error in knop_user DB call ' + #db -> error_msg)
 
@@ -511,7 +513,7 @@ Log in user. On successful login, all fields on the user record will be availabl
 		-username::any = '',
 		-password::any = '',
 		-searchparams::array = array,
-		-force::string = ''
+		-force::any = ''
 	) => .login(string(#username), string(#password), #searchparams, #force)
 
 
