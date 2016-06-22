@@ -4,6 +4,7 @@
 define knop_form => type {
 /*
 
+	2016-06-22	JS	Add support for serialization of a knop_form object
 	2016-06-20	JS	Allow empty legend to render fieldset and legent (knop8 compatibility)
 	2016-06-20	JS	Don't render form opening and closing tags if formaction is not specified (knop8 compatibility)
 	2016-06-16	JS	Disable _unknownTag
@@ -48,9 +49,10 @@ define knop_form => type {
 	also provided simple port of knop_base type for compatibility.
 	Need to investigate translating the functions from knop_base into a trait
 */
+	trait { import trait_serializable }
 	parent knop_base
 
-	data public version = '2016-06-20'
+	data public version = '2016-06-22'
 
 	// instance variables
 	data public fields::array = array
@@ -115,6 +117,80 @@ define knop_form => type {
 	data private end_rendered = false
 
 	data public clientparams::staticarray
+
+/**!
+	Called when object is stored in a session
+**/
+	public serializationElements() => {
+		local(ret = map)
+		#ret -> insert('fields'	= .'fields')
+		#ret -> insert('template'	= .'template')
+		#ret -> insert('buttontemplate'	= .'buttontemplate')
+		#ret -> insert('class'	= .'class')
+		#ret -> insert('errorclass'	= .'errorclass')
+		#ret -> insert('formaction'	= .'formaction')
+		#ret -> insert('method'	= .'method')
+		#ret -> insert('fieldset'	= .'fieldset')
+		#ret -> insert('legend'	= .'legend')
+		#ret -> insert('name'	= .'name')
+		#ret -> insert('id'	= .'id')
+		#ret -> insert('formid'	= .'formid')
+		#ret -> insert('raw'	= .'raw')
+		#ret -> insert('enctype'	= .'enctype')
+		#ret -> insert('actionpath'	= .'actionpath')
+		#ret -> insert('noautoparams'	= .'noautoparams')
+		#ret -> insert('fieldsource'	= .'fieldsource')
+		#ret -> insert('required'	= .'required')
+		#ret -> insert('entersubmitblock'	= .'entersubmitblock')
+		#ret -> insert('unsavedmarker'	= .'unsavedmarker')
+		#ret -> insert('unsavedmarkerclass'	= .'unsavedmarkerclass')
+		#ret -> insert('unsavedwarning'	= .'unsavedwarning')
+		#ret -> insert('database'	= .'database')
+		#ret -> insert('keyparamname'	= .'keyparamname')
+		#ret -> insert('formmode'	= .'formmode')
+		#ret -> insert('formbutton'	= .'formbutton')
+		#ret -> insert('search_type'	= .'search_type')
+		#ret -> insert('noscript'	= .'noscript')
+
+		return array(serialization_element('items', #ret))
+	}
+
+/**!
+	Called when object is retrieved from a session
+**/
+	public acceptDeserializedElement(d::serialization_element)  => {
+		if(#d->key == 'items') => {
+			local(ret = #d -> value)
+			.'fields'	= #ret->find('fields')
+			.'template'	= #ret->find('template')
+			.'buttontemplate'	= #ret->find('buttontemplate')
+			.'class'	= #ret->find('class')
+			.'errorclass'	= #ret->find('errorclass')
+			.'formaction'	= #ret->find('formaction')
+			.'method'	= #ret->find('method')
+			.'fieldset'	= #ret->find('fieldset')
+			.'legend'	= #ret->find('legend')
+			.'name'	= #ret->find('name')
+			.'id'	= #ret->find('id')
+			.'formid'	= #ret->find('formid')
+			.'raw'	= #ret->find('raw')
+			.'enctype'	= #ret->find('enctype')
+			.'actionpath'	= #ret->find('actionpath')
+			.'noautoparams'	= #ret->find('noautoparams')
+			.'fieldsource'	= #ret->find('fieldsource')
+			.'required'	= #ret->find('required')
+			.'entersubmitblock'	= #ret->find('entersubmitblock')
+			.'unsavedmarker'	= #ret->find('unsavedmarker')
+			.'unsavedmarkerclass'	= #ret->find('unsavedmarkerclass')
+			.'unsavedwarning'	= #ret->find('unsavedwarning')
+			.'database'	= #ret->find('database')
+			.'keyparamname'	= #ret->find('keyparamname')
+			.'formmode'	= #ret->find('formmode')
+			.'formbutton'	= #ret->find('formbutton')
+			.'search_type'	= #ret->find('search_type')
+			.'noscript'	= #ret->find('noscript')
+		}
+	}
 
 /**!
 	onCreate
