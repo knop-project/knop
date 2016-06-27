@@ -10,6 +10,7 @@ define knop_nav => type {
 /*
 
 CHANGE NOTES
+	2016-06-27	JS	renderbreadcrumb works now
 	2016-06-16	JS	urlmap is now properly inherited from children
 	2016-06-16	JS	->url does not add getargs as default
 	2016-06-10	JS	Do not cast data to string when storing it at insert
@@ -37,7 +38,7 @@ CHANGE NOTES
 
 	parent knop_base
 
-	data public version = '2016-06-16'
+	data public version = '2016-06-27'
 
 	// instance variables
 	data public navitems::array = array
@@ -1434,16 +1435,18 @@ Shows the current navigation as breadcrumb trail. \n\
 				}
 			}
 		}
+		local(pathstring=string)
 		loop(.'patharray' -> size) => {
 			#path -> insert(.'patharray' -> get(loop_count))
-			if(.getnav(#path) -> find('hide')) => {
+			#pathstring=#path->join('/')
+			if(.getnav(#pathstring) -> find('hide')) => {
 				// do not show in navigation
 				loop_abort
 			else
 				if(#plain) => {
-					#output -> insert(.getnav(#path) -> find('label'))
+					#output -> insert(.getnav(#pathstring) -> find('label'))
 				else
-					#output -> insert('<a href="' + .url(-path = #path) + '">' + .getnav(#path) -> find('label') + '</a>')
+					#output -> insert('<a href="' + .url(-path = #pathstring) + '">' + .getnav(#pathstring) -> find('label') + '</a>')
 				}
 			}
 		}
