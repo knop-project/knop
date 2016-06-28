@@ -4,7 +4,7 @@
 	This is done in-order so if you wish to load any before others then shuffle the order of the array as desired.
 	===================================================== */
 	local(coremethods = array(
-//			'debug.type.lasso',
+			'debug.type.lasso',
 			'knop_utils.lasso',
 			'knop_base.lasso',
 			'knop_cache.lasso',
@@ -17,7 +17,7 @@
 		)
 	)
 
-	(not lasso_tagExists('debug')) ? #coremethods -> insertfirst('debug.type.lasso')
+	// (not lasso_tagExists('debug')) ? #coremethods -> insertfirst('debug.type.lasso')
 	// Courtesy of Ke Carlton, www.l-debug.org. L-Debug for Lasso 9 All rights reserved — K Carlton 2011-2013
 
 	with file in #coremethods do protect => {
