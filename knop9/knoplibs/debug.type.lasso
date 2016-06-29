@@ -23,7 +23,7 @@ define ldebug => type {
 		src_jquery = 'http://code.jquery.com/jquery-1.4.4.min.js',
 		src_js     = 'https://rawgit.com/zeroloop/l-debug/master/debug.js',
 		src_chili  = 'https://rawgit.com/zeroloop/l-debug/master/chili-L.js',
-		src_css    = 'https://rawgit.com/johansolve/l-debug/master/debug.css',
+		src_css    = 'https://rawgit.com/zeroloop/l-debug/master/debug.css',
 		style      = ''
 
 	data	
