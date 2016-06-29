@@ -11,6 +11,7 @@ define knop_database => type {
 
 	CHANGE NOTES
 
+	2016-06-29	JS	Allow keyvalue false for addrecord to prevent setting a keyvalue
 	2016-06-16	JS	Allow integer keyvalues
 	2016-06-16	JS	Disable _unknownTag
 	2016-06-16	JS	Change defaults in signature for ->select
@@ -44,7 +45,7 @@ define knop_database => type {
 
 	parent knop_base
 
-	data public version = '2016-06-16'
+	data public version = '2016-06-29'
 
 	data public description::string = 'Custom type to interact with databases. Supports both MySQL and FileMaker datasources'
 
@@ -433,7 +434,7 @@ Parameters:
 **/
 	public addrecord(
 		fields::array,
-		keyvalue::string = knop_unique9,
+		keyvalue::any = knop_unique9,
 		inlinename::string = 'inline_' + knop_unique9
 	) => {
 //debug => {
@@ -457,7 +458,7 @@ Parameters:
 
 		inline(.'db_connect') => { // connection wrapper
 
-			if(#keyvalue -> size > 0 && .'keyfield' -> size > 0) => {
+			if(#keyvalue && .'keyfield' -> size > 0) => {
 				// look for existing keyvalue
 				inline(-op = 'eq',.'keyfield' = #keyvalue,
 					-maxrecords = 1,
@@ -478,7 +479,9 @@ Parameters:
 					#_fields -> removeall(.'keyfield')
 					#_fields -> removeall('-keyfield') & removeall('-keyvalue')
 					#_fields -> insert('-keyfield' = .'keyfield')
-					#_fields -> insert(.'keyfield' = .'keyvalue')
+					if(#keyvalue) => {
+						#_fields -> insert(.'keyfield' = .'keyvalue')
+					}
 				}
 
 				// inlinename defaults to a random string
@@ -508,7 +511,7 @@ Parameters:
 
 	public addrecord(
 		-fields::array,
-		-keyvalue::string = knop_unique9,
+		-keyvalue::any = knop_unique9,
 		-inlinename::string = 'inline_' + knop_unique9
 	) => .addrecord(#fields, #keyvalue, #inlinename)
 
@@ -705,7 +708,7 @@ Parameters:
 	public saverecord(
 		fields::array,
 		keyfield::string = string(.'keyfield'),
-		keyvalue::string = string(.'keyvalue'),
+		keyvalue::any = string(.'keyvalue'),
 		lockvalue::string = '',
 		keeplock::boolean = false,
 		user::any = .'user',
@@ -852,7 +855,7 @@ Parameters:
 	public saverecord(
 		-fields::array,
 		-keyfield::string = string(.'keyfield'),
-		-keyvalue::string = string(.'keyvalue'),
+		-keyvalue::any = string(.'keyvalue'),
 		-lockvalue::string = '',
 		-keeplock::boolean = false,
 		-user::any = .'user',
@@ -869,7 +872,7 @@ Parameters:
 	-user (optional) If lockvalue is specified, user must be specified as well.
 **/
 	public deleterecord(
-		keyvalue::string = .'keyvalue',
+		keyvalue::any = .'keyvalue',
 		lockvalue::string = '',
 		user::any = .'user'
 	) => {
@@ -983,7 +986,7 @@ Parameters:
 	} // END deleterecord
 
 	public deleterecord(
-		-keyvalue::string = .'keyvalue',
+		-keyvalue::any = .'keyvalue',
 		-lockvalue::string = '',
 		-user::any = .'user'
 	) => .deleterecord(#keyvalue, #lockvalue, #user)
