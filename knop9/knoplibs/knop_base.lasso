@@ -15,6 +15,8 @@ define knop_base => type {
 	/*
 
 	CHANGE NOTES
+	2016-07-06	JS	Removed handling of custom error strings since it's not working
+	2016-06-08	JS	Removed tagtime
 	2013-01-31	JC	Major code cleanup of minor details.
 					Removed all semicolons
 					Changed local('xyz' to local(xyz
@@ -47,12 +49,12 @@ define knop_base => type {
 
 	*/
 
-	data public version = '2013-01-31'
+	data public version = '2016-07-06'
 	data public debug_trace::array = array
 	data public _debug_trace::array = array
 	data public instance_unique = null
 	data public instance_varname = null
-	data public tagtime::integer				// time for entire tag in ms
+	// data public tagtime::integer				// time for entire tag in ms
 	data public tagtime_tagname::tag
 	data public error_code = 0
 	data public error_msg = string
@@ -162,7 +164,7 @@ define knop_base => type {
 	Returns a reference to the language object used for error codes, to be able to add localized error messages to any Knop type (except knop_lang and knop_base)
 	*/
 	public error_lang() => {
-		return 'error_lang'
+		return .'error_lang'
 	}
 
 	/**!
@@ -219,7 +221,7 @@ define knop_base => type {
 			))
 		#error_lang -> addlanguage(-language = 'en', -strings = #errorcodes)
 		// add any custom error strings
-		with custom_language in #error_lang_custom -> 'strings' do {
+	 	/*with custom_language in #error_lang_custom -> 'strings' do {
 			if(#error_lang -> 'strings' !>> #custom_language -> name) => {
 				// add entire language at once
 				#error_lang -> addlanguage(-language = #custom_language -> name, -strings = #custom_language -> value)
@@ -231,7 +233,7 @@ define knop_base => type {
 						-value = #custom_string -> value)
 				}
 			}
-		}
+		}*/
 
 		if(#errorcodes >> #error_code) => {
 			// return error message defined by this tag

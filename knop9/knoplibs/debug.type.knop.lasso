@@ -1,47 +1,192 @@
-<?lassoscript
+<?LassoScript
 
 //============================================================================
 //
-//		L-Debug for Lasso 9 — Free to use 	 
+//		L-Debug for Lasso 9 — Free to use
 //
-//......All rights reserved — K Carlton 2012..................................		
+//......All rights reserved — K Carlton 2012..................................
 
+//		2012-07-06 Credit to Jolle for changing += to appends
+
+//============================================================================
+//
+//		->	Thread persistence
+//
+//............................................................................
+
+//	Updated to handle given blocks
+define debug() => {
+	var('_l_debug')->isnota(::ldebug) ? ldebug
+	return givenblock ? $_l_debug->block => givenblock | $_l_debug
+}
+
+//	Short cut to activate L-Debug and replace default error stack
+define debug_dev => {
+	debug->activate
+	return debug->protected => givenblock
+}
+
+//	Short cut to protected
+define debug_protected => {
+	return debug->protected => givenblock
+}
+
+//	Short cut to activate L-Debug in console mode
+define debug_console => {
+	debug->activate('console')
+	return debug->protected => givenblock
+}
+
+//	Public signatures
+define debug(p::string) 			=> debug->trace(#p)
+define debug(p::string,h::boolean) 	=> debug->trace(#p)
+define debug(p::string) 			=> givenblock ? debug->block(#p) => givenblock | debug->trace(#p)
+define debug(p::staticarray) 		=> {
+	return givenblock ? debug->block(#p) => givenblock | debug->trace(#p)
+}
+
+define debug(p::trait_forEach) 	=> {
+	return debug->trace(#p) & block => givenblock
+}
+define debug(p::xml) => debug->xml(#p)
+
+// Catch all signature
+define debug(
+	p::any,
+	-mode 	= 'text',
+	-open	= false,
+	-close	= false,
+	-error	= false,
+	-sql	= false,
+	-html	= false,
+	-xml	= false,
+	-lasso	= false,
+	-code	= false,
+	-timer	= false,
+	-time	= false,
+	-header	= false,
+	-title	= false,
+	-async	= false,
+	-withErrors = false,
+	-d 	= debug
+) => {
+
+	#open ? #d->open
+
+	match(true) => {
+		case(#error)
+			#d->error(#p)
+
+		case(#sql)
+			#d->sql(#p)
+
+		case(#xml)
+			#d->xml(#p)
+
+		case(#html)
+			#d->html(#p)
+
+		case(#lasso)
+			#d->lasso(#p)
+
+		case(#code)
+			#d->code(#p)
+
+		case(#time)
+			#d->time(#p)
+
+		case(#timer)
+			#d->timer(#p)
+
+		case(#title)
+			#d->title(#p)
+
+		case(#header)
+			#d->header(#p)
+
+		case
+			#d->trace(#p)
+	}
+
+	#close ? #d->close
+
+	givenblock ? #d->block => givenblock
+
+	return #d
+
+}
 
 define ldebug => type {
-	parent array	
-	
-	data	
-		var           = '_l_debug',		
-		isActive      = false,
-		opened        = list,
-		lastTime      = integer,
-		since         = integer,
-		starttime     = integer,
-		pageStartTime = integer,
-		pageEndTime   = integer,
-		class         = 'debug',
-		src_jquery = 'http://code.jquery.com/jquery-1.4.4.min.js',
-		src_js     = 'https://rawgit.com/zeroloop/l-debug/master/debug.js',
-		src_chili  = 'https://rawgit.com/zeroloop/l-debug/master/chili-L.js',
-		src_css    = 'https://rawgit.com/zeroloop/l-debug/master/debug.css',
-		style      = ''
+	parent array
 
-	data	
+	//	When no params return page var
+
+	public oncreate => {
+
+		!	var(.'var')->isA(::ldebug)
+		?	var(.'var') = self
+
+		//	Page Start time
+		!	.'pageStartTime'
+		?	.'pageStartTime' = micros
+
+		//	Block Start time
+		!	.'startTime'
+		?	.'startTime' = micros
+
+		//	Set initial start time
+		.'since' = micros
+
+		if(web_request)=>{
+
+			.loadSettings()
+			.time('L-Debug initialised')
+
+			//	Define injection
+			define_atEnd({
+				.'pageEndTime' = micros
+				debug->injectHTML
+			})
+
+		}
+
+	}
+
+
+
+	data
+		var				= '_l_debug',
+		isActive		= false,
+		opened			= list,
+		lastTime		= integer,
+		since			= integer,
+		starttime		= integer,
+		pageStartTime	= integer,
+		pageEndTime		= integer,
+		class::string 	= 'debug',
+
 		//	Error handling
-		errors = array,
-		error_msg,
-		error_code,
+		errors::array		= array,
+		error_msg::string,
+		error_code::integer,
 
 		//	Overall Timers
-		timers	= array,	
-		
+		timers::array	= array,
+
 		variables = array,
+
+		//	Style / Interface elements
+		src_jquery 	= 'http://code.jquery.com/jquery-1.4.4.min.js',
+		src_js 		= 'http://www.l-debug.org/9/debug.js',
+		src_chili 	= 'http://www.l-debug.org/9/chili-L.js',
+		src_css 	= 'http://www.l-debug.org/9/debug.css?108',
+		style 		= string,
 
 		//	Custom Types / Blocks
 		types	= array (
 						'   Lasso Code' = 'lasso',
 						'  JS Code' 	= 'js',
-						'  CSS Code' 	= 'css', 
+						'  CSS Code' 	= 'css',
 						'Client Headers'= 'clientheaders',
 						'Render Code' 	= 'renderCode',
 						'Variables'		= 'variables'
@@ -61,39 +206,8 @@ define ldebug => type {
 					'types'  		= true,
 					'lasso'  		= true,
 					'css'  			= true,
-					'js'  			= true 
+					'js'  			= true
 				)
-
-	public oncreate => {
-
-		//!	var(.'var')->isA(::ldebug)
-		//?	var(.'var') = self
-
-		//	Page Start time
-		!	.'pageStartTime' 
-		?	.'pageStartTime' = micros
-			
-		//	Block Start time
-		!	.'startTime' 
-		?	.'startTime' = micros
-			
-		//	Set initial start time
-		.'since' = micros
-		
-		if(web_request)=>{
-		
-			.loadSettings()
-			.time('L-Debug initialised')
-		
-			//	Define injection
-			define_atEnd({
-				.'pageEndTime' = micros
-				debug->injectHTML
-			})
-		
-		}	
-	
-	}	
 
 	public this(
 				p::any,
@@ -101,54 +215,51 @@ define ldebug => type {
 				-open=false,
 				-close=false
 			) => {
-		
+
 		// Param handler
 		#p ? .trace(#p)
-		
-		return self
-	}	
 
-	public invoke(p::any,...)=>{
-		with p in params do {
-			.trace(#p)
-		}
 		return self
 	}
+
+	public invoke(p::any=void,...)=>{
+		.trace(#p)
+		return self
+	}
+
+
+
+
 
 //============================================================================
 //
 //		->	Open block tracking
 //
-//............................................................................		
+//............................................................................
 
 	public hasOpen() => .'opened'->size > 0
 	public lastOpenedText() => .hasOpen ? .'opened'->first->name
 	public lastOpenedTime() => .hasOpen ? .'opened'->first->value | .'pageStartTime'
-		
+
 //============================================================================
 //
 //		->	Core trace methods
 //
-//............................................................................	
+//............................................................................
 
-	public trace(what::string) => {		
-		.insert('<p>'+encode_html(#what)+'</p>')	
-		return self	
+	public trace(what::string) => {
+		.insert('<p>'+encode_html(#what)+'</p>')
+		return self
 	}
 
-	public trace(what::any) => {		
-		.insert('<p>'+encode_html(string(#what))+'</p>')	
-		return self	
+	public trace(what::any) => {
+		.insert('<p>'+encode_html(string(#what))+'</p>')
+		return self
 	}
 
-	public trace(what::pair) => {		
-		.insert(.render(#what))	
-		return self	
-	}
-
-	public trace(what::string,mode::string) => {		
+	public trace(what::string,mode::string) => {
 		.insert('<code class="' + #mode + '">' +encode_html(#what) + '</code>')
-		return self	
+		return self
 	}
 
 	public trace(object::trait_forEach) => {
@@ -164,14 +275,15 @@ define ldebug => type {
 		}
 		return self
 	}
-	
+
+
+
 	public insert(p::any) => {
 		if(error_code && .'error_msg'!=error_msg)=>{
 			.error
-		} 
+		}
 		.'isActive'	? ..insert(#p)
 	}
-
 
 //============================================================================
 //
@@ -182,33 +294,33 @@ define ldebug => type {
 
 
 	public render(object::trait_forEach,output=string) => {
-		
+
 		#output->append('<span class="type"><header>' + #object->type + '</header>')
-		
+
 		if(#object) => {
 			#output->append('<ul>')
-		
+
 			if(#object->isA(::map)) => {
 				#object->forEachPair => {
 					#output->append('<li>' + .render(#1) + '</li>')
-				}		
+				}
 			else
 				with i in #object do {
 					#output->append('<li>' + .render(#i) + '</li>')
-				}					
+				}
 			}
 
 			#output->append('</ul>')
 		}
-		
+
 		#output->append('</span>')
-		
+
 		return #output
 
 	}
-	
-	
-	
+
+
+
 
 	public render(pair::pair) => {
 		return '<span class="pair"><label>' + #pair->name + ':</label>' + .render(#pair->value)+'</span>'
@@ -217,7 +329,7 @@ define ldebug => type {
 	public render(keyword::keyword) => {
 		return '<span class="pair"><label>-' + #keyword->name + '=</label>' + .render(#keyword->value)+'</span>'
 	}
-	
+
 	public render(what::any) => {
 		return '<span class="string">' + encode_html(string(#what)) + '</span>'
 	}
@@ -227,28 +339,30 @@ define ldebug => type {
 	}
 
 
+
+
 //============================================================================
 //
 //		->	Custom tracers
 //
-//............................................................................	
+//............................................................................
 
-	public header(what::string) => {	
+	public header(what::string) => {
 		.insert('<header class="section">'+#what+'</header>')
-		return self	
+		return self
 	}
 
-	public header(what::string,p::boolean) => {	
+	public header(what::string,p::boolean) => {
 		.insert('<header>'+#what+'</header>')
-		return self	
+		return self
 	}
 
 	public title(what::string) => .header(#what)
-		
+
 	public error() => {
 		.'error_msg' == error_msg ? return
-		
-		
+
+
 		local(i=lasso_uniqueid)
 		.'error_code' = error_code
 		.'error_msg' = error_msg
@@ -262,64 +376,64 @@ define ldebug => type {
 	public xml(xml::xml) 	=> .xml(#xml->exportString('UTF-8'))
 	public xml(xml::string)	=> {
 		.trace(#xml,'xml')
-		return self	
+		return self
 	}
 
 	public found() => {
 		.trace('Found '+found_count+' rows')
 	}
-		
+
 	public found(what::string) => {
 		.trace('Found '+found_count+' '+#what)
 	}
-	
+
 	public sql() => {
 		.insert('<code class="sql">' + string(action_statement)->replace('\t','   ')& + '</code>')
-		return self	
+		return self
 	}
-	
+
 	public sql(statement::string) => {
-		.insert('<code class="sql">' + #statement->replace('\t','  ')& + '</code>')	
-		return self	
+		.insert('<code class="sql">' + #statement->replace('\t','  ')& + '</code>')
+		return self
 	}
-	
+
 	public css(what::string) => {
 		.trace(#what,'css')
-		return self	
+		return self
 	}
-	
+
 	public lasso(what::string) => {
 		.trace(#what,'lasso')
-		return self	
+		return self
 	}
-	
+
 	public html(what::string) => {
 		.trace(#what,'html')
-		return self	
+		return self
 	}
-	
+
 	public js(what::string) => {
 		.trace(#what,'js')
-		return self	
+		return self
 	}
-	
+
 	public time(when::integer=0) => {
 		.insert('<span class="time">'+.since(#when)+'</span>')
-		return self	
+		return self
 	}
 
 
-	
-	public time(what::string,when::integer=0) => {	
+
+	public time(what::string,when::integer=0) => {
 		.timer(#what)
 		.trace(#what)
 		.time(#when)
-		return self	
+		return self
 	}
-	
-	public timer(what::string) => {		
+
+	public timer(what::string) => {
 		.'timers'->insert(#what=micros)
-		return self	
+		return self
 	}
 
 	public timer(i::integer) => {
@@ -329,44 +443,37 @@ define ldebug => type {
 	}
 
 	public timer(i::integer,what::string) => {
-		
+
 		.open(#what+' x'+#i,'','')
 		.traceParams(timer(#i) => givenblock)
 		.close
 	}
-	
+
 	public open(keyword::keyword) => { // ->open(-type = myblock)
 		match(#keyword->name) => {
 			case('type')
-					.open(#keyword->value,#keyword->value)				
+					.open(#keyword->value,#keyword->value)
 		}
-		return self	
+		return self
 	}
-	
-	public protected(what::string='')=>{
-		protect => {
-			handle_error => .error
-			return givenblock()
-		}
-		
-	}
-	
+
+
 	//	debug->open(.type,method_name)
 	public open(t::tag,m::tag,p::array=staticarray)=>{
 		.open(#t->asstring+' > '+#m->asstring)
 		.traceParams(#p)
 	}
-	
+
 	public open(m::tag,p::staticarray=staticarray)=>{
 		.open(#m->asstring)
 		.traceParams(#p)
-	
+
 	}
 
 	public block(what::string='') => {
 		local(c=givenblock,method)
 
-		if(#c->isa(::capture))=>{
+  		if(#c->isa(::capture))=>{
 			match(true)=>{
 				case(#what)
 					.open(#what)
@@ -376,21 +483,21 @@ define ldebug => type {
 					#method = (#c->self->hasMethod(::_unknowntag) ? 'Disabled (due to _unknown)' | #c->methodname->asstring)
 
 					.open(#c->self->type->asString+' > '+#method)
-					
+
 			}
 
-			handle => .close
+			handle=>.close
 
-			return #c()
+    		return #c()
 
-		}
+  		}
 	}
-	
+
 
 	public block(params::staticarray) => {
 		local(c=givenblock,method)
-		if(#c->isa(::capture))=>{
-			
+  		if(#c->isa(::capture))=>{
+
 
 
 			match(true)=>{
@@ -398,26 +505,33 @@ define ldebug => type {
 					.open(#c->self->type->asString+' > '+#c->methodname->asstring)
 				case
 					#method = (#c->self->hasMethod(::_unknowntag) ? 'Disabled (due to _unknown)' | #c->methodname->asstring)
-					.open(#c->self->type->asString+' > '+#method)	
+					.open(#c->self->type->asString+' > '+#method)
 			}
 
 			.traceParams(#params)
 
 			handle=>.close
 
-			return #c()
+    		return #c()
 
-		}
+  		}
 	}
 
+	public protected(what::string='')=>{
+		protect => {
+			handle_error => .error
+			return givenblock()
+		}
+
+	}
 
 
 	public open(c::capture,p::staticarray=staticarray)=>{
 
-		#c->self->isA(::void)
+    	#c->self->isA(::void)
 		? .open(#c->methodname)
 		| .open(#c->self->type->asString+' > '+(#c->self->hasMethod(::_unknowntag) ? 'Disabled (due to _unknown)' | #c->methodname->asstring))
-		
+
 		.traceParams(#p)
 	}
 
@@ -425,42 +539,40 @@ define ldebug => type {
 		#class->size
 		? .insert('<div class="' + .safeCSS(#class) + '">')
 		| .insert('<div '+#style+'>')
-		
+
 		.'opened'->insertFirst(#what = micros)
 		.'timers'->insert(-openblock = pair(#what = micros))
 		.header(#what,false)
 		return self
-			
+
 	}
 	public close(what::string)=>{
 		.trace(#what)
 		.close
 	}
-	
+
 	public close(p::any)=>{
 		.trace(#p)
 		.close
 	}
-	
+
 	public close(-time=false) => {
 		if(.hasOpen) => {
-			.'timers'->insert(-closeblock = micros)	
+			.'timers'->insert(-closeblock = micros)
 			.insert('<span class="time block">' + .since(.lastOpenedTime) + '</span>')
 			.insert('</div>')
 			.'opened'->removeFirst
-		
+
 		}
-		return self	
+		return self
 	}
 
-
-
 //============================================================================
 //
 //		->	Timer - Renders external timer
 //
 //............................................................................
-		
+
 		public timers => {
 
 			local(
@@ -469,32 +581,33 @@ define ldebug => type {
 				total		= .'pageEndTime' - #start,
 				avg			= #total / #timers->size,
 
-				timer		= null,
 				last 		= #start,
 				time		= 0,
 				closetime  	= 0,
-				
+
 				closes		= array,
 				opens		= array,
 				lookup 		= map,
 
 				sinceStart = 0,
-				
+
 				what 		= null,
 				title 		= string,
 				output 		= string,
 				class		= string,
 				perc	 	= 0.00,
 				left 		= 0,
-				
+
 				blocktime 	= 0,
 				blockwidth 	= 0,
-				skip		= false
-				
+
+				continue = true
+
+
 			)
-			
-			
-			
+
+
+
 			with timer in #timers do {
 				if(#timer->isa(::keyword) && #timer->name == 'openblock')=>{
 					#opens->insert(#timer->value->value)
@@ -504,26 +617,27 @@ define ldebug => type {
 					#opens->removelast
 				}
 			}
-			
-			
+
+
 			with timer in #timers do{
 				if(#timer->isa(::keyword) && #timer->name == 'openblock')=>{
 					#closes->insert(#lookup->find(#timer->value->value))
 				}
-			}	
+			}
 
 			#output->append('<table cellspacing=0>')
 			#output->append('<tr><th>Time</th><th>Name</th><th></th><th width=20></hr></tr>')
-			
+
 			with timer in #timers do {
-				#skip = false
+
+				#continue = true
 				#left = (#last - #start > 0 ? 100.0 * (#last - #start)/ #total)
-				
+
 				if(#timer->isa(::keyword) && #timer->name=='openblock')
 					#what 	= #timer->value->name
 					#time 	= #timer->value->value
 					#closetime 	= #closes->first
-							
+
 					//	Note start time
 					#sinceStart = #time - #start
 
@@ -538,30 +652,28 @@ define ldebug => type {
 					#last = #time
 
 					#closes->removefirst
-					
+
 
 				else(#timer->isa(::keyword) && #timer->name=='closeblock')
 
 					//	Set last time
 					#last = #timer->value
-					#skip = true
-				
-								
+
+					#continue = false
 				else
 					#what = #timer->name
 					#time = #timer->value
 
 					#sinceStart = #time - #start
-					
+
 					#blocktime = #time - #last
 					#blockwidth = (#blocktime > 0 ? 100.0 *(#blocktime->asdecimal / #total) | 0)
 					#last = #time
 
 
 				/if
-				
-				if(!#skip) => {
-					
+
+				if(#continue) => {
 					match(true)=>{
 						case(#blocktime / #avg > 5)
 							#class = 'red'
@@ -571,179 +683,44 @@ define ldebug => type {
 							#class = 'yellow'
 						case
 							#class = ''
-							
+
 					}
-	
+
 					#perc = #blockwidth
 					#title = #what+': '+.microsecond(#blocktime)+' seconds'
-					
+
 					#output->append(
 						'<tr title="'+#title+'" '+(#class?' class="'+#class+'"')+'><td>'+.millisecond(#blocktime)+'</td>
 						<td nowrap class="what">'+#what+'</td><td class="perc"><div style="width:'+#perc+'%;margin-left:'+#left+'%">&nbsp</div></td>
 						<td>'+#perc->asString('\'','1','f')+'%</td></tr>'
 					)
 				}
+
+
 			}
 
 			#output->append('</table>')
 
 			return #output
-						
+
 		}
-//============================================================================
-//
-//		->	Timer - Renders external timer
-//
-//............................................................................
-		
-		public timers => {
-
-			local(
-				timers		= .'timers',
-				start		= .'pageStartTime',
-				total		= .'pageEndTime' - #start,
-				avg			= #total / #timers->size,
-
-				timer		= null,
-				last 		= #start,
-				time		= 0,
-				closetime  	= 0,
-				
-				closes		= array,
-				opens		= array,
-				lookup 		= map,
-
-				sinceStart = 0,
-				
-				what 		= null,
-				title 		= string,
-				output 		= string,
-				class		= string,
-				perc	 	= 0.00,
-				left 		= 0,
-				
-				blocktime 	= 0,
-				blockwidth 	= 0,
-				skip		= false
-				
-			)
-			
-			
-			
-			with timer in #timers do {
-				if(#timer->isa(::keyword) && #timer->name == 'openblock')=>{
-					#opens->insert(#timer->value->value)
-				}
-				if(#timer->isa(::keyword) && #timer->name == 'closeblock')=>{
-					#lookup->insert(#opens->last = #timer->value)
-					#opens->removelast
-				}
-			}
-			
-			
-			with timer in #timers do{
-				if(#timer->isa(::keyword) && #timer->name == 'openblock')=>{
-					#closes->insert(#lookup->find(#timer->value->value))
-				}
-			}	
-
-			#output->append('<table cellspacing=0>')
-			#output->append('<tr><th>Time</th><th>Name</th><th></th><th width=20></hr></tr>')
-			
-			with timer in #timers do {
-				#skip = false
-				#left = (#last - #start > 0 ? 100.0 * (#last - #start)/ #total)
-				
-				if(#timer->isa(::keyword) && #timer->name=='openblock')
-					#what 	= #timer->value->name
-					#time 	= #timer->value->value
-					#closetime 	= #closes->first
-							
-					//	Note start time
-					#sinceStart = #time - #start
-
-					//	Set chart width
-					#blocktime = #closetime - #time
-					#blockwidth = (#blocktime > 0 ? 100.0 *(#blocktime->asdecimal / #total) | 0)
-
-					//	Set new left position
-					#left = 100.0 * (#time - #start)/ #total
-
-					//	Set last time
-					#last = #time
-
-					#closes->removefirst
-					
-
-				else(#timer->isa(::keyword) && #timer->name=='closeblock')
-
-					//	Set last time
-					#last = #timer->value
-					#skip = true
-				
-								
-				else
-					#what = #timer->name
-					#time = #timer->value
-
-					#sinceStart = #time - #start
-					
-					#blocktime = #time - #last
-					#blockwidth = (#blocktime > 0 ? 100.0 *(#blocktime->asdecimal / #total) | 0)
-					#last = #time
-
-
-				/if
-				
-				if(!#skip) => {
-					
-					match(true)=>{
-						case(#blocktime / #avg > 5)
-							#class = 'red'
-						case(#blocktime / #avg > 2.5)
-							#class = 'orange'
-						case(#blocktime / #avg > 1)
-							#class = 'yellow'
-						case
-							#class = ''
-							
-					}
-	
-					#perc = #blockwidth
-					#title = #what+': '+.microsecond(#blocktime)+' seconds'
-					
-					#output->append(
-						'<tr title="'+#title+'" '+(#class?' class="'+#class+'"')+'><td>'+.millisecond(#blocktime)+'</td>
-						<td nowrap class="what">'+#what+'</td><td class="perc"><div style="width:'+#perc+'%;margin-left:'+#left+'%">&nbsp</div></td>
-						<td>'+#perc->asString('\'','1','f')+'%</td></tr>'
-					)
-				}
-			}
-
-			#output->append('</table>')
-
-			return #output
-						
-		}	
-
-
 
 //============================================================================
 //
 //		->	Status Tags
 //
-//............................................................................		
-			
+//............................................................................
+
 		public isAjax() => {
 			return client_headers >> 'XMLHttpRequest'
 		}
-		
+
 		public isActive() => {
 			return .'isActive'->invoke
 		}
 
 		public activate => {.'isActive' = true}
-			
+
 		public activate(mode::string) => {
 			match(#mode)=>{
 				case('console')
@@ -751,14 +728,14 @@ define ldebug => type {
 				case
 					var(.'var') = ldebug
 			}
-			
+
 			var(.'var')->activate
 		}
-		
+
 		public activate(...) => {
 			.'isActive' = true
 			.'variables'->insertFrom(vars->keys)
-		
+
 			//	Set locals
 			local('js')->isA('string') 		? .'src_js' 	= #js
 			local('css')->isA('string') 	? .'src_css' 	= #css
@@ -770,13 +747,13 @@ define ldebug => type {
 		public reset => {
 			var(.'var') = null
 		}
-	
+
 		public setActive() => {
-			.'isActive' = local('isActive')		
+			.'isActive' = local('isActive')
 		}
 
 		public deActivate() => {
-			.'isActive' = false	
+			.'isActive' = false
 		}
 
 		public mode() => {
@@ -786,24 +763,24 @@ define ldebug => type {
 		public setMode(mode::string) => {
 			.'mode' = #mode
 		}
-			
+
 
 //============================================================================
 //
 //		->	Setting handlers
 //
-//............................................................................	
-	
+//............................................................................
+
 		public setting(what::string) => {
 			return .'settings'->find(#what)
 		}
-		
+
 		public checked(what::string) => {
 			return .setting(#what) ? 'checked'|''
 		}
-		
+
 		public loadSettings() => {
-			
+
 			local(
 				settings = .'settings',
 				setting = null,
@@ -813,26 +790,26 @@ define ldebug => type {
 
 			//	Process cookie
 			if(web_request)=>{
-				
-			
+
+
 				with setting in decode_url(cookie('L-Debug','/'))->split(';') do {
-					
+
 					if(#setting >> ':') => {
 						#name = #setting->split(':')->first
 						#value =  #setting->split(':')->last
-						
+
 						// Convert booleans
 						array('true','false') >> #value
 						?	#value = (#value == 'true')
-		
+
 						// Save setting
 						#settings->insert(#name=#value)
 					}
-	
+
 				}
-			
+
 			}
-			
+
 		}
 
 
@@ -841,10 +818,10 @@ define ldebug => type {
 //		->	Timer handling
 //
 //............................................................................
-	
+
 	public since(since::integer=0) => {
 		//	Simple microsecond timer
-						
+
 		local(now = micros)
 
 		! #since
@@ -859,28 +836,28 @@ define ldebug => type {
 
 
 
-		
+
 //============================================================================
 //
 //		->	asHTML - Outputs debug stack as HTML
 //
-//............................................................................		
+//............................................................................
 
 		public asHTML() => {
-			
+
 			//
-			
-			.'pageEndTime' == 0 
+
+			.'pageEndTime' == 0
 			? .'pageEndTime' = micros
-			
+
 			if(.isActive)
 				local(output = string)
-			
+
 				#output->append('<div class="' + .'class' + '">')
 				#output->append(.content)
 				#output->append('</div>'	)
-				
-				return #output				
+
+				return #output
 			else
 				return string
 			/if
@@ -900,10 +877,10 @@ define ldebug => type {
 
 
 		public content() => {
-			
+
 			local(output=string)
-	
-	
+
+
 			#output->append(
 					'<form class="filter">
 						<table cellspacing=0>
@@ -927,18 +904,18 @@ define ldebug => type {
 								<label><input type="checkbox" name="more" ' + .checked('more') + ' />More...</label>
 							</td>
 								<td valign=bottom class="search">
-								<pre>' + .pageProcessTime + ' secs - '+date->format('%H:%M:%S')+'</pre>
+								<pre>' + .pageProcessTime + ' secs - '+date->format(`HH:mm:ss`)+'</pre>
 								<span>Filter <i>(Case sensitive)</i><br/>
 								<input type="text" name="search" value="'+.setting('search')+'"></span>
 							</td>
 						</tr>
 						</table>
-						
+
 							<div class="more">' + .extraTypes + '</div>
-						
+
 					</form>'
 			)
-			
+
 				#output->append('<div class="clientheaders">'+encode_html(client_headers)+'</div>')
 				#output->append('<div class="variables">'+.variables+'</div>')
 				#output->append('<div class="timers">'+.timers+'</div>')
@@ -952,36 +929,36 @@ define ldebug => type {
 //		->	injectHTML - Inserts self into current page
 //
 //............................................................................
-		
-		
+
+
 		// Content type fix
-		private content_type => content_header >> 'Content-Type' 
-		? content_header->find('Content-Type')->first->value 
+		private content_type => content_header >> 'Content-Type'
+		? content_header->find('Content-Type')->first->value
 
 		private injectHTML => {
 			.'pageEndTime' = micros
-			
+
 			//	Only do something when active...
 			!.'isActive' ? return
 
 			//	Only modify text/html
-			.content_type !>> 'text/html' && .content_type ? return 
-				
+			.content_type !>> 'text/html' && .content_type ? return
+
 			//	Inject resources
 			.injectResources
-			
+
 			// Make sure content body is not null
-			! content_body ? content_body = '' 
-							
-			//	Update existing debug stack - assumes debug.js exists				
-			if(.isAjax) 
+			! content_body ? content_body = ''
+
+			//	Update existing debug stack - assumes debug.js exists
+			if(.isAjax)
 				content_body->append(
 					'<script>
 						$("div.debug:last").html(unescape("'+encode_strictURL(.content)+'"));
 						setTimeout(setupDebug,100)
 					</script>'
 				)
-			
+
 			//	Insert into existing div
 			else(content_body >> '<div class="debug">')
 				content_body->append(
@@ -998,16 +975,16 @@ define ldebug => type {
 			else
 				content_body->append(.asHTML)
 			/if
-		
+
 		}
 
-		
+
 //============================================================================
 //
 //		External resources - these tags include links to external dependics if they do not exist on the current page.
 //
 //............................................................................
-	
+
 
 		private injectResources => {
 
@@ -1015,29 +992,29 @@ define ldebug => type {
 			.isAjax ? return
 
 			local(resources=array,out=string)
-	
+
 			//	Only modify text/html
-			.content_type !>> 'text/html' && .content_type ? return 
-			
+			.content_type !>> 'text/html' && .content_type ? return
+
 			// Make sure content body is not null
-			! content_body ? content_body = '' 
-			
+			! content_body ? content_body = ''
+
 			//	JQuery
 			if(content_body !>> 'google.load("jquery' && !string_findRegExp(content_body,-find= 'jquery.*?\\.js')->size) => {
 				#resources->insert(.tag_js(.'src_jquery'))
 			}
-	
+
 			//	Chili
 			.setting('rendercode') && content_body !>> 'chili-L' ? #resources->insert(.tag_js(.'src_chili'))
-		
+
 			//	JS
 			content_body !>> 'debug.js' ? #resources->insert(.tag_js(.'src_js'))
-	
+
 			//	CSS
 			content_body !>> 'debug.css' ? #resources->insert(.tag_css(.'src_css'))
-			
+
 			if(#resources->size) => {
-				content_body >> '</body>' 
+				content_body >> '</body>'
 				?	content_body->replace('</body>',#resources->join('\n')+'</body>')
 				|	content_body->append(#resources->join('\n'))
 			}
@@ -1045,13 +1022,13 @@ define ldebug => type {
 		}
 
 		private tag_js(js::string) =>{
-			return '<script type="text/javascript" src="'+#js+'"></script>'	
+			return '<script type="text/javascript" src="'+#js+'"></script>'
 		}
-		
+
 		private tag_css(css::string) =>{
-			return '<link rel="stylesheet" href="'+#css+'" type="text/css"/>'	
+			return '<link rel="stylesheet" href="'+#css+'" type="text/css"/>'
 		}
-		
+
 //============================================================================
 //
 //		Time rendering
@@ -1089,20 +1066,20 @@ define ldebug => type {
 				v		= null,
 				c 		= 1
 			)
-			
+
 			#output->append(
 				'<table cellspacing=0><tr><th>Variable Name</th><th>Type</th><th>Size</th></tr>'
 			)
-			
+
 			with name in vars->keys do {
-				#v = vars->values->get(#c++)
+			    #v = vars->values->get(#c++)
 				#output->append(
 					'<tr'+(#variables >> #name?' class="dull"')+'>
 						<td>'+#name+'</td>
 						<td>'+#v->type+'</td>
 						<td>'+(#v->hasmethod(::size) ? #v->size|'-')+'</td>
 					  </tr>'
-				)					
+				)
 			}
 
 			#output->append(
@@ -1110,17 +1087,58 @@ define ldebug => type {
 			)
 
 			return #output
-			
+
 		}
 
 
-	
+
+
+//============================================================================
+//
+//		->	_unknowntag handlers
+//
+//............................................................................
+
+
+	public _unknowntag(p::string) => {
+		return
+			local(
+				type	= method_name->asString,
+				types	= self->'types',
+				css 	= .safeCSS(#type)
+			)
+
+			//	Insert into type list
+			#types !>> #type ? #types->insert(#type=#css)
+
+			..insert(
+				 '<span class="type '+#css+'"><header>'+#type+'</header>'
+			)
+
+			.trace(#p)
+
+			..insert('</span><br/>')
+
+			return self
+		}
+
+	public _unknowntag(p::keyword) => {
+		//	Open block for unknown type
+		.open(-type=method_name->asString)
+	}
+
+	public _unknowntag(...) => {
+			.trace(string(#rest),method_name->asString)
+			return self
+	}
+
+
 	public errorstack => {
 		local(
 			output=string,
 			errors=.'errors'
 		)
-	
+
 		with error in #errors do {
 			#output->append(
 				'<div><header><a href="#'+#error->get(4)+'">
@@ -1130,64 +1148,68 @@ define ldebug => type {
 		}
 		return #output
 	}
-	
-	
-	
 
 
 
-	
+
+
+
 //============================================================================
 //
 //		->	extraTypes - Custom / Extra checkboxes
 //
-//............................................................................		
-		
+//............................................................................
+
 		public extraTypes() => {
 			local(
 				output = string,
 				pair = pair,
-				types = .'types',				
+				types = .'types',
 				every = math_floor(math_max(3,#types->size/4.0)),
+				name = string,
+				value = string,
 				c = 0
 			)
-		
+
 			if(#types->size) => {
-			
+
 				#types->sort
-				
+
 				#output->append('<table>')
 				#output->append('<tr valign="top"><td>')
 
 
 
 				with pair in #types do {
-					local(
-						name = #pair->name,
-						value = #pair->value
-					)
-					
+					#name = #pair->name
+					#value = #pair->value
+
 					#c++;
 
 					#output->append(
 						'<label><input type="checkbox" name="' + #value + '" ' + .checked(#value) + '>' + #name + '</label>'
 					)
-								
-					! (#c % #every) && #c != 1 
+
+					! (#c % #every) && #c != 1
 					? #output->append('</td><td>')
-					
+
 				}
 
 				#output->append('</td><td colspan="99"></td></tr></table>')
-				
+
 				return #output
 			}
-									
+
 		}
-		
+
 		public safeCSS(label::string='') =>	#label->replace(' ','')&replace('.','')&
 
 }
+
+
+
+
+
 
 
 
@@ -1197,37 +1219,31 @@ define ldebug => type {
 //		->	CONSOLE MODE
 //
 //............................................................................
-	
+
 
 define ldebug_console => type {
 	parent ldebug
 
 	public oncreate => {
 		!	var(.'var')->isA(::ldebug)
-		?	var(.'var') = self	
+		?	var(.'var') = self
 	}
-	
+
 	public asHTML => ''
 
-
-	public trace(what::any) => {		
-		.insert(#what)	
-		return self	
-	}
-	
-	public trace(what::string) => {		
+	public trace(what::string) => {
 		.insert(.text(#what))
-		return self	
+		return self
 	}
 
-	public trace(what::pair) => {		
-		.insert(.render(#what))	
-		return self	
+	public trace(what::any) => {
+		.insert(#what)
+		return self
 	}
 
-	public trace(what::string,mode::string) => {		
+	public trace(what::string,mode::string) => {
 		.insert(.dim+.text('// '+(#mode->uppercase&)+.white+'\n'+#what))
-		return self	
+		return self
 	}
 
 	public trace(object::trait_forEach) => {
@@ -1253,15 +1269,15 @@ define ldebug_console => type {
 //............................................................................
 
 
-	
-	
+
+
 	public insert(p::any) => {
 		if(error_code && .'error_msg'!=error_msg)=>{
 			.error
-		} 
-		
-		
-		.'isActive'	? stdoutnl(.tabs+string(#p)) 
+		}
+
+
+		.'isActive'	? stdoutnl(.tabs+#p)
 	}
 
 
@@ -1269,42 +1285,42 @@ define ldebug_console => type {
 		.'error_msg' == error_msg ? return
 
 		local(i=lasso_uniqueid)
-		
+
 		.'error_code' = error_code
 		.'error_msg' = error_msg
 		.'errors'->insert(staticarray(error_code,error_msg,error_stack,#i))
 		.'isActive'	? stdoutnl(.tabs + .red + ' ERROR: '+.white +.bold +' '+error_msg + .white)
-	}	
+	}
 
 //============================================================================
 //
 //		->	Console tweaks
 //
 //............................................................................
-	
+
 	private red => .esc+'[1;37;41m'
 	private white => .esc+'[0;39;49m'
 	private dim => .esc+'[2;37;49m'
 	private bold => .esc+'[1;39;49m'
-	
+
 	private esc => decode_base64('Gw==')
 	private tabs => '|\t'*(.'opened'->size)
 	//private spaces => ' '*'[2011-01-23 22:29:45] '->size
 	private spaces => ''
 	private text(what::string) => {
 		local(out=string)
-		
-		
+
+
 		#what->	replace('\r\n','\n')
 			&	replace('\r','\n')
 			&	replace('\t','  ')
 			&	replace('\n','\n'+.spaces+.tabs)
-	
+
 		return #what
-	
+
 	}
-	
-	private pad(p::string='') => 50 - (#p->size + 2 + (.'opened'->size * 9)) 
+
+	private pad(p::string='') => 50 - (#p->size + 2 + (.'opened'->size * 9))
 
 //============================================================================
 //
@@ -1317,15 +1333,15 @@ define ldebug_console => type {
 	public render(object::trait_forEach,output=string) => {
 
 		#output->append('> '+#object->type+'\n')
-		
+
 		local(c=1)
 
 		with i in #object do{
-			#output->append( .spaces + .tabs + ' ' + (#c++) + '. ' + .render(#i) + '\n')
-		}		
+			#output->append(.spaces+.tabs+' '+(#c++)+'. '+ .render(#i) + '\n')
+		}
 
 		#output->removetrailing('\n')
-		
+
 		return #output
 	}
 
@@ -1337,59 +1353,54 @@ define ldebug_console => type {
 		return '-'+#keyword->name + ': ' + .render(#keyword->value)
 	}
 
-
-	public render(what::integer) => string(#what)
-	public render(what::decimal) => string(#what)
-	public render(what::string) => {
-		return #what
-	}
-	
 	public render(what::any) => {
-		return string(#what->type) + ': ' + string(#what)
+		return #what->type+': '+string(#what)
 	}
 
 	public render(what::ldebug) => {
 		return ''
 	}
 
-	public header(what::string) => {	
+
+
+	public header(what::string) => {
 		.insert('') & insert(.bold+#what->uppercase&+.white)
-		return self	
+		return self
 	}
 
-	public header(what::string,p::boolean) => {	
+	public header(what::string,p::boolean) => {
 		.header(#what->uppercase)
-		return self	
+		return self
 	}
-	
-	
+
+
 	public open(what::string='',class::string='',style::string='') => {
 		.'timers'->insert(-openblock = pair(#what = micros))
-		
+
 		.insert('')
-		
+
 		#class->size
 		? .insert('┌──── '+#class+' '+('─' * .pad(#class))+.dim+'─┐'+.white)
-		| .insert('┌──── '+#what+' '+('─' * .pad(#what))+.dim+'─┐'+.white)	
+		| .insert('┌──── '+#what+' '+('─' * .pad(#what))+.dim+'─┐'+.white)
 
-		.'opened'->insertFirst(#what = micros)
-	
-		
+	.'opened'->insertFirst(#what = micros)
+
+
 //		.header(#what,false)
 		return self
-			
+
 	}
-	
+
 	public close(-time=false) => {
 		if(.hasOpen) => {
-			.'timers'->insert(-closeblock = micros)	
+			.'timers'->insert(-closeblock = micros)
 			.insert(.since(.lastOpenedTime))
 			.'opened'->removeLast
-		
+
 		}
 		.insert('└──────'+('─' * .pad)+.dim+'─┘'+.white)
-		
-		return self	
+
+		return self
 	}
 
 
@@ -1406,163 +1417,60 @@ define ldebug_console => type {
 	public xml(xml::string)	=> {
 		.trace(#xml,'xml')
 		return self
-	}	
-	
-	public css(what::string) => {
-		.trace(#what,'css')
-		return self	
-	}
-	
-	public lasso(what::string) => {
-		.trace(#what,'lasso')
-		return self	
-	}
-	
-	public html(what::string) => {
-		.trace(#what,'html')
-		return self	
-	}
-	
-	public js(what::string) => {
-		.trace(#what,'js')
-		return self	
-	}
-	
-	public time() => {
-		.insert('<span class="time">'+.since+'</span>')
-		return self 	
 	}
 
-	public time(what::string) => {	
+	public css(what::string) => {
+		.trace(#what,'css')
+		return self
+	}
+
+	public lasso(what::string) => {
+		.trace(#what,'lasso')
+		return self
+	}
+
+	public html(what::string) => {
+		.trace(#what,'html')
+		return self
+	}
+
+	public js(what::string) => {
+		.trace(#what,'js')
+		return self
+	}
+
+	public time() => {
+		.insert('<span class="time">'+.since+'</span>')
+		return self
+	}
+
+	public time(what::string) => {
 		.timer(#what)
 		.trace(#what)
 		.time
-		return self	
+		return self
 	}
 
-	public timer(what::string) => {		
+	public timer(what::string) => {
 		//.'timers'->insert(#what=micros)
-		return self	
+		return self
 	}
 
-	
+
 	public sql() => {
 		.trace(action_statement,'sql')
-		return self	
+		return self
 	}
-	
+
 	public sql(statement::string) => {
 		.trace(#statement,'sql')
-		return self	
+		return self
 	}
-		
-	
+
+
 
 }
 
 
-
-//	Updated to handle given blocks
-define debug => {
-
-	var(_l_debug)->isnota(::ldebug) ? $_l_debug = ldebug
-	
-	givenblock ? return ($_l_debug->block => givenblock)
-
-	return $_l_debug
-
-}
-
-
-
-//	Public signatures
-define debug(p::string) 			=> debug->trace(#p)
-define debug(p::string,h::boolean) 	=> debug->trace(#p)
-//define debug(p::string) 			=> givenblock ? (debug->block(#p) => givenblock) | debug->trace(#p)
-
-define debug(p::string) 			=> {
-	if(givenblock) => {
-		return debug->block(#p) => givenblock
-	else
-		return debug->trace(#p)
-	}
-}
-
-define debug(p::staticarray) 		=> {
-	return givenblock ? (debug->block(#p) => givenblock) | debug->trace(#p)
-} 
-
-
-define debug(p::trait_forEach) 	=> debug->trace(#p) & block => givenblock
-
-define debug(p::xml) => debug->xml(#p)
-
-// Catch all signature
-define debug(
-	p::any,
-	-mode 	= 'text',
-	-open	= false,
-	-close	= false,
-	-error	= false,
-	-sql	= false,
-	-html	= false,
-	-xml	= false,
-	-lasso	= false,
-	-code	= false,
-	-timer	= false,
-	-time	= false,
-	-header	= false,
-	-title	= false,
-	-async	= false,
-	-withErrors = false,
-	-d 	= debug
-) => {
-
-	#open ? #d->open
-
-	match(true) => {
-		case(#error)
-			#d->error(#p)
-
-		case(#sql)			
-			#d->sql(#p)
-	
-		case(#xml)			
-			#d->xml(#p)
-	
-		case(#html)			
-			#d->html(#p)
-	
-		case(#lasso)			
-			#d->lasso(#p)
-
-		case(#code)			
-			#d->code(#p)
-
-		case(#time)			
-			#d->time(#p)
-
-		case(#timer)			
-			#d->timer(#p)
-
-		case(#title)			
-			#d->title(#p)
-
-		case(#header)			
-			#d->header(#p)
-			
-		case
-		
-		
-			#d->trace(#p)
-	}
-
-	#close ? #d->close
-	
-	givenblock ? return (#d->block => givenblock)
-
-	return #d
-
-};
 
 ?>

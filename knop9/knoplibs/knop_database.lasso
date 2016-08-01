@@ -11,6 +11,10 @@ define knop_database => type {
 
 	CHANGE NOTES
 
+	2016-06-29	JS	Allow keyvalue false for addrecord to prevent setting a keyvalue
+	2016-06-16	JS	Allow integer keyvalues
+	2016-06-16	JS	Disable _unknownTag
+	2016-06-16	JS	Change defaults in signature for ->select
 	2013-06-21	JC	Added method clearlock. Will remove the lock only for the requested record. Requires a lockvalue and a valid user.
 	2012-05-02	JC	Changed date type calls to use Lasso 9 style format or asdecimal. Will speed processing up
 	2013-03-21	JC	Changed remaining iterate to query
@@ -41,7 +45,7 @@ define knop_database => type {
 
 	parent knop_base
 
-	data public version = '2012-05-02'
+	data public version = '2016-06-29'
 
 	data public description::string = 'Custom type to interact with databases. Supports both MySQL and FileMaker datasources'
 
@@ -68,7 +72,7 @@ define knop_database => type {
 	// these variables are set for each query
 	data public inlinename::string = string 			// the inlinename that holds the result of the latest db operation
 	data public keyfield::string = string
-	data public keyvalue::string = ''
+	data public keyvalue::any = ''
 	data public affectedrecord_keyvalue::string = '' 	// keyvalue of last added or updated record (not reset by other db actions)
 	data public lockfield::string = string
 	data public lockvalue::string = ''
@@ -191,8 +195,8 @@ define knop_database => type {
 /**!
 	Shortcut to field
 **/
-	public _unknownTag(...) => {
-		local(name = string(currentCapture -> calledName))
+	public not_unknownTag(...) => {
+ 		local(name = string(currentCapture -> calledName))
 		if( .'field_names_map' >> #name) => {
 			return (.field(#name))
 		else
@@ -307,8 +311,8 @@ Parameters:
 	-inlinename (optional) Defaults to autocreated inlinename
 **/
 	public select(
-		search::array = array,
-		sql::string = '',
+		search::array,
+		sql::string,
 		keyfield::string = '',
 		keyvalue::any = '',
 		inlinename::string = 'inline_' + knop_unique9 // inlinename defaults to a random string
@@ -399,7 +403,7 @@ Parameters:
 			inline(#_search, .'db_connect') => {
 				.'querytime' = integer(#querytimer)
 				.'searchparams' = #_search
-	//			debug -> sql(action_statement)
+				error_code ? debug -> sql(action_statement)
 	//			debug(found_count + ' found')
 				resultset(1) => {
 					.capturesearchvars
@@ -416,7 +420,7 @@ Parameters:
 		-search::array = array,
 		-sql::string = '',
 		-keyfield::string = '',
-		-keyvalue::string = '',
+		-keyvalue::any = '',
 		-inlinename::string = 'inline_' + knop_unique9 // inlinename defaults to a random string
 	) => .select(#search, #sql, #keyfield, #keyvalue, #inlinename)
 
@@ -430,7 +434,7 @@ Parameters:
 **/
 	public addrecord(
 		fields::array,
-		keyvalue::string = knop_unique9,
+		keyvalue::any = knop_unique9,
 		inlinename::string = 'inline_' + knop_unique9
 	) => {
 //debug => {
@@ -454,7 +458,7 @@ Parameters:
 
 		inline(.'db_connect') => { // connection wrapper
 
-			if(#keyvalue -> size > 0 && .'keyfield' -> size > 0) => {
+			if(#keyvalue && .'keyfield' -> size > 0) => {
 				// look for existing keyvalue
 				inline(-op = 'eq',.'keyfield' = #keyvalue,
 					-maxrecords = 1,
@@ -475,7 +479,9 @@ Parameters:
 					#_fields -> removeall(.'keyfield')
 					#_fields -> removeall('-keyfield') & removeall('-keyvalue')
 					#_fields -> insert('-keyfield' = .'keyfield')
-					#_fields -> insert(.'keyfield' = .'keyvalue')
+					if(#keyvalue) => {
+						#_fields -> insert(.'keyfield' = .'keyvalue')
+					}
 				}
 
 				// inlinename defaults to a random string
@@ -505,7 +511,7 @@ Parameters:
 
 	public addrecord(
 		-fields::array,
-		-keyvalue::string = knop_unique9,
+		-keyvalue::any = knop_unique9,
 		-inlinename::string = 'inline_' + knop_unique9
 	) => .addrecord(#fields, #keyvalue, #inlinename)
 
@@ -702,7 +708,7 @@ Parameters:
 	public saverecord(
 		fields::array,
 		keyfield::string = string(.'keyfield'),
-		keyvalue::string = string(.'keyvalue'),
+		keyvalue::any = string(.'keyvalue'),
 		lockvalue::string = '',
 		keeplock::boolean = false,
 		user::any = .'user',
@@ -849,7 +855,7 @@ Parameters:
 	public saverecord(
 		-fields::array,
 		-keyfield::string = string(.'keyfield'),
-		-keyvalue::string = string(.'keyvalue'),
+		-keyvalue::any = string(.'keyvalue'),
 		-lockvalue::string = '',
 		-keeplock::boolean = false,
 		-user::any = .'user',
@@ -866,7 +872,7 @@ Parameters:
 	-user (optional) If lockvalue is specified, user must be specified as well.
 **/
 	public deleterecord(
-		keyvalue::string = .'keyvalue',
+		keyvalue::any = .'keyvalue',
 		lockvalue::string = '',
 		user::any = .'user'
 	) => {
@@ -980,7 +986,7 @@ Parameters:
 	} // END deleterecord
 
 	public deleterecord(
-		-keyvalue::string = .'keyvalue',
+		-keyvalue::any = .'keyvalue',
 		-lockvalue::string = '',
 		-user::any = .'user'
 	) => .deleterecord(#keyvalue, #lockvalue, #user)

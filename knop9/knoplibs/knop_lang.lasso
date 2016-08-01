@@ -13,6 +13,8 @@ define knop_lang => type {
 	/*
 
 	CHANGE NOTES
+	2016-06-08	JS	Changed onconvert to asString
+	2016-06-08	JS	Added back oncreate signature for named keyword (thanks to Ke)
 	2014-01-09	JC	Removed the keyword signatur oncreate since it collided with Lasso 9.2.7
 	2013-04-02	JC	Add log_critical for keys that wasn't found and if the -always flag is set
 	2013-01-29	JC	Minor cleanup. Should mean an ever so small speed gain.
@@ -31,7 +33,7 @@ define knop_lang => type {
 
 	*/
 
-	data public version = '2014-01-09'
+	data public version = '2016-06-08'
 
 	data public strings::map = map
 	data public fallback::boolean
@@ -46,17 +48,29 @@ define knop_lang => type {
 	-default (optional) Default language.
 	-fallback (optional) If specified, falls back to default language if key is missing.
 	**/
-	public onCreate(
-		default::string = string,
-		fallback::boolean = false
-	) => {
+
+    // Primary signature with named keywords
+    public onCreate(
+        -default::string = string,
+        -fallback::boolean = false
+    ) => {
 
 		.defaultlanguage = #default
 		.fallback = #fallback
 
 	}
 
-	public onConvert() => (self -> listmethods)
+    // Secondary signature with unnamed parameters
+    public onCreate(
+        default::string,
+        fallback::boolean
+    ) => .oncreate(
+        -default = #default,
+        -fallback = #fallback
+    )
+
+
+	public asString() => (self -> listmethods)
 
 	/**!
 	_unknowntag
