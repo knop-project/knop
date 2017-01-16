@@ -17,7 +17,7 @@
 	$searchparams -> merge($list -> quicksearch);
 	
 	// get list of records
-	$d -> select($searchparams);
+	$d -> select(-search=$searchparams);
 
 
 
