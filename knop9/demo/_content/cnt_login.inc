@@ -1,5 +1,5 @@
 ﻿[if($s_user -> auth)]
-	<p>[$lang_ui -> loggedinas(-replace=array($s_user -> firstname, $s_user -> lastname))]</p>
+	<p>[$lang_ui -> loggedinas(-replace=array($s_user -> getdata('firstname'), $s_user -> getdata('lastname')))]</p>
 	<p><a href="[$nav -> url(-urlargs='-action=logout')]">[$lang_ui -> logout]</a></p>
 [else]
 	[$loginform -> renderform]
