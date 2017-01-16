@@ -6,8 +6,8 @@ $loginform -> loadfields;
 
 
 // authenticate the user
-$s_user -> login(-username=($loginform -> username), 
-	-password=($loginform -> password));
+$s_user -> login(-username=($loginform -> getvalue('username')),
+	-password=($loginform -> getvalue('password')));
 
 // check if authentication was successful
 if($s_user -> auth);
