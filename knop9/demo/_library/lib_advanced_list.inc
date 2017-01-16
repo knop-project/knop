@@ -18,7 +18,7 @@
 
 
 	// get list of records
-	$d -> select($searchparams);
+	$d -> select(-search=$searchparams);
 	
 	
 	// check if the -page value was out of bounds
