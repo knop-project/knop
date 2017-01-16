@@ -28,7 +28,7 @@
 		$list -> 'page' = $list -> lastpage;
 		$skiprecords = $list -> page_skiprecords($maxrecords);
 		$searchparams -> removeall(-skiprecords) & insert( -skiprecords=$skiprecords);
-		$d -> select($searchparams);
+		$d -> select(-search=$searchparams);
 	/if;
 
 
