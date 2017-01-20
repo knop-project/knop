@@ -1,4 +1,4 @@
-﻿<?LassoScript
+<?LassoScript
 
 
 // Configure language strings
