@@ -33,11 +33,11 @@ $list -> addfield(
 		-name='enabled', 
 		-width=80, 
 		-template=map(
-			1='<span style="color: green;">' + $lang_ui -> yes + '</span>', 
--default='<span style="color: red;">&bull;</span>'));
+			'1'='<span style="color: green;">' + $lang_ui -> yes + '</span>',
+			'-default'='<span style="color: red;">&bull;</span>'));
 $list -> addfield( 
-		-label='Compund', 
-		-name='enabled', 
+		-label='Modified',
+		-name='moddate',
 		-width=150, 
 		-template={return  date( field( 'moddate')) -> format( $lang_ui -> dateformat_short)});
 
