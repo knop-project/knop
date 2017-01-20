@@ -1,6 +1,6 @@
 ﻿<?LassoScript
 
-	// process form 
+	// process form
 	// "the more complicated way"
 
 	// first load field data from form submission
@@ -12,19 +12,19 @@ $trace -> insert($f -> updatefields);
 		// do nothing
 	else( $f -> getbutton == 'save' && $f -> isvalid);
 
-		$d -> saverecord( -fields=($f -> updatefields), 
-			-lockvalue=($f -> lockvalue), 
-			-user=$s_user);
+		$d -> saverecord( -fields=($f -> updatefields),
+			-lockvalue=($f -> lockvalue),
+			-user=$s_user -> id_user);
 
 	else( $f -> getbutton == 'add' && $f -> isvalid);
 
-		$d -> addrecord( -fields=($f -> updatefields), 
+		$d -> addrecord( -fields=($f -> updatefields),
 			-keyvalue=($f -> keyvalue));
 
 	else( $f -> getbutton == 'delete');
 
-		$d -> deleterecord( -lockvalue=($f -> lockvalue), 
-			-user=$s_user);
+		$d -> deleterecord( -lockvalue=($f -> lockvalue),
+			-user=$s_user -> id_user);
 
 	/if;
 
