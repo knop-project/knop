@@ -11,6 +11,7 @@ define knop_database => type {
 
 	CHANGE NOTES
 
+	2017-01-23	SP	Use date -> asinteger instead of asdecimal
 	2016-06-29	JS	Allow keyvalue false for addrecord to prevent setting a keyvalue
 	2016-06-16	JS	Allow integer keyvalues
 	2016-06-16	JS	Disable _unknownTag
@@ -629,7 +630,7 @@ Parameters:
 
 					if(.'error_code' == 0) => {
 						// go ahead and lock record
-						.'lockvalue' = #id_user + '|' + (date -> asdecimal)
+						.'lockvalue' = #id_user + '|' + (date -> asinteger)
 						.'lockvalue_encrypted' = string(encode_base64(encrypt_blowfish(.'lockvalue', -seed = .'lock_seed')))
 						#keyvalue_temp = #keyvalue
 						if(.'isfilemaker') => {
@@ -801,7 +802,7 @@ Parameters:
 					#_fields -> removeall(.'lockfield')
 					if(#keeplock) => {
 						// update the lock timestamp
-						.'lockvalue' = #id_user + '|' + (date -> asdecimal)
+						.'lockvalue' = #id_user + '|' + (date -> asinteger)
 						.'lockvalue_encrypted' = string(encode_base64(encrypt_blowfish(.'lockvalue', -seed = .'lock_seed')))
 						#_fields -> insert(.'lockfield' = .'lockvalue')
 					else
