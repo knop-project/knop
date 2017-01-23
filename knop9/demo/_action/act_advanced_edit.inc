@@ -1,4 +1,4 @@
-﻿<?LassoScript
+<?LassoScript
 
 	// process form
 	// "the more complicated way"
@@ -14,7 +14,7 @@ $trace -> insert($f -> updatefields);
 
 		$d -> saverecord( -fields=($f -> updatefields),
 			-lockvalue=($f -> lockvalue),
-			-user=$s_user -> id_user);
+			-user=$s_user);
 
 	else( $f -> getbutton == 'add' && $f -> isvalid);
 
@@ -24,7 +24,7 @@ $trace -> insert($f -> updatefields);
 	else( $f -> getbutton == 'delete');
 
 		$d -> deleterecord( -lockvalue=($f -> lockvalue),
-			-user=$s_user -> id_user);
+			-user=$s_user);
 
 	/if;
 
