@@ -770,22 +770,6 @@ Parameters:
 				#lock = string(decrypt_blowfish(decode_base64(#lockvalue), -seed = .'lock_seed')) -> split('|')
 				#lock_timestamp = (#lock -> last or null) -> asinteger
 				#lock_user = #lock -> first
-				.'error_code' = 9999 // Update failed, keyfield or keyvalue missing'
-				.'error_msg' = (#lockvalue + ' | ' + decode_base64(#lockvalue) + ' | ' + decrypt_blowfish(decode_base64(#lockvalue), -seed = .'lock_seed') + ' | ' + string(decrypt_blowfish(decode_base64(#lockvalue), -seed = .'lock_seed')) + ' | ' +  (#lockvalue -> type) + ' | ' + .'lock_seed' -> type + ' | <pre>' + .'lock_seed' + '</pre> | ' + (.'lock_seed' == '127.0.0.1knop9//Users/stevepiercy/projects/knop-project/knop9/demo'))
-				
-				
-				
-				
-				
-				
-				
-				
-				
-				
-				
-				
-				
-
 				if((date -> asInteger - #lock_timestamp) < .'lock_expires'
 					&& #lock_user != #id_user) => {
 					// the lock is still valid and it is locked by another user
@@ -802,7 +786,7 @@ Parameters:
 						-search) => {
 						if(error_code == 0 && found_count != 1) => {
 							// lock is not valid any more
-// 							.'error_code' = 7011 // Update failed, record lock not valid any more
+							.'error_code' = 7011 // Update failed, record lock not valid any more
 						else(error_code != 0)
 							.'error_code' = 7018 // Update error
 							.'error_data' = map('error_code' = error_code, 'error_msg' = error_msg)
@@ -847,7 +831,7 @@ Parameters:
 				&& #_fields >> '-keyvalue' && #_fields -> find('-keyvalue') -> first -> value -> size > 0) => {
 				// ok to update
 			else
-// 				.'error_code' = 7006 // Update failed, keyfield or keyvalue missing'
+				.'error_code' = 7006 // Update failed, keyfield or keyvalue missing'
 			}
 
 			// update record
