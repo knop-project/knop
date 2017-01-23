@@ -1,4 +1,3 @@
-[$d -> error_data()]
 [/* Show record listing */]
 [$list -> renderhtml]
 
