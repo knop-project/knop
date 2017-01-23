@@ -1,4 +1,4 @@
-﻿<?LassoScript
+<?LassoScript
 
 	// find out the current skiprecords value based on the -page parameter and $maxrecords
 	$skiprecords = $list -> page_skiprecords($maxrecords);

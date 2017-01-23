@@ -1,4 +1,4 @@
-﻿<?LassoScript
+<?LassoScript
 
 // initiate form to capture keyvalue, set formmode etc. 
 if($f -> error_code == 0); // there was no error in the action

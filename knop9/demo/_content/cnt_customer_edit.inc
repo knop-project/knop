@@ -1,2 +1,2 @@
-﻿[/* Show the edit form */]
+[/* Show the edit form */]
 [$f -> renderform]

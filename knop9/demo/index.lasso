@@ -1,4 +1,4 @@
-﻿<?lassoscript
+<?lassoscript
 
 // Specify the root path to this solution. The path should begin and end with "/".
 // Specify just "/" if the solution is at the virtual host root instead of in a sub folder.

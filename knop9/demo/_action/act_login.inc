@@ -1,4 +1,4 @@
-﻿<?LassoScript
+<?LassoScript
 
 
 // load the field values from the form submission into the form

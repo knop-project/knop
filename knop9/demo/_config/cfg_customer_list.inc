@@ -1,4 +1,4 @@
-﻿<?LassoScript
+<?LassoScript
 
 // create grid object for records list
 var('list'=knop_grid(

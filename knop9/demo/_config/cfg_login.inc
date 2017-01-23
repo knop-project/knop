@@ -1,4 +1,4 @@
-﻿<?LassoScript
+<?LassoScript
 
 // Create login form
 
