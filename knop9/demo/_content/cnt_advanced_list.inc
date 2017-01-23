@@ -1,4 +1,5 @@
-﻿[/* Show record listing */]
+[$d -> error_data()]
+[/* Show record listing */]
 [$list -> renderhtml]
 
 [/* Show button to create new record */]
