@@ -756,6 +756,7 @@ Parameters:
 //			.'debug_trace' -> insert(tag_name ': user id is ' + #user)
 		}
 
+		// TODO: this might be redundant to scrubKeywords
 		// remove all database actions from the field array
 		#_fields -> removeall( '-search') & removeall( '-add') & removeall( '-delete') & removeall( '-update')
 			& removeall( '-sql') & removeall( '-nothing') & removeall( '-show')
