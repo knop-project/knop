@@ -11,6 +11,7 @@ define knop_database => type {
 
 	CHANGE NOTES
 
+	2017-01-23	SP	Fix comparison logic of lockvalue and value of lock_timestamp
 	2017-01-23	SP	Use date -> asinteger instead of asdecimal
 	2016-06-29	JS	Allow keyvalue false for addrecord to prevent setting a keyvalue
 	2016-06-16	JS	Allow integer keyvalues
@@ -746,11 +747,11 @@ Parameters:
 		if(#lockvalue -> size > 0) => {
 			fail_if(.'lockfield' -> size == 0, 7003, .error_msg(7003)) // Lockfield not specified
 
-			fail_if(#user -> size == 0 && !(#user -> isa(::knop_user)), 7004, .error_msg(7004))
+			fail_if(#user == '' && #user -> isnota(::knop_user), 7004, .error_msg(7004))
 //			.'debug_trace' -> insert(tag_name ': user is type ' + (#user -> type) + ', isa(user) = ' + (#user -> isa(::knop_user)) )
 			if(#user -> isa(::knop_user)) => {
 				#id_user = #user -> id_user
-				fail_if(#id_user -> size == 0, 7004, .error_msg(7004)) // User must be logged in to get record with lock
+				fail_if(#id_user == '', 7004, .error_msg(7004)) // User must be logged in to get record with lock
 			}
 //			.'debug_trace' -> insert(tag_name ': user id is ' + #user)
 		}
@@ -767,9 +768,9 @@ Parameters:
 
 				// first check if record was locked by someone else, and that lock is still valid
 				#lock = string(decrypt_blowfish(decode_base64(#lockvalue), -seed = .'lock_seed')) -> split('|')
-				#lock_timestamp = date(#lock -> last or null)
+				#lock_timestamp = (#lock -> last or null) -> asinteger
 				#lock_user = #lock -> first
-				if((date - #lock_timestamp) -> asInteger < .'lock_expires'
+				if((date -> asInteger - #lock_timestamp) < .'lock_expires'
 					&& #lock_user != #id_user) => {
 					// the lock is still valid and it is locked by another user
 					.'error_code' = 7010
