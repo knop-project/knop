@@ -10,7 +10,10 @@ define knop_database => type {
 	/*
 
 	CHANGE NOTES
-
+	2017-01-30	SP	Set a lockvalue and lockvalue_encrypted to be used in knop_form
+	2017-01-30	SP	Coerce void lockvalue to string
+	2017-01-24	SP	Fix checking of existing record lock in getrecord
+	2017-01-24	SP	Restore use of user from database object
 	2017-01-23	SP	Fix comparison logic of lockvalue and value of lock_timestamp
 	2017-01-23	SP	Use date -> asinteger instead of asdecimal
 	2016-06-29	JS	Allow keyvalue false for addrecord to prevent setting a keyvalue
@@ -406,6 +409,7 @@ Parameters:
 				.'querytime' = integer(#querytimer)
 				.'searchparams' = #_search
 				error_code ? debug -> sql(action_statement)
+// 				log_critical('action_statement: ' + action_statement)
 	//			debug(found_count + ' found')
 				resultset(1) => {
 					.capturesearchvars
@@ -567,15 +571,15 @@ Parameters:
 		fail_if(#keyfield -> size == 0, 7002, .error_msg(7002)) // Keyfield not specified
 		if(#lock) => {
 			fail_if(.'lockfield' -> size == 0, 7003, .error_msg(7003)) // Lockfield must be specified to get record with lock
-//			if(#user -> size == 0 && (.'user' -> size > 0 || .'user' -> isa(::knop_user))) => {
-//				// use user from database object
-//				#user = .'user'
-//			}
-			fail_if(#user -> size  == 0 && !(#user -> isa(::knop_user)), 7004, .error_msg(7004)) // User must be specified to get record with lock
+            if(#user == '' && (.'user' == '' || .'user' -> isa(::knop_user))) => {
+                // use user from database object
+                #user = .'user'
+            }
+			fail_if(#user == '' && #user -> isnota(::knop_user), 7004, .error_msg(7004)) // User must be specified to get record with lock
 //			.'debug_trace' -> insert(tag_name ': user is type ' + (#user -> type) + ', isa(user) = ' + (#user -> isa(::knop_user)) )
 			if(#user -> isa(::knop_user)) => {
 				#id_user = #user -> id_user
-				fail_if(#id_user -> size == 0, 7004, .error_msg(7004)) // User must be logged in to get record with lock
+				fail_if(#id_user == '', 7004, .error_msg(7004)) // User must be logged in to get record with lock
 			else
 				#id_user = #user
 			}
@@ -610,15 +614,19 @@ Parameters:
 					.'error_code' = 7008 // keyvalue not unique
 				}
 
+                // set lockvalue from lockfield
+                .'lockvalue' = string(.records -> field(.'lockfield'))
+                .'lockvalue_encrypted' = string(encode_base64(encrypt_blowfish(.'lockvalue', -seed = .'lock_seed')))
+
 				// handle record locking
 				if(.'error_code' == 0 && #lock) => {
 					// check for current lock
 					if(.'lockvalue' -> size > 0) => {
 						// there is a lock already set, check if it has expired or if it is the same user
 						#lockvalue = .'lockvalue' -> split('|')
-						#lock_timestamp = date(#lockvalue -> last or null)
+						#lock_timestamp = (#lockvalue -> last or null) -> asinteger
 						#lock_user = #lockvalue -> first
-						if((date - #lock_timestamp) -> asInteger < .'lock_expires'
+						if((date -> asInteger - #lock_timestamp) < .'lock_expires'
 							&& #lock_user != #id_user) => {
 							// the lock is still valid and it is locked by another user
 							// this is not a real error, more a warning condition
@@ -711,7 +719,7 @@ Parameters:
 		fields::array,
 		keyfield::string = string(.'keyfield'),
 		keyvalue::any = string(.'keyvalue'),
-		lockvalue::string = '',
+		lockvalue::any = string,
 		keeplock::boolean = false,
 		user::any = .'user',
 		inlinename::string = 'inline_' + knop_unique9
@@ -728,12 +736,12 @@ Parameters:
 		local(_fields = .scrubKeywords(#fields) -> asarray)
 
 		#keyfield = #keyfield -> ascopy
-		#keyvalue = #keyvalue -> ascopy
-		#lockvalue = #lockvalue -> ascopy
+		#keyvalue = #keyvalue -> ascopy -> asstring
+		#lockvalue = #lockvalue -> ascopy -> asstring
 //		#user = #user -> ascopy
 		#inlinename = #inlinename -> ascopy
 
-		local(id_user = #user)
+		local(id_user) = null
 
 		.'keyfield' = #keyfield
 		.'keyvalue' = #keyvalue
@@ -859,7 +867,7 @@ Parameters:
 		-fields::array,
 		-keyfield::string = string(.'keyfield'),
 		-keyvalue::any = string(.'keyvalue'),
-		-lockvalue::string = '',
+		-lockvalue::any = string,
 		-keeplock::boolean = false,
 		-user::any = .'user',
 		-inlinename::string = 'inline_' + knop_unique9
