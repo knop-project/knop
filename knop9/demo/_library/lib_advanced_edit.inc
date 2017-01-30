@@ -7,7 +7,7 @@ if($f -> error_code == 0);
 
 if( $f -> error_code == 0 && $f -> formmode == 'edit');
 	// an existing record is requested, load field data from database
-	$d->getrecord(-keyvalue = $f -> keyvalue, -lock=true, -user=$s_user -> id_user);
+	$d->getrecord(-keyvalue = $f -> keyvalue, -lock=true, -user=$s_user);
 	$f -> loadfields( -database);
 
 else;
