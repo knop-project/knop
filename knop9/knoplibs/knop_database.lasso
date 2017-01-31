@@ -10,6 +10,7 @@ define knop_database => type {
 	/*
 
 	CHANGE NOTES
+	2017-01-31	SP	Preserve the existing error_code for a locked record
 	2017-01-30	SP	Set a lockvalue and lockvalue_encrypted to be used in knop_form
 	2017-01-30	SP	Coerce void lockvalue to string
 	2017-01-24	SP	Fix checking of existing record lock in getrecord
@@ -839,6 +840,8 @@ Parameters:
 			if((#_fields >> '-keyfield' && #_fields -> find('-keyfield') -> first -> value -> size > 0 || .'isfilemaker')
 				&& #_fields >> '-keyvalue' && #_fields -> find('-keyvalue') -> first -> value -> size > 0) => {
 				// ok to update
+            else(.'error_code' != 0)
+                // preserve existing error_code
 			else
 				.'error_code' = 7006 // Update failed, keyfield or keyvalue missing'
 			}
