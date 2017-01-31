@@ -38,5 +38,8 @@ $trace -> insert($f -> updatefields);
 
 	if( $d -> error_code);
 		$message -> insert($d -> error_msg + ' ' + $d -> error_code);
+		if( $d -> error_data);
+		    $message -> insert($d -> error_data);
+		/if;
 	/if;
 ?>

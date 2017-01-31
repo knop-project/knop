@@ -81,6 +81,11 @@ if( $message -> size);
 			if( $messageitem -> type == 'pair');
 				// if message item is a pair, the left side of the pair is a class name to use to format this message text
 				$messageitem = ('<span class="' + ($messageitem -> name) + '">' + ($messageitem -> value) + '</span>');
+			else( $messageitem -> type == 'map');
+                iterate($messageitem, local(i)) => {^
+                    #i -> first + ': ' + #i -> second
+                    loop_count != $messageitem -> size ? '<br>'
+                ^}
 			else;
 				$messageitem;
 			/if;
