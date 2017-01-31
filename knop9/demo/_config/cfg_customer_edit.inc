@@ -1,4 +1,4 @@
-﻿<?LassoScript
+<?LassoScript
 
 	// create form object
 	var('f'=knop_form(

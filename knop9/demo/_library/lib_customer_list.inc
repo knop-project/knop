@@ -1,4 +1,4 @@
-﻿<?LassoScript
+<?LassoScript
 
 	// find out the current skiprecords value based on the -page parameter and $maxrecords
 	$skiprecords = $list -> page_skiprecords($maxrecords);
@@ -17,7 +17,7 @@
 	$searchparams -> merge($list -> quicksearch);
 	
 	// get list of records
-	$d -> select($searchparams);
+	$d -> select(-search=$searchparams);
 
 
 

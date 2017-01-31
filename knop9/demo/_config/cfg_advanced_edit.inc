@@ -1,4 +1,4 @@
-﻿<?LassoScript
+<?LassoScript
 
 	// initiate empty array to hold options for select field
 	var( 'options'=array);

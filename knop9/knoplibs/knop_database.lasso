@@ -10,7 +10,17 @@ define knop_database => type {
 	/*
 
 	CHANGE NOTES
-
+	2017-01-31	SP	Preserve the existing error_code for a locked record
+	2017-01-30	SP	Set a lockvalue and lockvalue_encrypted to be used in knop_form
+	2017-01-30	SP	Coerce void lockvalue to string
+	2017-01-24	SP	Fix checking of existing record lock in getrecord
+	2017-01-24	SP	Restore use of user from database object
+	2017-01-23	SP	Fix comparison logic of lockvalue and value of lock_timestamp
+	2017-01-23	SP	Use date -> asinteger instead of asdecimal
+	2016-06-29	JS	Allow keyvalue false for addrecord to prevent setting a keyvalue
+	2016-06-16	JS	Allow integer keyvalues
+	2016-06-16	JS	Disable _unknownTag
+	2016-06-16	JS	Change defaults in signature for ->select
 	2013-06-21	JC	Added method clearlock. Will remove the lock only for the requested record. Requires a lockvalue and a valid user.
 	2012-05-02	JC	Changed date type calls to use Lasso 9 style format or asdecimal. Will speed processing up
 	2013-03-21	JC	Changed remaining iterate to query
@@ -41,7 +51,7 @@ define knop_database => type {
 
 	parent knop_base
 
-	data public version = '2012-05-02'
+	data public version = '2016-06-29'
 
 	data public description::string = 'Custom type to interact with databases. Supports both MySQL and FileMaker datasources'
 
@@ -68,7 +78,7 @@ define knop_database => type {
 	// these variables are set for each query
 	data public inlinename::string = string 			// the inlinename that holds the result of the latest db operation
 	data public keyfield::string = string
-	data public keyvalue::string = ''
+	data public keyvalue::any = ''
 	data public affectedrecord_keyvalue::string = '' 	// keyvalue of last added or updated record (not reset by other db actions)
 	data public lockfield::string = string
 	data public lockvalue::string = ''
@@ -191,8 +201,8 @@ define knop_database => type {
 /**!
 	Shortcut to field
 **/
-	public _unknownTag(...) => {
-		local(name = string(currentCapture -> calledName))
+	public not_unknownTag(...) => {
+ 		local(name = string(currentCapture -> calledName))
 		if( .'field_names_map' >> #name) => {
 			return (.field(#name))
 		else
@@ -307,8 +317,8 @@ Parameters:
 	-inlinename (optional) Defaults to autocreated inlinename
 **/
 	public select(
-		search::array = array,
-		sql::string = '',
+		search::array,
+		sql::string,
 		keyfield::string = '',
 		keyvalue::any = '',
 		inlinename::string = 'inline_' + knop_unique9 // inlinename defaults to a random string
@@ -399,7 +409,8 @@ Parameters:
 			inline(#_search, .'db_connect') => {
 				.'querytime' = integer(#querytimer)
 				.'searchparams' = #_search
-	//			debug -> sql(action_statement)
+				error_code ? debug -> sql(action_statement)
+// 				log_critical('action_statement: ' + action_statement)
 	//			debug(found_count + ' found')
 				resultset(1) => {
 					.capturesearchvars
@@ -416,7 +427,7 @@ Parameters:
 		-search::array = array,
 		-sql::string = '',
 		-keyfield::string = '',
-		-keyvalue::string = '',
+		-keyvalue::any = '',
 		-inlinename::string = 'inline_' + knop_unique9 // inlinename defaults to a random string
 	) => .select(#search, #sql, #keyfield, #keyvalue, #inlinename)
 
@@ -430,7 +441,7 @@ Parameters:
 **/
 	public addrecord(
 		fields::array,
-		keyvalue::string = knop_unique9,
+		keyvalue::any = knop_unique9,
 		inlinename::string = 'inline_' + knop_unique9
 	) => {
 //debug => {
@@ -454,7 +465,7 @@ Parameters:
 
 		inline(.'db_connect') => { // connection wrapper
 
-			if(#keyvalue -> size > 0 && .'keyfield' -> size > 0) => {
+			if(#keyvalue && .'keyfield' -> size > 0) => {
 				// look for existing keyvalue
 				inline(-op = 'eq',.'keyfield' = #keyvalue,
 					-maxrecords = 1,
@@ -475,7 +486,9 @@ Parameters:
 					#_fields -> removeall(.'keyfield')
 					#_fields -> removeall('-keyfield') & removeall('-keyvalue')
 					#_fields -> insert('-keyfield' = .'keyfield')
-					#_fields -> insert(.'keyfield' = .'keyvalue')
+					if(#keyvalue) => {
+						#_fields -> insert(.'keyfield' = .'keyvalue')
+					}
 				}
 
 				// inlinename defaults to a random string
@@ -505,7 +518,7 @@ Parameters:
 
 	public addrecord(
 		-fields::array,
-		-keyvalue::string = knop_unique9,
+		-keyvalue::any = knop_unique9,
 		-inlinename::string = 'inline_' + knop_unique9
 	) => .addrecord(#fields, #keyvalue, #inlinename)
 
@@ -559,15 +572,15 @@ Parameters:
 		fail_if(#keyfield -> size == 0, 7002, .error_msg(7002)) // Keyfield not specified
 		if(#lock) => {
 			fail_if(.'lockfield' -> size == 0, 7003, .error_msg(7003)) // Lockfield must be specified to get record with lock
-//			if(#user -> size == 0 && (.'user' -> size > 0 || .'user' -> isa(::knop_user))) => {
-//				// use user from database object
-//				#user = .'user'
-//			}
-			fail_if(#user -> size  == 0 && !(#user -> isa(::knop_user)), 7004, .error_msg(7004)) // User must be specified to get record with lock
+            if(#user == '' && (.'user' == '' || .'user' -> isa(::knop_user))) => {
+                // use user from database object
+                #user = .'user'
+            }
+			fail_if(#user == '' && #user -> isnota(::knop_user), 7004, .error_msg(7004)) // User must be specified to get record with lock
 //			.'debug_trace' -> insert(tag_name ': user is type ' + (#user -> type) + ', isa(user) = ' + (#user -> isa(::knop_user)) )
 			if(#user -> isa(::knop_user)) => {
 				#id_user = #user -> id_user
-				fail_if(#id_user -> size == 0, 7004, .error_msg(7004)) // User must be logged in to get record with lock
+				fail_if(#id_user == '', 7004, .error_msg(7004)) // User must be logged in to get record with lock
 			else
 				#id_user = #user
 			}
@@ -602,15 +615,19 @@ Parameters:
 					.'error_code' = 7008 // keyvalue not unique
 				}
 
+                // set lockvalue from lockfield
+                .'lockvalue' = string(.records -> field(.'lockfield'))
+                .'lockvalue_encrypted' = string(encode_base64(encrypt_blowfish(.'lockvalue', -seed = .'lock_seed')))
+
 				// handle record locking
 				if(.'error_code' == 0 && #lock) => {
 					// check for current lock
 					if(.'lockvalue' -> size > 0) => {
 						// there is a lock already set, check if it has expired or if it is the same user
 						#lockvalue = .'lockvalue' -> split('|')
-						#lock_timestamp = date(#lockvalue -> last or null)
+						#lock_timestamp = (#lockvalue -> last or null) -> asinteger
 						#lock_user = #lockvalue -> first
-						if((date - #lock_timestamp) -> asInteger < .'lock_expires'
+						if((date -> asInteger - #lock_timestamp) < .'lock_expires'
 							&& #lock_user != #id_user) => {
 							// the lock is still valid and it is locked by another user
 							// this is not a real error, more a warning condition
@@ -623,7 +640,7 @@ Parameters:
 
 					if(.'error_code' == 0) => {
 						// go ahead and lock record
-						.'lockvalue' = #id_user + '|' + (date -> asdecimal)
+						.'lockvalue' = #id_user + '|' + (date -> asinteger)
 						.'lockvalue_encrypted' = string(encode_base64(encrypt_blowfish(.'lockvalue', -seed = .'lock_seed')))
 						#keyvalue_temp = #keyvalue
 						if(.'isfilemaker') => {
@@ -702,8 +719,8 @@ Parameters:
 	public saverecord(
 		fields::array,
 		keyfield::string = string(.'keyfield'),
-		keyvalue::string = string(.'keyvalue'),
-		lockvalue::string = '',
+		keyvalue::any = string(.'keyvalue'),
+		lockvalue::any = string,
 		keeplock::boolean = false,
 		user::any = .'user',
 		inlinename::string = 'inline_' + knop_unique9
@@ -720,12 +737,12 @@ Parameters:
 		local(_fields = .scrubKeywords(#fields) -> asarray)
 
 		#keyfield = #keyfield -> ascopy
-		#keyvalue = #keyvalue -> ascopy
-		#lockvalue = #lockvalue -> ascopy
+		#keyvalue = #keyvalue -> ascopy -> asstring
+		#lockvalue = #lockvalue -> ascopy -> asstring
 //		#user = #user -> ascopy
 		#inlinename = #inlinename -> ascopy
 
-		local(id_user = #user)
+		local(id_user) = null
 
 		.'keyfield' = #keyfield
 		.'keyvalue' = #keyvalue
@@ -739,15 +756,16 @@ Parameters:
 		if(#lockvalue -> size > 0) => {
 			fail_if(.'lockfield' -> size == 0, 7003, .error_msg(7003)) // Lockfield not specified
 
-			fail_if(#user -> size == 0 && !(#user -> isa(::knop_user)), 7004, .error_msg(7004))
+			fail_if(#user == '' && #user -> isnota(::knop_user), 7004, .error_msg(7004))
 //			.'debug_trace' -> insert(tag_name ': user is type ' + (#user -> type) + ', isa(user) = ' + (#user -> isa(::knop_user)) )
 			if(#user -> isa(::knop_user)) => {
 				#id_user = #user -> id_user
-				fail_if(#id_user -> size == 0, 7004, .error_msg(7004)) // User must be logged in to get record with lock
+				fail_if(#id_user == '', 7004, .error_msg(7004)) // User must be logged in to get record with lock
 			}
 //			.'debug_trace' -> insert(tag_name ': user id is ' + #user)
 		}
 
+		// TODO: this might be redundant to scrubKeywords
 		// remove all database actions from the field array
 		#_fields -> removeall( '-search') & removeall( '-add') & removeall( '-delete') & removeall( '-update')
 			& removeall( '-sql') & removeall( '-nothing') & removeall( '-show')
@@ -760,9 +778,9 @@ Parameters:
 
 				// first check if record was locked by someone else, and that lock is still valid
 				#lock = string(decrypt_blowfish(decode_base64(#lockvalue), -seed = .'lock_seed')) -> split('|')
-				#lock_timestamp = date(#lock -> last or null)
+				#lock_timestamp = (#lock -> last or null) -> asinteger
 				#lock_user = #lock -> first
-				if((date - #lock_timestamp) -> asInteger < .'lock_expires'
+				if((date -> asInteger - #lock_timestamp) < .'lock_expires'
 					&& #lock_user != #id_user) => {
 					// the lock is still valid and it is locked by another user
 					.'error_code' = 7010
@@ -795,7 +813,7 @@ Parameters:
 					#_fields -> removeall(.'lockfield')
 					if(#keeplock) => {
 						// update the lock timestamp
-						.'lockvalue' = #id_user + '|' + (date -> asdecimal)
+						.'lockvalue' = #id_user + '|' + (date -> asinteger)
 						.'lockvalue_encrypted' = string(encode_base64(encrypt_blowfish(.'lockvalue', -seed = .'lock_seed')))
 						#_fields -> insert(.'lockfield' = .'lockvalue')
 					else
@@ -822,6 +840,8 @@ Parameters:
 			if((#_fields >> '-keyfield' && #_fields -> find('-keyfield') -> first -> value -> size > 0 || .'isfilemaker')
 				&& #_fields >> '-keyvalue' && #_fields -> find('-keyvalue') -> first -> value -> size > 0) => {
 				// ok to update
+            else(.'error_code' != 0)
+                // preserve existing error_code
 			else
 				.'error_code' = 7006 // Update failed, keyfield or keyvalue missing'
 			}
@@ -849,8 +869,8 @@ Parameters:
 	public saverecord(
 		-fields::array,
 		-keyfield::string = string(.'keyfield'),
-		-keyvalue::string = string(.'keyvalue'),
-		-lockvalue::string = '',
+		-keyvalue::any = string(.'keyvalue'),
+		-lockvalue::any = string,
 		-keeplock::boolean = false,
 		-user::any = .'user',
 		-inlinename::string = 'inline_' + knop_unique9
@@ -866,7 +886,7 @@ Parameters:
 	-user (optional) If lockvalue is specified, user must be specified as well.
 **/
 	public deleterecord(
-		keyvalue::string = .'keyvalue',
+		keyvalue::any = .'keyvalue',
 		lockvalue::string = '',
 		user::any = .'user'
 	) => {
@@ -980,7 +1000,7 @@ Parameters:
 	} // END deleterecord
 
 	public deleterecord(
-		-keyvalue::string = .'keyvalue',
+		-keyvalue::any = .'keyvalue',
 		-lockvalue::string = '',
 		-user::any = .'user'
 	) => .deleterecord(#keyvalue, #lockvalue, #user)

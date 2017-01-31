@@ -1,4 +1,4 @@
-﻿[/* Show record listing */]
+[/* Show record listing */]
 [$list -> renderhtml]
 
 [/* Show button to create new record */]

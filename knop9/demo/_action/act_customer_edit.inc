@@ -1,4 +1,4 @@
-﻿<?LassoScript
+<?LassoScript
 
 	// process form 
 	// "the easy way"

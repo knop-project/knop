@@ -10,6 +10,14 @@ define knop_nav => type {
 /*
 
 CHANGE NOTES
+	2016-06-27	JS	renderbreadcrumb works now
+	2016-06-16	JS	urlmap is now properly inherited from children
+	2016-06-16	JS	->url does not add getargs as default
+	2016-06-10	JS	Do not cast data to string when storing it at insert
+	2016-06-08	JS	Adjustment of signatures for oncreate and data
+	2016-06-08	JS	Removed tagtime
+	2016-06-08	JS	Changed onconvert to asString
+	2016-06-08	JS	Place oncreate signature for named keyword first (for no reason, really)
 	2013-08-31	JC	Added support for dropdownheader
 	2012-11-26	JC	Added support for divider list item in bootstrap
 	2012-11-26	JC	Added param raw
@@ -30,7 +38,7 @@ CHANGE NOTES
 
 	parent knop_base
 
-	data public version = '2012-11-26'
+	data public version = '2016-06-27'
 
 	// instance variables
 	data public navitems::array = array
@@ -75,16 +83,16 @@ Parameters:\n\
 **/
 
 	public oncreate(
-		template::string = '',
-		class::string = '',
-		currentclass::string = 'crnt',
-		currentmarker::string = '',
-		default::string = '',
-		root::string = '/',
-		fileroot::string = '/',
-		navmethod::string = '',
-		filenaming::string = 'prefix',
-		trace::boolean = false
+		-template::string = string,
+		-class::string = string,
+		-currentclass::string = 'crnt',
+		-currentmarker::string = string,
+		-default::string = string,
+		-root::string = '/',
+		-fileroot::string = '/',
+		-navmethod::string = string,
+		-filenaming::string = 'prefix',
+		-trace::boolean = false
 
 	) => {
 //	debug => {
@@ -122,18 +130,28 @@ Parameters:\n\
 	}
 
 	public oncreate(
-		-template::string = '',
-		-class::string = '',
-		-currentclass::string = 'crnt',
-		-currentmarker::string = '',
-		-default::string = '',
-		-root::string = '/',
-		-fileroot::string = '/',
-		-navmethod::string = '',
-		-filenaming::string = 'prefix',
-		-trace::boolean = false
+		template::string,
+		class::string = string,
+		currentclass::string = 'crnt',
+		currentmarker::string = string,
+		default::string = string,
+		root::string = '/',
+		fileroot::string = '/',
+		navmethod::string = string,
+		filenaming::string = 'prefix',
+		trace::boolean = false
 
-	) => .oncreate(#template, #class, #currentclass, #currentmarker, #default, #root, #fileroot, #navmethod, #filenaming, #trace)
+	) => .oncreate(
+		-template=#template,
+		-class=#class,
+		-currentclass=#currentclass,
+		-currentmarker=#currentmarker,
+		-default=#default,
+		-root=#root,
+		-fileroot=#fileroot,
+		-navmethod=#navmethod,
+		-filenaming=#filenaming,
+		-trace=#trace)
 
 /**!
 Outputs the navigation object in a very basic form, just to see what it contains
@@ -143,7 +161,7 @@ Outputs the navigation object in a very basic form, just to see what it contains
 /**!
 Shortcut to renderhtml
 **/
-	public onconvert() => .renderhtml
+	public asstring() => .renderhtml
 
 /**!
 Inserts a nav item into the nav array
@@ -189,7 +207,7 @@ Inserts a nav item into the nav array
 			'disabled' = #disabled,
 			'after' = string(#after),
 			'target' = string(#after),
-			'data' = string(#data),
+			'data' = #data,
 			'hide' = #hide,
 			'raw' = #raw,
 			'divider' = #divider,
@@ -201,6 +219,9 @@ Inserts a nav item into the nav array
 			#navitem -> insert('children_nav' = #children)
 			with loopkey in #children -> 'pathmap' -> keys do => {
  				.'pathmap' -> insert(#key + '/' + #loopkey)
+			}
+			with mappair in #children -> 'urlmap' -> eachPair do => {
+ 				.'urlmap' -> insert(#mappair->name = #key + '/' + #mappair->value)
 			}
 		}
 		.'navitems' -> insert(#key = #navitem)
@@ -223,7 +244,7 @@ Inserts a nav item into the nav array
 		-title::any = string,
 		-id::any = string,
 		-template::any = string,
-		-children::any = '',
+		-children::any = string,
 		-param::any = string,
 		-class::any = string,
 		-filename::any = string,
@@ -778,7 +799,7 @@ Returns full url for current path or specified path. Path parameters can be prov
 		path::string = '',
 		params::any = array,
 		urlargs::string = '',
-		getargs::boolean = true,
+		getargs::boolean = false,
 		except::any = array,
 		topself::knop_nav = self,
 		autoparams::boolean = false,
@@ -824,7 +845,6 @@ Returns full url for current path or specified path. Path parameters can be prov
 		with excepttmp in #except do => {
 			#params -> removeall(#excepttmp)
 		}
-
 		#url = (.path(#path) + (.path(#path) != '' ? '/'))
 		if(.getargs -> size > 0 && #getargs) => {
 			// for links to the current path, add the path args
@@ -1130,7 +1150,7 @@ Includes any of the files for the current path, fails silently if file does not 
 //			(self -> 'debug_trace') -> insert('Include ' + #file + ': ' + #filename + ' processed in ' + (_date_msec - #t) ' ms')
 			//knop_debug(self->type + ' -> ' + tag_name + ' ' + #file + ': ' + #filename + ' processed in ' + (_date_msec - #t) ' ms', -type=self->type)
 //			self -> 'tagtime_tagname'=tag_name
-			..'tagtime' = integer(#timer) // cast to integer to trigger onconvert and to "stop timer"
+//			..'tagtime' = integer(#timer) // cast to integer to trigger onconvert and to "stop timer"
 			return #result
 		else
 //			#dotrace ? (self -> 'debug_trace') -> insert('Include ' + #file + ': no matching filename found')
@@ -1268,7 +1288,7 @@ Return reference to the children of the current navigation object map, or for th
 		if(#nav !>> 'children') => {
 			#nav -> insert('children' = knop_nav)
 		}
-		..'tagtime' = integer(#timer) // cast to integer to trigger onconvert and to "stop timer"
+// 		..'tagtime' = integer(#timer) // cast to integer to trigger onconvert and to "stop timer"
 
 		return(#nav -> find('children'))
 
@@ -1303,7 +1323,7 @@ Add nav object as children to specified key path, replacing the current children
 		(self -> 'urlmap') = null
 
 */
-		..'tagtime' = integer(#timer) // cast to integer to trigger onconvert and to "stop timer"
+// 		..'tagtime' = integer(#timer) // cast to integer to trigger onconvert and to "stop timer"
 
 	}
 
@@ -1335,7 +1355,7 @@ Sets html template for the nav object, use #items# #item# #/items# or more elabo
 		#currentclass -> size > 0 ? .'currentclass' = #currentclass
 		#currentmarker -> size > 0 ? .'currentmarker' = #currentmarker
 
-		..'tagtime' = integer(#timer) // cast to integer to trigger onconvert and to "stop timer"
+// 		..'tagtime' = integer(#timer) // cast to integer to trigger onconvert and to "stop timer"
 
 	}
 
@@ -1415,16 +1435,18 @@ Shows the current navigation as breadcrumb trail. \n\
 				}
 			}
 		}
+		local(pathstring=string)
 		loop(.'patharray' -> size) => {
 			#path -> insert(.'patharray' -> get(loop_count))
-			if(.getnav(#path) -> find('hide')) => {
+			#pathstring=#path->join('/')
+			if(.getnav(#pathstring) -> find('hide')) => {
 				// do not show in navigation
 				loop_abort
 			else
 				if(#plain) => {
-					#output -> insert(.getnav(#path) -> find('label'))
+					#output -> insert(.getnav(#pathstring) -> find('label'))
 				else
-					#output -> insert('<a href="' + .url(-path = #path) + '">' + .getnav(#path) -> find('label') + '</a>')
+					#output -> insert('<a href="' + .url(-path = #pathstring) + '">' + .getnav(#pathstring) -> find('label') + '</a>')
 				}
 			}
 		}
@@ -1453,8 +1475,8 @@ Returns data object that can be stored for the current nav location (or specifie
 			-type (optional string) Force a certain return type. If the stored object doesn´t match the specified type, an empty instance of the type is returned. That way the data can be filtered by type without having to use conditionals to check the type before.
 **/
 	public data(
-		path::string = .'path',
-		type::string = ''
+		-path::string = .'path',
+		-type::string = ''
 	) => {
 
 		local(timer = knop_timer)
@@ -1462,24 +1484,24 @@ Returns data object that can be stored for the current nav location (or specifie
 		local('data' = .getnav(#path) -> find('data'))
 		if(#type -> size > 0) => {
 			if(#data -> isa(#type)) => {
-				..'tagtime' = integer(#timer) // cast to integer to trigger onconvert and to "stop timer"
+// 				..'tagtime' = integer(#timer) // cast to integer to trigger onconvert and to "stop timer"
 				return(#data)
 			else
-				..'tagtime' = integer(#timer) // cast to integer to trigger onconvert and to "stop timer"
+// 				..'tagtime' = integer(#timer) // cast to integer to trigger onconvert and to "stop timer"
 				// return empty instance of the specified type
-				return((\#type)->astype)
+				return(\#type->invoke)
 			}
 		else
-			..'tagtime' = integer(#timer) // cast to integer to trigger onconvert and to "stop timer"
+// 			..'tagtime' = integer(#timer) // cast to integer to trigger onconvert and to "stop timer"
 			return(#data)
 		}
 
 	}
 
 	public data(
-		-path::string = .'path',
-		-type::string = ''
-	) => .data(#path, #type)
+		path::string,
+		type::string
+	) => .data(-path=#path, -type=#type)
 
 /*
 trace // can wait

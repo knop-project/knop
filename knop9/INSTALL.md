@@ -73,8 +73,20 @@ Navigation method
 -----------------
 The navigation method for the demo is initially set to 'path', which uses virtual URLs. If you can't use virtual URLs, you can change the default navigation method by configuring the variable `navmethod` and setting it to the value of 'param' in `demo/_config/cfg__global.inc`.
 
+Visit demo site
+---------------
+Once you have configured the Knop demo site, you may visit it in a web browser.
+
+To demonstrate simple authentication, visit the login page, for example:
+
+<http://myhostname/login/>
+
+For `Username` and `Password`, use any `email` and `password` in the `knopdemo` database, for example, `demo@demo.com` and `demo`.
+
+The demo site does not follow best security practices for authentication, such as hashing of passwords, and its methods should not be used in production. This method is for demonstration of authentication only.
+
 Upgrading Knop
---------------
+==============
 To upgrade Knop, overwrite the Knop libraries in the appropriate location, then either restart the instance or use the Knop type reloader (see "Reload Knop types" above).
 
 Install L-Debug

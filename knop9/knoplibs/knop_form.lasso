@@ -4,6 +4,10 @@
 define knop_form => type {
 /*
 
+	2016-06-22	JS	Add support for serialization of a knop_form object
+	2016-06-20	JS	Allow empty legend to render fieldset and legent (knop8 compatibility)
+	2016-06-20	JS	Don't render form opening and closing tags if formaction is not specified (knop8 compatibility)
+	2016-06-16	JS	Disable _unknownTag
 	2014-03-13	JC	Enhanced handling of required markup
 	2013-11-26	JC	Added date to valid field types
 	2013-06-27	JC	Fixed bug that prevented captures from being used as filters. Fixed bug that prevented captures from being used for validate
@@ -45,9 +49,10 @@ define knop_form => type {
 	also provided simple port of knop_base type for compatibility.
 	Need to investigate translating the functions from knop_base into a trait
 */
+	trait { import trait_serializable }
 	parent knop_base
 
-	data public version = '2013-05-09'
+	data public version = '2016-06-22'
 
 	// instance variables
 	data public fields::array = array
@@ -112,6 +117,80 @@ define knop_form => type {
 	data private end_rendered = false
 
 	data public clientparams::staticarray
+
+/**!
+	Called when object is stored in a session
+**/
+	public serializationElements() => {
+		local(ret = map)
+		#ret -> insert('fields'	= .'fields')
+		#ret -> insert('template'	= .'template')
+		#ret -> insert('buttontemplate'	= .'buttontemplate')
+		#ret -> insert('class'	= .'class')
+		#ret -> insert('errorclass'	= .'errorclass')
+		#ret -> insert('formaction'	= .'formaction')
+		#ret -> insert('method'	= .'method')
+		#ret -> insert('fieldset'	= .'fieldset')
+		#ret -> insert('legend'	= .'legend')
+		#ret -> insert('name'	= .'name')
+		#ret -> insert('id'	= .'id')
+		#ret -> insert('formid'	= .'formid')
+		#ret -> insert('raw'	= .'raw')
+		#ret -> insert('enctype'	= .'enctype')
+		#ret -> insert('actionpath'	= .'actionpath')
+		#ret -> insert('noautoparams'	= .'noautoparams')
+		#ret -> insert('fieldsource'	= .'fieldsource')
+		#ret -> insert('required'	= .'required')
+		#ret -> insert('entersubmitblock'	= .'entersubmitblock')
+		#ret -> insert('unsavedmarker'	= .'unsavedmarker')
+		#ret -> insert('unsavedmarkerclass'	= .'unsavedmarkerclass')
+		#ret -> insert('unsavedwarning'	= .'unsavedwarning')
+		#ret -> insert('database'	= .'database')
+		#ret -> insert('keyparamname'	= .'keyparamname')
+		#ret -> insert('formmode'	= .'formmode')
+		#ret -> insert('formbutton'	= .'formbutton')
+		#ret -> insert('search_type'	= .'search_type')
+		#ret -> insert('noscript'	= .'noscript')
+
+		return array(serialization_element('items', #ret))
+	}
+
+/**!
+	Called when object is retrieved from a session
+**/
+	public acceptDeserializedElement(d::serialization_element)  => {
+		if(#d->key == 'items') => {
+			local(ret = #d -> value)
+			.'fields'	= #ret->find('fields')
+			.'template'	= #ret->find('template')
+			.'buttontemplate'	= #ret->find('buttontemplate')
+			.'class'	= #ret->find('class')
+			.'errorclass'	= #ret->find('errorclass')
+			.'formaction'	= #ret->find('formaction')
+			.'method'	= #ret->find('method')
+			.'fieldset'	= #ret->find('fieldset')
+			.'legend'	= #ret->find('legend')
+			.'name'	= #ret->find('name')
+			.'id'	= #ret->find('id')
+			.'formid'	= #ret->find('formid')
+			.'raw'	= #ret->find('raw')
+			.'enctype'	= #ret->find('enctype')
+			.'actionpath'	= #ret->find('actionpath')
+			.'noautoparams'	= #ret->find('noautoparams')
+			.'fieldsource'	= #ret->find('fieldsource')
+			.'required'	= #ret->find('required')
+			.'entersubmitblock'	= #ret->find('entersubmitblock')
+			.'unsavedmarker'	= #ret->find('unsavedmarker')
+			.'unsavedmarkerclass'	= #ret->find('unsavedmarkerclass')
+			.'unsavedwarning'	= #ret->find('unsavedwarning')
+			.'database'	= #ret->find('database')
+			.'keyparamname'	= #ret->find('keyparamname')
+			.'formmode'	= #ret->find('formmode')
+			.'formbutton'	= #ret->find('formbutton')
+			.'search_type'	= #ret->find('search_type')
+			.'noscript'	= #ret->find('noscript')
+		}
+	}
 
 /**!
 	onCreate
@@ -202,7 +281,7 @@ Outputs the form data in very basic form, just to see what it contains
 /**!
 Shortcut to getvalue
 **/
-	public _unknowntag(index::integer = 1) => {
+	public not_unknowntag(index::integer = 1) => {
 // debug => {
 		local(name = string(currentCapture->calledName))
 		if(.'fields' >> #name) => { // should be (.keys) but this is faster
@@ -1338,7 +1417,7 @@ Outputs HTML for the form fields, a specific field, a range of fields or all fie
 		to = 0,
 		type = '',
 		excludetype = '',
-		legend::string = '',
+		legend::any = false,
 //		xhtml::boolean = false,
 		onlyformcontent::boolean = false,
 		bootstrap::boolean = false
@@ -1383,7 +1462,9 @@ Outputs HTML for the form fields, a specific field, a range of fields or all fie
 		local(required_field = false)
 
 //		local(endslash = (.xhtml(params) ? ' /' | ''))
-
+		if(string(.'formaction') -> size == 0) => {
+			#onlyformcontent=true;
+		}
 		#onlyformcontent ? .'start_rendered' = true
 
 		if(.'start_rendered' == false) => {
@@ -1436,7 +1517,7 @@ Outputs HTML for the form fields, a specific field, a range of fields or all fie
 		}
 		local(requiredmarker = .'required')
 		local(defaultclass = ( .'class' != '' ? .'class' | ''))
-		if(#legend -> size > 0) => {
+		if(#legend !== false) => {
 			.'render_fieldset2_open' = true
 			#output -> append('<fieldset>\n' + '<legend>' + #legend + '</legend>\n')
 		}
@@ -2227,7 +2308,7 @@ Outputs HTML for the form fields, a specific field, a range of fields or all fie
 		-to = 0, 		// number index or field name
 		-type = '',	// only output fields of this or these types (string or array)
 		-excludetype = '',	// output fields except of this or these types (string or array)
-		-legend::string = '',			// groups the rendered fields in a fieldset and outputs a legend for the fieldset
+		-legend::any = false,			// groups the rendered fields in a fieldset and outputs a legend for the fieldset
 		-start::boolean = false,
 		-end::boolean = false,
 		-onlyformcontent::boolean = false,

@@ -1,5 +1,7 @@
+.idea
+.DS_Store
+__assets
 /.buildpath
 /.project
-.DS_Store
 *.bbproject*
 SQLiteDBs/

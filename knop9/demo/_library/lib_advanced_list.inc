@@ -1,4 +1,4 @@
-﻿<?LassoScript
+<?LassoScript
 
 	// find out the current skiprecords value based on the -page parameter and $maxrecords
 	$skiprecords = $list -> page_skiprecords($maxrecords);
@@ -18,7 +18,7 @@
 
 
 	// get list of records
-	$d -> select($searchparams);
+	$d -> select(-search=$searchparams);
 	
 	
 	// check if the -page value was out of bounds
@@ -28,7 +28,7 @@
 		$list -> 'page' = $list -> lastpage;
 		$skiprecords = $list -> page_skiprecords($maxrecords);
 		$searchparams -> removeall(-skiprecords) & insert( -skiprecords=$skiprecords);
-		$d -> select($searchparams);
+		$d -> select(-search=$searchparams);
 	/if;
 
 

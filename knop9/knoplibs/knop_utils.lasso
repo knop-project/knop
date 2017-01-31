@@ -154,9 +154,9 @@ define knop_seed => {
 	*/
 //		local('seed'= string( $__lassoservice_ip__) + response_localpath)
 	// Need to find out what Lasso 9 uses instead of __lassoservice_ip__
-	local('seed'= string( server_ip) + string( server_name) + response_localpath)
-	#seed -> removetrailing(response_filepath)
-	return #seed
+    local(seed) = (server_ip -> trim&) + (server_name -> trim&) + (response_localpath -> trim&)
+    #seed -> removetrailing(response_filepath)
+    return string_replace(#seed, -find='/', -replace='')
 }
 
 define knop_foundrows => { // Originally from http://tagswap.net/found_rows

@@ -1,4 +1,4 @@
-﻿<?LassoScript
+<?LassoScript
 // Use some kind of security to prevent l-debug running where it should not.
 // Uncomment the next line to activate l-debug, assuming you have installed it.
 // client_getparams >> 'debug' && server_name == 'knop9' ? debug->activate

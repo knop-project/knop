@@ -1,4 +1,4 @@
-﻿<?LassoScript
+<?LassoScript
 
 // dynamically disable certain nav elements - after action
 
