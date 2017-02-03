@@ -56,8 +56,6 @@ define knop_form => type {
 	trait { import trait_serializable }
 	parent knop_base
 
-	data public version = '2016-06-22'
-
 	// instance variables
 	data public fields::array = array
 

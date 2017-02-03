@@ -49,7 +49,6 @@ define knop_base => type {
 
 	*/
 
-	data public version = '2016-07-06'
 	data public debug_trace::array = array
 	data public _debug_trace::array = array
 	data public instance_unique = null

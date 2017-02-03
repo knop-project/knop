@@ -38,8 +38,6 @@ CHANGE NOTES
 
 	parent knop_base
 
-	data public version = '2016-06-27'
-
 	// instance variables
 	data public navitems::array = array
 	data public pathmap::map = map

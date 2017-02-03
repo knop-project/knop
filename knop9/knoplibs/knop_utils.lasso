@@ -346,8 +346,6 @@ define knop_timer => type {
 
 	*/
 
-	data public version = '2009-11-27'
-
 	data private timer::integer
 	data private micros::boolean = false
 

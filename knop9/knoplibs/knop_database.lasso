@@ -51,8 +51,6 @@ define knop_database => type {
 
 	parent knop_base
 
-	data public version = '2016-06-29'
-
 	data public description::string = 'Custom type to interact with databases. Supports both MySQL and FileMaker datasources'
 
 	// instance variables
@@ -1675,8 +1673,6 @@ define knop_databaserows => type {
 
 	*/
 
-	data public version = '2010-07-30'
-
 	data public description::string = 'Custom type to interact with databases. Supports both MySQL and FileMaker datasources'
 
 	// instance variables
@@ -1842,8 +1838,6 @@ define knop_databaserow => type {
 	2010-07-30	JC	Started on first version written directly for for Lasso 9
 
 	*/
-
-	data public version = '2010-07-30'
 
 	// instance variables
 	data public record_array::staticarray = staticarray

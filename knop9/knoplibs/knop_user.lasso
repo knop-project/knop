@@ -109,7 +109,6 @@ CHANGE NOTES
 */
 	parent knop_base
 
-	data public version = '2016-06-17'
 	data public description = 'Custom type to handle user identification and authentication'
 
 	data public fields::array = array()

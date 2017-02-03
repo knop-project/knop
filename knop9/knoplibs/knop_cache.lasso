@@ -37,8 +37,6 @@ define knop_cache => thread {
 
 	*/
 
-	data public version = '2013-04-15'
-
 	data private caches = map
 	data public purged
 

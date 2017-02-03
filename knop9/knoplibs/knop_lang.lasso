@@ -33,8 +33,6 @@ define knop_lang => type {
 
 	*/
 
-	data public version = '2016-06-08'
-
 	data public strings::map = map
 	data public fallback::boolean
 	data public defaultlanguage::string

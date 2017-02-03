@@ -8,8 +8,6 @@ Custom type to handle data grids (record listings).
 define knop_grid => type {
 	parent knop_base
 
-	data public version = '2013-09-05'
-
 /*
 
 CHANGE NOTES
