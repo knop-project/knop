@@ -1,0 +1,2 @@
+sphinxcontrib-lassodomain
+cloud_sptheme
