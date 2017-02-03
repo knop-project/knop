@@ -3,6 +3,7 @@ knop_base
 =========
 .. type:: knop_base
 
+   Base data type for Knop framework. Contains common member tags. Used as boilerplate when creating the other types. All member tags and instance variables in this type are available in the other knop types as well.
 
    .. member:: debug_trace()::array
 
@@ -15,25 +16,32 @@ knop_base
 
    .. member:: error_code()
 
-
    .. member:: error_code=(error_code)
 
-      :param error_code:
+      Returns either proprietary error code or standard Lasso error code.
+
+      :param error_code: Accepts an integer.
 
    .. member:: error_lang()
 
 
    .. member:: error_lang=(error_lang)
 
+      Returns a reference to the language object used for error codes, to be able to add localized error messages to any Knop type (except :type:`knop_lang` and :type:`knop_base`).
+
       :param error_lang:
 
    .. member:: error_msg([error_code::integer])
 
-      :param integer error_code:
+      Returns either a Knop or standard Lasso error message.
+
+      :param integer error_code: Optional integer, either for Knop or Lasso.
 
    .. member:: error_msg=(error_msg)
 
-      :param error_msg:
+      Returns either a Knop or standard Lasso error message.
+
+      :param error_msg: Accepts either a Knop or standard Lasso error message.
 
    .. member:: help([html::boolean, xhtml::boolean])
 
@@ -81,6 +89,7 @@ knop_base
 
 .. type:: knop_knoptype
 
+   All Knop custom types should have this type as parent type. This is to be able to identify all registered knop types.
 
    .. member:: isknoptype()
 
