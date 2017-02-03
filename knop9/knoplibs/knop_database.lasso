@@ -750,6 +750,9 @@ Parameters:
 		// clear all search result vars
 		.reset
 
+// TODO: when anonymous user attempts to saverecord, we get an error 21.
+// we should do something else more useful in our code.
+
 		fail_if((#keyvalue -> size == 0 && #lockvalue -> size == 0), 7005, .error_msg(7005)) // Either keyvalue or lockvalue must be specified for update or delete
 		fail_if(#keyvalue -> size > 0 && #keyfield -> size == 0, 7002, .error_msg(7002)) // Keyfield not specified
 

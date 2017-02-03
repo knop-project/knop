@@ -1,6 +1,10 @@
 <?Lasso
 //log_critical('loading knop_form from LassoApp')
 
+/**!
+knop_form
+Custom type to handle forms.
+**/
 define knop_form => type {
 /*
 

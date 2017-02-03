@@ -1,5 +1,9 @@
 <?Lasso
 //log_critical('loading knop_utils from LassoApp')
+/**!
+knop_utils.lasso
+A collection of miscellaneous types and methods used in Knop.
+**/
 /*
 	CHANGE NOTES
 
