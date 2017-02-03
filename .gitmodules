@@ -1,3 +1,0 @@
-[submodule "knop8/demo/bootstrap"]
-	path = knop8/demo/bootstrap
-	url = git@github.com:twbs/bootstrap.git
