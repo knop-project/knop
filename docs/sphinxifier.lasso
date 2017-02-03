@@ -35,6 +35,9 @@
   thread:: name
     ...               <-- same as type::
 
+  Usage:
+  env LASSO9_RETAIN_COMMENTS=1 lasso9 ./sphinxifier.lasso
+
   Known limitations:
   - won't generate :import: lines for traits added later with ->addTrait
   - Lasso applies a docComment to only the first require statement in a group
@@ -501,6 +504,7 @@ iterate(#core_libs) => {
 
   // write markup for new types
   with type in #typelist
+  order by #type -> asstring
   do {
     #doc->writeBytes(bytes(writeDocs(#type, 'type')))
   }
@@ -534,7 +538,6 @@ Indices and tables
 ==================
 
 * :ref:`genindex`
-* :ref:`modindex`
 * :ref:`search`
 "
     ))

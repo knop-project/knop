@@ -1,16 +1,6 @@
 =========
 knop_base
 =========
-.. type:: knop_knoptype
-
-
-   .. member:: isknoptype()
-
-
-   .. member:: isknoptype=(isknoptype)
-
-      :param isknoptype:
-
 .. type:: knop_base
 
 
@@ -76,13 +66,6 @@ knop_base
    .. member:: varname()
 
 
-   .. member:: version()
-
-
-   .. member:: version=(version)
-
-      :param version:
-
    .. member:: xhtml([params])
 
       :param params:
@@ -95,3 +78,13 @@ knop_base
 
       :param array _debug_trace:
       :rtype: `array`
+
+.. type:: knop_knoptype
+
+
+   .. member:: isknoptype()
+
+
+   .. member:: isknoptype=(isknoptype)
+
+      :param isknoptype:

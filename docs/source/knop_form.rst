@@ -640,10 +640,3 @@ knop_form
 
       :param map validfieldtypes:
       :rtype: `map`
-
-   .. member:: version()
-
-
-   .. member:: version=(version)
-
-      :param version:

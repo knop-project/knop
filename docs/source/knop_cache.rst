@@ -80,10 +80,3 @@ knop_cache
    .. member:: remove(name::string)
 
       :param string name:
-
-   .. member:: version()
-
-
-   .. member:: version=(version)
-
-      :param version:

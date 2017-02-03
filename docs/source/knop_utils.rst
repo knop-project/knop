@@ -178,13 +178,6 @@ knop_utils
       :param integer timer:
       :rtype: `integer`
 
-   .. member:: version()
-
-
-   .. member:: version=(version)
-
-      :param version:
-
    .. member:: +(rhs::integer)
 
       :param integer rhs:

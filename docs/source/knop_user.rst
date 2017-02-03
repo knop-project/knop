@@ -378,10 +378,3 @@ knop_user
 
       :param boolean validlogin:
       :rtype: `boolean`
-
-   .. member:: version()
-
-
-   .. member:: version=(version)
-
-      :param version:

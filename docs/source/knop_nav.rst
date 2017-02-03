@@ -526,10 +526,3 @@ knop_nav
 
       :param array urlparams:
       :rtype: `array`
-
-   .. member:: version()
-
-
-   .. member:: version=(version)
-
-      :param version:

@@ -363,10 +363,3 @@ knop_grid
       :param except:
       :param prefix:
       :param suffix:
-
-   .. member:: version()
-
-
-   .. member:: version=(version)
-
-      :param version:

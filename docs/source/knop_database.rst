@@ -566,12 +566,44 @@ knop_database
       :param string username:
       :rtype: `string`
 
-   .. member:: version()
+.. type:: knop_databaserow
 
 
-   .. member:: version=(version)
+   .. member:: field(fieldname::string[, index::integer])
 
-      :param version:
+      :param string fieldname:
+      :param integer index:
+
+   .. member:: field_names()::array
+
+      :rtype: `array`
+
+   .. member:: field_names=(field_names::array)::array
+
+      :param array field_names:
+      :rtype: `array`
+
+   .. member:: onconvert()
+
+
+   .. member:: oncreate(record_array::staticarray, field_names::array)
+
+      :param staticarray record_array:
+      :param array field_names:
+
+   .. member:: oncreate(-record_array::staticarray, -field_names::array)
+
+      :param staticarray -record_array:
+      :param array -field_names:
+
+   .. member:: record_array()::staticarray
+
+      :rtype: `staticarray`
+
+   .. member:: record_array=(record_array::staticarray)::staticarray
+
+      :param staticarray record_array:
+      :rtype: `staticarray`
 
 .. type:: knop_databaserows
 
@@ -653,56 +685,3 @@ knop_database
    .. member:: summary_header(fieldname::string)
 
       :param string fieldname:
-
-   .. member:: version()
-
-
-   .. member:: version=(version)
-
-      :param version:
-
-.. type:: knop_databaserow
-
-
-   .. member:: field(fieldname::string[, index::integer])
-
-      :param string fieldname:
-      :param integer index:
-
-   .. member:: field_names()::array
-
-      :rtype: `array`
-
-   .. member:: field_names=(field_names::array)::array
-
-      :param array field_names:
-      :rtype: `array`
-
-   .. member:: onconvert()
-
-
-   .. member:: oncreate(record_array::staticarray, field_names::array)
-
-      :param staticarray record_array:
-      :param array field_names:
-
-   .. member:: oncreate(-record_array::staticarray, -field_names::array)
-
-      :param staticarray -record_array:
-      :param array -field_names:
-
-   .. member:: record_array()::staticarray
-
-      :rtype: `staticarray`
-
-   .. member:: record_array=(record_array::staticarray)::staticarray
-
-      :param staticarray record_array:
-      :rtype: `staticarray`
-
-   .. member:: version()
-
-
-   .. member:: version=(version)
-
-      :param version:

@@ -120,13 +120,6 @@ knop_lang
 
       :param void:
 
-   .. member:: version()
-
-
-   .. member:: version=(version)
-
-      :param version:
-
    .. member:: _unknowntag([language, replace])
 
       :param language:
