@@ -6,3 +6,4 @@ __assets
 *.bbproject*
 SQLiteDBs/
 env/
+docs/build
