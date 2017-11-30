@@ -109,7 +109,7 @@ CHANGE NOTES
 2007-01-25	JS	Added -required to ->oncreate (and a few more from ->setformat)
 2007-01-23	JS	Autogenerates id for the form itself
 2007-01-23	JS	Added ->getbutton to return the button that was clicked when submitting a form (cancel, add, save, delete)
-2007-01-23	JS	Added auto conversion of options left hand pair member to string, to make comparsions work reliably. Integer zeros don't compare nicely to strings. 
+2007-01-23	JS	Added auto conversion of options left hand pair member to string, to make comparisons work reliably. Integer zeros don't compare nicely to strings. 
 2007-01-23	JS	Added support for submit-on-enter prevention: specify -entersubmitblock at oncreate
 2007-01-19	JS	Added renderform: -legend to be able to group form fields at render time
 2007-01-19	JS	added support for -optgroup in -options for select. Also works for radio and checkbox. Specify empty -optgroup to close optgroup in select without starting a new, or to add extra linebreak between checkboxes/radio buttons. 
@@ -1343,7 +1343,7 @@ Option for -> renderhtml to output without html encoding
 						if: #option -> type != 'pair';
 							#option = (pair: #option = #option);
 						/if;
-						// name must be string to make sure comparsions work
+						// name must be string to make sure comparisons work
 						(#option -> name) = (string: #option -> name);
 					/iterate;
 				/if;
@@ -2143,7 +2143,7 @@ Option for -> renderhtml to output without html encoding
 					if: #option -> type != 'pair';
 						#option = (pair: #option = #option);
 					/if;
-					// name must be string to make sure comparsions work
+					// name must be string to make sure comparisons work
 					(#option -> name) = (string: #option -> name);
 				/iterate;
 			/if;

@@ -429,7 +429,7 @@ Log in user. On successful login, all fields on the user record will be availabl
 
 				if(#db -> found_count == 1
 					&& #db -> field(.'userfield') == #_username) => { // double check the username
-					// one match, continue by checking the password with case sensitive comparsion
+					// one match, continue by checking the password with case sensitive comparison
 
 					if(.'encrypt' && .'cost' && .'saltfield' -> size) => {
 						// use encryption with cost & salt

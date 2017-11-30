@@ -296,7 +296,7 @@ Permissions can be read, create, update, delete, or application specific (for ex
 				(self -> '_debug_trace') -> (insert: tag_name + ': ' + 'Searching user db, ' (#db -> found_count) + ' found ' + (#db -> error_msg) + ' ' + (#db -> action_statement));
 				if: #db -> found_count == 1
 					&& #db -> (field: (self -> 'userfield')) == #username; // double check the username
-					// one match, continue by checking the password with case sensitive comparsion
+					// one match, continue by checking the password with case sensitive comparison
 					if: (self -> 'encrypt') && (self -> 'saltfield') -> size;
 						// use encryption with salt
 						(self -> '_debug_trace') -> (insert: tag_name + ': ' + 'Checking password with salted encryption');
