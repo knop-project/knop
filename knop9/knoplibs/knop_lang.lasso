@@ -140,7 +140,7 @@ define knop_lang => type {
 	Parameters:
 	-key (required) textkey to return the string for.
 	-language (optional) to return a string for a specified language (temporary override).
-	-replace (optional) single value or array of values that will be used as substitutions for placeholders #1#, #2# etc in the returned string, in the order they appear. Replacements can be compund expressions, which will be executed. Can also be map or pair array, and in that case the left hand element of the map/array will be replaced by the right hand element.
+	-replace (optional) single value or array of values that will be used as substitutions for placeholders #1#, #2# etc in the returned string, in the order they appear. Replacements can be compound expressions, which will be executed. Can also be map or pair array, and in that case the left hand element of the map/array will be replaced by the right hand element.
 	**/
 	public getstring(
 		key::any,
@@ -211,7 +211,7 @@ define knop_lang => type {
 			#output = .'strings' -> find( #language) -> find( #key)
 
 			if(#output -> isa(::tag)) => {
-				// execute compund expression
+				// execute compound expression
 				#output = #output -> run
 			}
 			if(#output -> size > 0 && #replace -> size > 0) => {
@@ -226,7 +226,7 @@ define knop_lang => type {
 					if(!(#replacement -> isa(::pair))) => {
 						#replacement = pair( '#' + #loopcount + '#' = #replacement)
 					}
-					// if we have a compund expression as replacement, execute the replacement first
+					// if we have a compound expression as replacement, execute the replacement first
 					if((#replacement -> value -> isa(::tag))) => {
 						(#replacement -> value) = #replacement -> value -> run
 					}

@@ -171,7 +171,7 @@ Examples
 				Parameters: \n\
 				-key (required) textkey to return the string for. \n\
 				-language (optional) to return a string for a specified language (temporary override). \n\
-				-replace (optional) single value or array of values that will be used as substitutions for placeholders #1#, #2# etc in the returned string, in the order they appear. Replacements can be compund expressions, which will be executed.  Can also be map or pair array, and in that case the left hand element of the map/array will be replaced by the right hand element. ',
+				-replace (optional) single value or array of values that will be used as substitutions for placeholders #1#, #2# etc in the returned string, in the order they appear. Replacements can be compound expressions, which will be executed.  Can also be map or pair array, and in that case the left hand element of the map/array will be replaced by the right hand element. ',
 		-required='key',
 		-optional='language', -copy,
 		-optional='replace', -copy;
@@ -229,7 +229,7 @@ Examples
 			//(self -> 'debug_trace') -> (insert: tag_name + ': found string "' + (encode_html: #output) + '" for key "' + #key + '" and language ' + #language);
 			
 			if: #output -> (isa: 'tag');
-				// execute compund expression
+				// execute compound expression
 				#output = #output -> run;
 			/if;
 			if((#output -> isa('string') || #output -> isa('bytes')) 
@@ -243,7 +243,7 @@ Examples
 					if: !(#replacement -> (isa: 'pair'));
 						#replacement = (pair: '#' + loop_count + '#' = #replacement);
 					/if;
-					// if we have a compund expression as replacement, execute the replacement first
+					// if we have a compound expression as replacement, execute the replacement first
 					if: (#replacement -> value -> (isa: 'tag'));
 						(#replacement -> value) = #replacement -> value -> run;
 					/if;

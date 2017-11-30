@@ -38,7 +38,7 @@ $list -> (addfield:
 			1='<span style="color: green;">' + $lang_ui -> yes + '</span>', 
 			-default='<span style="color: red;">&bull;</span>'));
 $list -> (addfield: 
-		-label='Compund', 
+		-label='Compound', 
 		-name='enabled', 
 		-width=150, 
 		-template={return: (date: (field: 'moddate')) -> (format: $lang_ui -> dateformat_short)});
