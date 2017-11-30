@@ -97,7 +97,7 @@ CHANGE NOTES
 2007-02-02	JS	error_code now returns an error for when the form contains validation errors
 2007-02-02	JS	Improved reporting of Lasso error messaged in error_msg
 2007-02-02	JS 	Added real error codes
-2007-01-31	JS	->rederform action_params now also exclude "-" params that appear in the form action
+2007-01-31	JS	->renderform action_params now also exclude "-" params that appear in the form action
 2007-01-29	JS	->renderform: The first field with input error will get focus when loading page
 2007-01-29	JS	Added -focus to ->addfield to give default field focus when loading page with form
 2007-01-29	JS	Added -disabled to ->addfield, and handling of it in ->renderform
