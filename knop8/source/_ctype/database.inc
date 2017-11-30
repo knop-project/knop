@@ -43,7 +43,7 @@ CHANGE NOTES
 2008-05-28	JS	->getrecord now works with integer keyvalues (oops)
 2008-05-27	JS	->get returns a new datatype knop_databaserow 
 2008-05-27	JS	Added ->size and ->get so a database object can be iterated. When iterating each row is returned as an array of field values. 
-2008-05-27	JS	Addedd ->nextrecord that increments the recordpointer each time it is called until the last record in the found set is reached. Returns true as long as there are more records. Useful in a while loop - see example below
+2008-05-27	JS	Added ->nextrecord that increments the recordpointer each time it is called until the last record in the found set is reached. Returns true as long as there are more records. Useful in a while loop - see example below
 2008-05-27	JS	Implemented record pointer 'current_record'. The record pointer is reset for each new query. 
 2008-05-27	JS	->field: added -recordindex to get data from any record in the current found set
 2008-05-27	JS	Added ->_unknowntag as shortcut to field

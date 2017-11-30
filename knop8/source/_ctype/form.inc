@@ -111,7 +111,7 @@ CHANGE NOTES
 2007-01-23	JS	Added ->getbutton to return the button that was clicked when submitting a form (cancel, add, save, delete)
 2007-01-23	JS	Added auto conversion of options left hand pair member to string, to make comparsions work reliably. Integer zeros don't compare nicely to strings. 
 2007-01-23	JS	Added support for submit-on-enter prevention: specify -entersubmitblock at oncreate
-2007-01-19	JS	Addes renderform: -legend to be able to group form fields at render time
+2007-01-19	JS	Added renderform: -legend to be able to group form fields at render time
 2007-01-19	JS	added support for -optgroup in -options for select. Also works for radio and checkbox. Specify empty -optgroup to close optgroup in select without starting a new, or to add extra linebreak between checkboxes/radio buttons. 
 2007-01-19	JS	added -template for oncreate
 2007-01-19	JS	added optional fieldset and legend to form, legend can be specified as -legend at oncreate. if -legend is specified, the form will be wrapped in a fieldset. 
