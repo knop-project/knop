@@ -289,7 +289,7 @@ Option for -> renderhtml to output without html encoding
 		local_defined('database') ? (self -> 'database') = @#database;
 
 		if: !(local_defined: 'formaction') && (local_defined: 'action');
-			// keep support for old -action insead of -formaction
+			// keep support for old -action instead of -formaction
 			(self -> 'debug_trace') -> insert('*** DEPRECATION WARNING *** ' + tag_name + ' -action parameter is deprecated, use -formaction instead ');
 			(self -> 'formaction') = @#action;
 		/if;
