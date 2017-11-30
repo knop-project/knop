@@ -9,7 +9,7 @@ define knop_form => type {
 /*
 
 	2016-06-22	JS	Add support for serialization of a knop_form object
-	2016-06-20	JS	Allow empty legend to render fieldset and legent (knop8 compatibility)
+	2016-06-20	JS	Allow empty legend to render fieldset and legend (knop8 compatibility)
 	2016-06-20	JS	Don't render form opening and closing tags if formaction is not specified (knop8 compatibility)
 	2016-06-16	JS	Disable _unknownTag
 	2014-03-13	JC	Enhanced handling of required markup
