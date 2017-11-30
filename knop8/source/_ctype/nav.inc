@@ -1263,7 +1263,7 @@ Will generate HTML markup:
 		return: @#url;
 	/define_tag;
 	
-	define_tag: 'filename', -description='Returns the full path to the specified type of precissing file for the current navigation. \n\
+	define_tag: 'filename', -description='Returns the full path to the specified type of processing file for the current navigation. \n\
 			Parameters:\n\
 			-type (required) lib, act, cnt, cfg, actcfg',
 		-required='type',
