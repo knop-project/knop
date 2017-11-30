@@ -734,7 +734,7 @@ Outputs just the actual record listing. Is called by renderhtml. \
 				}
 				#classarray = array
 				if(#affectedrecord_keyvalue == field(#keyfield) && field(#keyfield) != '') => {
-					// hightlight affected row
+					// highlight affected row
 					#classarray -> insert('highlight')
 				else
 					(#record_loop_count - 1)  % 2 == 0 ? #classarray -> insert('even')
