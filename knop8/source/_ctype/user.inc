@@ -34,7 +34,7 @@ CHANGE NOTES
 
 // TODO: 
 Make it possible for knop_user to work independently of a knop_database object by creating a custom user lookup - see http://listsearch.com/Lasso/Thread/index.lasso?20528
-userdb reference is brooken, probably when stored in session. Can this be fixed?
+userdb reference is broken, probably when stored in session. Can this be fixed?
 Make client_fingerprint configurable by specifying a compound expression at oncreate
 Add support for role based permisions
 
