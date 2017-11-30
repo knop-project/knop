@@ -1028,7 +1028,7 @@ datetime_create and datetime_mod, and also user_create and user_mod.
 			&& #recordindex <= (self -> 'records_array') -> size);
 			// return specific record
 			if(#index==1);
-				// return first ocurrence of field name through the index map - this is faster
+				// return first occurrence of field name through the index map - this is faster
 				return(self -> 'records_array' -> get(#recordindex) -> get(self -> 'field_names_map' -> find(#fieldname)));
 			else;
 				// return another occurrence of the field - this is slightly slower
@@ -1258,7 +1258,7 @@ CHANGE NOTES
 			&& #recordindex <= (self -> 'records_array') -> size);
 			// return specific record
 			if(#index==1);
-				// return first ocurrence of field name through the index map - this is faster
+				// return first occurrence of field name through the index map - this is faster
 				return(self -> 'records_array' -> get(#recordindex) -> get(self -> 'field_names_map' -> find(#fieldname)));
 			else;
 				// return another occurrence of the field - this is slightly slower

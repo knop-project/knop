@@ -1326,7 +1326,7 @@ field A shortcut to return a specific field from a single record result.
 			&& #recordindex <= .'records_array' -> size)
 			// return specific record
 			if(#index == 1) => {
-				// return first ocurrence of field name through the index map - this is faster
+				// return first occurrence of field name through the index map - this is faster
 				return(.'records_array' -> get(#recordindex) -> get(.'field_names_map' -> find(#fieldname)))
 			else
 				// return another occurrence of the field - this is slightly slower
@@ -1752,7 +1752,7 @@ field Return an individual field value.
 			&& #recordindex <= .'records_array' -> size) => {
 			// return specific record
 			if(#index==1) => {
-				// return first ocurrence of field name through the index map - this is faster
+				// return first occurrence of field name through the index map - this is faster
 				return(.'records_array' -> get(#recordindex) -> get(.'field_names_map' -> find(#fieldname)))
 			else
 				// return another occurrence of the field - this is slightly slower
