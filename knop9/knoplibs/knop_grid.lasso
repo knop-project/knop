@@ -1105,7 +1105,7 @@ Outputs the footer of the grid with the prev/next links and information about fo
 page_skiprecords
 Converts current page value to a skiprecords value to use in a search. \n\
 			Parameters:\n\
-			-maxrecords (required integer) Needed to be able to do the calculation. Maxrecords_value can not be taken from the database object since taht value is not available until aftetr performing the search
+			-maxrecords (required integer) Needed to be able to do the calculation. Maxrecords_value can not be taken from the database object since that value is not available until aftetr performing the search
 **/
 	public page_skiprecords(maxrecords::integer) => {
 		// TODO: maxrecords_value can be taken from the database object so should not be required
