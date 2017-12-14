@@ -6,7 +6,7 @@ define_type: 'user',
 //	-prototype;
 
 	local: 'version'='2009-09-18',
-		'descripion'='Custom type to handle user identification and authentication';
+		'description'='Custom type to handle user identification and authentication';
 
 /*
 
@@ -34,9 +34,9 @@ CHANGE NOTES
 
 // TODO: 
 Make it possible for knop_user to work independently of a knop_database object by creating a custom user lookup - see http://listsearch.com/Lasso/Thread/index.lasso?20528
-userdb reference is brooken, probably when stored in session. Can this be fixed?
+userdb reference is broken, probably when stored in session. Can this be fixed?
 Make client_fingerprint configurable by specifying a compound expression at oncreate
-Add support for role based permisions
+Add support for role based permissions
 
 */
 
@@ -296,7 +296,7 @@ Permissions can be read, create, update, delete, or application specific (for ex
 				(self -> '_debug_trace') -> (insert: tag_name + ': ' + 'Searching user db, ' (#db -> found_count) + ' found ' + (#db -> error_msg) + ' ' + (#db -> action_statement));
 				if: #db -> found_count == 1
 					&& #db -> (field: (self -> 'userfield')) == #username; // double check the username
-					// one match, continue by checking the password with case sensitive comparsion
+					// one match, continue by checking the password with case sensitive comparison
 					if: (self -> 'encrypt') && (self -> 'saltfield') -> size;
 						// use encryption with salt
 						(self -> '_debug_trace') -> (insert: tag_name + ': ' + 'Checking password with salted encryption');

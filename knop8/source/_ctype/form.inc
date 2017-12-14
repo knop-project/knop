@@ -97,7 +97,7 @@ CHANGE NOTES
 2007-02-02	JS	error_code now returns an error for when the form contains validation errors
 2007-02-02	JS	Improved reporting of Lasso error messaged in error_msg
 2007-02-02	JS 	Added real error codes
-2007-01-31	JS	->rederform action_params now also exclude "-" params that appear in the form action
+2007-01-31	JS	->renderform action_params now also exclude "-" params that appear in the form action
 2007-01-29	JS	->renderform: The first field with input error will get focus when loading page
 2007-01-29	JS	Added -focus to ->addfield to give default field focus when loading page with form
 2007-01-29	JS	Added -disabled to ->addfield, and handling of it in ->renderform
@@ -109,9 +109,9 @@ CHANGE NOTES
 2007-01-25	JS	Added -required to ->oncreate (and a few more from ->setformat)
 2007-01-23	JS	Autogenerates id for the form itself
 2007-01-23	JS	Added ->getbutton to return the button that was clicked when submitting a form (cancel, add, save, delete)
-2007-01-23	JS	Added auto conversion of options left hand pair member to string, to make comparsions work reliably. Integer zeros don't compare nicely to strings. 
+2007-01-23	JS	Added auto conversion of options left hand pair member to string, to make comparisons work reliably. Integer zeros don't compare nicely to strings. 
 2007-01-23	JS	Added support for submit-on-enter prevention: specify -entersubmitblock at oncreate
-2007-01-19	JS	Addes renderform: -legend to be able to group form fields at render time
+2007-01-19	JS	Added renderform: -legend to be able to group form fields at render time
 2007-01-19	JS	added support for -optgroup in -options for select. Also works for radio and checkbox. Specify empty -optgroup to close optgroup in select without starting a new, or to add extra linebreak between checkboxes/radio buttons. 
 2007-01-19	JS	added -template for oncreate
 2007-01-19	JS	added optional fieldset and legend to form, legend can be specified as -legend at oncreate. if -legend is specified, the form will be wrapped in a fieldset. 
@@ -145,13 +145,13 @@ Add -path as parameter for oncreate so the form action can be set with less conf
 Fix actionpath reference so it updates properly when altering the value (not possible?)
 Should loadfields load "-" params?
 Unsavedwarning made optional, does not seem to work properly now?
-More flexible error hightlighting
+More flexible error highlighting
 Move templates to a member tag to be make it easier to subclass (Douglas Burchard)
 Add "button". <button></button>. Subtypes are submit, reset and button. How to specify the subtype? (Douglas Burchard)
 Change ->addfield to ->insert and make ->addfield deprecated
 There is no src for input type image!
 Add ->size and ->get so the form object can be iterated
-Add -skipemtpy to to ->renderhtml
+Add -skipempty to to ->renderhtml
 Option for -> renderhtml to output without html encoding
 ->renderhtml should never html encode fields of type html
 
@@ -218,7 +218,7 @@ Option for -> renderhtml to output without html encoding
 	
 
 	define_tag: 'oncreate', -description='Parameters:\n\
-			-formaction (optional) The action atribute in the form html tag\n\
+			-formaction (optional) The action attribute in the form html tag\n\
 			-action (optional) Deprecated synonym to -formaction\n\
 			-method (optional) Defaults to post\n\
 			-name (optional)\n\
@@ -289,7 +289,7 @@ Option for -> renderhtml to output without html encoding
 		local_defined('database') ? (self -> 'database') = @#database;
 
 		if: !(local_defined: 'formaction') && (local_defined: 'action');
-			// keep support for old -action insead of -formaction
+			// keep support for old -action instead of -formaction
 			(self -> 'debug_trace') -> insert('*** DEPRECATION WARNING *** ' + tag_name + ' -action parameter is deprecated, use -formaction instead ');
 			(self -> 'formaction') = @#action;
 		/if;
@@ -364,11 +364,11 @@ Option for -> renderhtml to output without html encoding
 	
 	define_tag: 'addfield', -description='Inserts a form element in the form. \n\
 			Parameters:\n\
-			-type (required) Supported types are listed in form -> \'validfieldtypes_array\'. Also custom field types addbuton, savebutton or deletebutton are supported (translated to submit buttons with predefined names). \
+			-type (required) Supported types are listed in form -> \'validfieldtypes_array\'. Also custom field types addbutton, savebutton or deletebutton are supported (translated to submit buttons with predefined names). \
 			For the field types html, fieldset and legend use -value to specify the data to display for these fields. A legend field automatically creates a fieldset (closes any previously open fieldsets). Use fieldset with -value=false to close a fieldset without opening a new one. \n\
-			-name (optional) Required for all input types except addbuton, savebutton, deletebutton, fieldset, legend and html\n\
+			-name (optional) Required for all input types except addbutton, savebutton, deletebutton, fieldset, legend and html\n\
 			-id (optional) id for the html object, will be autogenerated if not specified\n\
-			-dbfield (optional) Corresponding database field name (name is used if dbfield is not specified), or null/emtpy string if ignore this field for database\n\
+			-dbfield (optional) Corresponding database field name (name is used if dbfield is not specified), or null/empty string if ignore this field for database\n\
 			-value (optional) Initial value for the field\n\
 			-hint (optional) Optional gray hint text to show in empty text field\n\
             -options (optional) For select, checkbox and radio, must be array, set or series. For select, the array can contain -optgroup=label to create an optiongroup. \n\ 
@@ -774,7 +774,7 @@ Option for -> renderhtml to output without html encoding
 		self -> 'tagtime'=integer: #timer; // cast to integer to trigger onconvert and to "stop timer"
 	/define_tag;
 
-	define_tag: 'clearfields', -description='Emtpies all form field values';
+	define_tag: 'clearfields', -description='Empties all form field values';
 		local: 'timer'=knop_timer; 
 		iterate: (self -> 'fields'), (local: 'fieldpair');
 			if: (self -> 'exceptionfieldtypes') !>> #fieldpair -> value -> (find: 'type');
@@ -870,7 +870,7 @@ Option for -> renderhtml to output without html encoding
 
 
 	define_tag: 'errors', -description='Returns an array with fields that have input errors, or empty array if no errors or form has not been validated';
-		// returns an array with fields that have input errors, or emtpy array if no errors or form has not been validated
+		// returns an array with fields that have input errors, or empty array if no errors or form has not been validated
 		if: (self -> 'errors') == null;
 			return: array;
 		else;
@@ -1343,7 +1343,7 @@ Option for -> renderhtml to output without html encoding
 						if: #option -> type != 'pair';
 							#option = (pair: #option = #option);
 						/if;
-						// name must be string to make sure comparsions work
+						// name must be string to make sure comparisons work
 						(#option -> name) = (string: #option -> name);
 					/iterate;
 				/if;
@@ -2143,7 +2143,7 @@ Option for -> renderhtml to output without html encoding
 					if: #option -> type != 'pair';
 						#option = (pair: #option = #option);
 					/if;
-					// name must be string to make sure comparsions work
+					// name must be string to make sure comparisons work
 					(#option -> name) = (string: #option -> name);
 				/iterate;
 			/if;

@@ -909,7 +909,7 @@ Returns full url for current path or specified path. Path parameters can be prov
 
 /**!
 filename
-Returns the full path to the specified type of precissing file for the current navigation. \n\
+Returns the full path to the specified type of processing file for the current navigation. \n\
 			Parameters:\n\
 			-type (required) lib, act, cnt, cfg, actcfg
 **/

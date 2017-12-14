@@ -48,7 +48,7 @@ Will generate HTML markup:
 2010-11-17	JC	Fixed bug so that session links no longer gets added to urls by the nav -> url tag.
 2010-11-17	JC	Fixed a bug that would not convert local params to an array under certain situations
 2009-09-18	JS	Syntax adjustments for Lasso 9
-2009-09-04	JS	->linkparams: Multiple paramaters with the same name (typically checkboxes) are now passed properly
+2009-09-04	JS	->linkparams: Multiple parameters with the same name (typically checkboxes) are now passed properly
 2009-05-06	JS	->directorytree considers _include folders as part of the Knop directory structure. nav->include('_include/myfile.inc') will first look for _include/myfile.inc and if not found it will look for _knop/_include/myfile.inc 
 2009-05-05	JS	->include looks for a specified file also inside a _knop folder, if the file does not exist at the specified location
 2009-02-09	JS	->filename: Casting path and actionpath to string
@@ -69,12 +69,12 @@ Will generate HTML markup:
 2008-01-23	JS	->url: Added -autoparams that is required to enable the automatic passing of action_params that begin with "-" (this reverts the default behavior to match the the old)
 2008-01-22	JS	->url: GET params that begin with "-" are sent as parameters on links. -path, -sort, -desc, -q are explicitly excluded from nav links in renderhtml. 
 2008-01-22	JS	When using param based navigation, navigation links now use much cleaner /?path/to/page/ style links instead of /?-path=path/to/page/
-2008-01-22	JS	->getlocation: when navmethod is param, the path can now be sent as unnamed parameter insetad of -path parameter (such as /?path/to/page/). 
+2008-01-22	JS	->getlocation: when navmethod is param, the path can now be sent as unnamed parameter instead of -path parameter (such as /?path/to/page/). 
 2008-01-04	JS	->renderbreadcrumb: added flag -plain to output breadcrumb without html
 2008-01-04	JS	->renderbreadcrumb: added flag -skipcurrent to not include the current location in the output
 2008-01-04	JS	->insert: -template can now be specified also for individual nav items. Use the form #link##label##current##/link##children#. 
 2008-01-04	JS	->renderhtml: changed #title# to #label# in template for clarity, for example #link##label##current##/link##children# (#title# will remain supported)
-2008-01-04	JS	Added #current# as placeholder for template, to specify where the current marker should occurr. If not specified in the template, the current marker appears immediately after the label.
+2008-01-04	JS	Added #current# as placeholder for template, to specify where the current marker should occur. If not specified in the template, the current marker appears immediately after the label.
 2007-12-12	JS	->include now logs processing time for the include to debug trace
 2007-12-11	JS	Added documentation as -description to most member tags, to be used by the new ->help tag
 2007-12-11	JS	Moved ->help to knop_base
@@ -647,7 +647,7 @@ Will generate HTML markup:
 			// we haven't found a valid location, we must resort to a default page
 			if: self -> 'default' != '' && self -> pathmap >>  self -> 'default';
 				#path = self -> 'default';
-				#dotrace ? (self -> 'debug_trace') -> (insert: tag_name + ': use defalt location ' #path);
+				#dotrace ? (self -> 'debug_trace') -> (insert: tag_name + ': use default location ' #path);
 			else;
 				// use first page as default, if it exists
 				iterate(self -> 'navitems', local('navitem'));
@@ -1263,7 +1263,7 @@ Will generate HTML markup:
 		return: @#url;
 	/define_tag;
 	
-	define_tag: 'filename', -description='Returns the full path to the specified type of precissing file for the current navigation. \n\
+	define_tag: 'filename', -description='Returns the full path to the specified type of processing file for the current navigation. \n\
 			Parameters:\n\
 			-type (required) lib, act, cnt, cfg, actcfg',
 		-required='type',

@@ -175,7 +175,7 @@ else(string($s_lang) -> size > 0);
 	$lang_ui -> setlanguage($s_lang);
 
 else;
-	// no specific language has been chosen, use the visitor's preferred language acording to the browser's request header
+	// no specific language has been chosen, use the visitor's preferred language according to the browser's request header
 /if;
 
 ?>

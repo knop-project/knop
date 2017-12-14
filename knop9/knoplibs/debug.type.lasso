@@ -1004,7 +1004,7 @@ define ldebug => type {
 		
 //============================================================================
 //
-//		External resources - these tags include links to external dependics if they do not exist on the current page.
+//		External resources - these tags include links to external dependencies if they do not exist on the current page.
 //
 //............................................................................
 	

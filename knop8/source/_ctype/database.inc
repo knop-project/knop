@@ -43,11 +43,11 @@ CHANGE NOTES
 2008-05-28	JS	->getrecord now works with integer keyvalues (oops)
 2008-05-27	JS	->get returns a new datatype knop_databaserow 
 2008-05-27	JS	Added ->size and ->get so a database object can be iterated. When iterating each row is returned as an array of field values. 
-2008-05-27	JS	Addedd ->nextrecord that increments the recordpointer each time it is called until the last record in the found set is reached. Returns true as long as there are more records. Useful in a while loop - see example below
+2008-05-27	JS	Added ->nextrecord that increments the recordpointer each time it is called until the last record in the found set is reached. Returns true as long as there are more records. Useful in a while loop - see example below
 2008-05-27	JS	Implemented record pointer 'current_record'. The record pointer is reset for each new query. 
 2008-05-27	JS	->field: added -recordindex to get data from any record in the current found set
 2008-05-27	JS	Added ->_unknowntag as shortcut to field
-2008-05-26	JS	Removed onassign since it causes touble
+2008-05-26	JS	Removed onassign since it causes trouble
 2008-05-26	JS	Extended field_names to return the field names for any specified table, return field names also for db objects that have never been used for a database query and optionally return field types
 2008-01-29	JS	->getrecord now supports -sql. Make sure that the SQL statement includes the relevant keyfield (and lockfield if locking is used). 
 2008-01-10	JS	->capturesearchvars: error_code and error_msg was mysteriously not set after database operations that caused errors. 
@@ -133,7 +133,7 @@ datetime_create and datetime_mod, and also user_create and user_mod.
 		'current_record'=integer,		// index of the current record to get field values from a specific record
 		'field_names_map'=map,
 		'resultset_count_map'=map;		// resultset_count stored for each inlinename 
-	// these vars have directly corresponding Lasso tags so they can be set programatically
+	// these vars have directly corresponding Lasso tags so they can be set programmatically
 	local: 'searchresultvars'=(array: 'action_statement', 'found_count', 'shown_first', 
 		'shown_last', 'shown_count', 'field_names', 'records_array', 'maxrecords_value', 'skiprecords_value');
 	iterate: #searchresultvars, (local: 'resultvar');
@@ -1028,7 +1028,7 @@ datetime_create and datetime_mod, and also user_create and user_mod.
 			&& #recordindex <= (self -> 'records_array') -> size);
 			// return specific record
 			if(#index==1);
-				// return first ocurrence of field name through the index map - this is faster
+				// return first occurrence of field name through the index map - this is faster
 				return(self -> 'records_array' -> get(#recordindex) -> get(self -> 'field_names_map' -> find(#fieldname)));
 			else;
 				// return another occurrence of the field - this is slightly slower
@@ -1258,7 +1258,7 @@ CHANGE NOTES
 			&& #recordindex <= (self -> 'records_array') -> size);
 			// return specific record
 			if(#index==1);
-				// return first ocurrence of field name through the index map - this is faster
+				// return first occurrence of field name through the index map - this is faster
 				return(self -> 'records_array' -> get(#recordindex) -> get(self -> 'field_names_map' -> find(#fieldname)));
 			else;
 				// return another occurrence of the field - this is slightly slower
